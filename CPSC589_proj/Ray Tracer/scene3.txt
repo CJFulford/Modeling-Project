@@ -1,0 +1,229 @@
+# ============================================================
+# Scene One for Ray Tracing
+# CPSC 453 - Assignment #4 - Winter 2016
+#
+# This file contains the geometry of the scene only.
+# No materials are specified.
+#
+# Instructions for reading this file:
+#   - lines beginning with ‘#’ are comments
+#   - all objects are expressed in the camera reference frame
+#   - objects are described with the following parameters:
+#      - point light source has a single position
+#      - sphere has a centre and radius
+#      - plane has a unit normal and a point on the plane
+#      - triangle has positions of its three corners, in
+#        counter-clockwise order
+#   - syntax of the object specifications are as follows:
+#
+#      light    { x  y  z  }
+#      sphere   { x  y  z   r }
+#      plane    { xn yn zn  xq yq zq }
+#      triangle { x1 y1 z1  x2 y2 z2  x3 y3 z3 }
+#
+#      after these values, all structures have a 1x3 vec for their colour
+#	   after that, all structures except the lights have a 3x1 specular vector and a phong exponent
+#	after tat we have a float that is what percentage of the light hitting it that it reflects
+#
+# Feel free to modify or extend this scene file to your desire
+# as you complete your ray tracing system.
+# ============================================================
+
+light {
+  3.0 3.0 -10
+  0.6 0.6 0.6
+}
+
+#4 walls
+# back right
+plane {
+  -1.0 0.0 -1.0
+  8.0 0.0 -8.0
+  0.1 0.1 0.1
+  1.0 1.0 1.0
+  2000
+  1.0
+}
+
+# back left
+plane {
+  1.0 0.0 -1.0
+  -8.0 0.0 -8.0
+  0.1 0.1 0.1
+  1.0 1.0 1.0
+  2000
+  1.0
+}
+
+# front right
+plane {
+  -1.0 0.0 1.0
+  8.0 0.0 -16.0
+  0.1 0.1 0.1
+  1.0 1.0 1.0
+  2000
+  1.0
+}
+
+# front left
+plane {
+  1.0 0.0 1.0
+  -8.0 0.0 -16.0
+  0.1 0.1 0.1
+  1.0 1.0 1.0
+  2000
+  1.0
+}
+
+#ceiling
+plane {
+  0.0 -1.0 0.0
+  0.0 4.0 0.0
+  0.1 0.1 0.1
+  1.0 1.0 1.0
+  2000
+  1.0
+}
+
+#floor
+plane {
+  0.0 1.0 0.0
+  0.0 -4.0 0.0
+  0.1 0.1 0.1
+  1.0 1.0 1.0
+  2000
+  1.0
+}
+/////////////////////////////////////
+# red triangle
+triangle {
+  -0.75 -2.0 -14.5
+  -1.25 -4.0 -15.0
+  -0.25 -4.0 -15.0
+  0.5 0.0 0.0
+  0.01 0.01 0.01
+  200
+  0.0
+}
+
+triangle {
+  -0.75 -2.0 -14.5
+  -1.25 -4.0 -14.0
+  -1.25 -4.0 -15.0
+  0.5 0.0 0.0
+  0.01 0.01 0.01
+  200
+  0.0
+}
+
+triangle {
+  -0.75 -2.0 -14.5
+  -0.25 -4.0 -14.0
+  -1.25 -4.0 -14.0
+  0.5 0.0 0.0
+  0.01 0.01 0.01
+  200
+  0.0
+}
+
+triangle {
+  -0.75 -2.0 -14.5
+  -0.25 -4.0 -15.0
+  -0.25 -4.0 -14.0
+  0.5 0.0 0.0
+  0.01 0.01 0.01
+  200
+  0.0
+}
+/////////////////////////////////////////////
+# blue triangle
+triangle {
+  0.75 -2.0 -14.5
+  1.25 -4.0 -15.0
+  0.25 -4.0 -15.0
+  0.0 0.0 0.5
+  0.01 0.01 0.01
+  200
+  0.0
+}
+
+triangle {
+  0.75 -2.0 -14.5
+  1.25 -4.0 -14.0
+  1.25 -4.0 -15.0
+  0.0 0.0 0.5
+  0.01 0.01 0.01
+  200
+  0.0
+}
+
+triangle {
+  0.75 -2.0 -14.5
+  0.25 -4.0 -14.0
+  1.25 -4.0 -14.0
+  0.0 0.0 0.5
+  0.01 0.01 0.01
+  200
+  0.0
+}
+
+triangle {
+  0.75 -2.0 -14.5
+  0.25 -4.0 -15.0
+  0.25 -4.0 -14.0
+  0.0 0.0 0.5
+  0.01 0.01 0.01
+  200
+  0.0
+}
+
+///////////////////////////////////////
+# green triangle
+triangle {
+  0.0 -2.0 -13.5
+  0.5 -4.0 -14.0
+  -0.5 -4.0 -14.0
+  0.0 0.5 0.0
+  0.01 0.01 0.01
+  200
+  0.0
+}
+
+triangle {
+  0.0 -2.0 -13.5
+  0.5 -4.0 -13.0
+  0.5 -4.0 -14.0
+  0.0 0.5 0.0
+  0.01 0.01 0.01
+  200
+  0.0
+}
+
+triangle {
+  0.0 -2.0 -13.5
+  -0.5 -4.0 -13.0
+  0.5 -4.0 -13.0
+  0.0 0.5 0.0
+  0.01 0.01 0.01
+  200
+  0.0
+}
+
+triangle {
+  0.0 -2.0 -13.5
+  -0.25 -4.0 -14.0
+  -0.25 -4.0 -13.0
+  0.0 0.5 0.0
+  0.01 0.01 0.01
+  200
+  0.0
+}
+
+sphere {
+  0.0 -1.40 -14.2
+  1
+  0.1 0.1 0.1
+  1.0 1.0 1.0
+  2000
+  1.0
+}

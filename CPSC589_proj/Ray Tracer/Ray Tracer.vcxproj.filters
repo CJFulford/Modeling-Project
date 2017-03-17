@@ -1,0 +1,99 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Source Files\src">
+      <UniqueIdentifier>{27699570-de0c-410f-bca5-090ea859b43a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\images">
+      <UniqueIdentifier>{b2fab093-045d-4760-ae4d-004a86d75d76}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\images\input">
+      <UniqueIdentifier>{f7d36ff8-467a-464d-8d0d-69c6bba015b2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\images\output">
+      <UniqueIdentifier>{4be416cd-3787-40f2-a036-794ff640b06e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\shaders">
+      <UniqueIdentifier>{f8fa6bfb-8d1f-4d5e-bab2-7ba6ad450582}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="File.cpp">
+      <Filter>Source Files\src</Filter>
+    </ClCompile>
+    <ClCompile Include="givenOpenGLFunctions.cpp">
+      <Filter>Source Files\src</Filter>
+    </ClCompile>
+    <ClCompile Include="ImageBuffer.cpp">
+      <Filter>Source Files\src</Filter>
+    </ClCompile>
+    <ClCompile Include="Lighting.cpp">
+      <Filter>Source Files\src</Filter>
+    </ClCompile>
+    <ClCompile Include="Main.cpp">
+      <Filter>Source Files\src</Filter>
+    </ClCompile>
+    <ClCompile Include="objReader.cpp">
+      <Filter>Source Files\src</Filter>
+    </ClCompile>
+    <ClCompile Include="Scalars.cpp">
+      <Filter>Source Files\src</Filter>
+    </ClCompile>
+    <ClCompile Include="Utility.cpp">
+      <Filter>Source Files\src</Filter>
+    </ClCompile>
+    <ClCompile Include="glad.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="FreeImage.dll">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Vertex.glsl">
+      <Filter>Source Files\shaders</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Header.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ImageBuffer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="scene1.png">
+      <Filter>Source Files\images\output</Filter>
+    </Image>
+    <Image Include="scene2.png">
+      <Filter>Source Files\images\output</Filter>
+    </Image>
+    <Image Include="scene3.png">
+      <Filter>Source Files\images\output</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="scene1.txt">
+      <Filter>Source Files\images\input</Filter>
+    </Text>
+    <Text Include="scene2.txt">
+      <Filter>Source Files\images\input</Filter>
+    </Text>
+    <Text Include="scene3.txt">
+      <Filter>Source Files\images\input</Filter>
+    </Text>
+  </ItemGroup>
+</Project>
