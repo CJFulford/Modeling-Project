@@ -45,9 +45,6 @@
     <ClCompile Include="Main.cpp">
       <Filter>Source Files\src</Filter>
     </ClCompile>
-    <ClCompile Include="objReader.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
     <ClCompile Include="Scalars.cpp">
       <Filter>Source Files\src</Filter>
     </ClCompile>

@@ -11,6 +11,9 @@
 #include <glm\glm.hpp>
 #include <omp.h>
 
+#define PI 3.1415
+#define FOVdeg 60
+#define FOV FOVdeg * PI / 180
 using namespace std;
 using namespace glm;
 

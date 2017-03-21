@@ -4,7 +4,6 @@
 void QueryGLVersion();
 bool CheckGLErrors();
 
-int scene = 1;
 vec3 camOrigin = vec3(0.0, 0.0, 0.0);
 
 void KeyCallback(
@@ -14,27 +13,36 @@ void KeyCallback(
 	int action, 
 	int mods)
 {
-    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
-        glfwSetWindowShouldClose(window, GL_TRUE);
-	if (key == GLFW_KEY_1 && action == GLFW_PRESS)
-		scene = 1;
-	if (key == GLFW_KEY_2 && action == GLFW_PRESS)
-		scene = 2;
-	if (key == GLFW_KEY_3 && action == GLFW_PRESS)
-		scene = 3;
-	if (key == GLFW_KEY_LEFT && action == GLFW_PRESS)
-		camOrigin += vec3(-0.1, 0.0, 0.0);
-	if (key == GLFW_KEY_RIGHT && action == GLFW_PRESS)
-		camOrigin += vec3(0.1, 0.0, 0.0);
-	if (key == GLFW_KEY_UP && action == GLFW_PRESS)
-		camOrigin += vec3(0.0, 0.1, 0.0);
-	if (key == GLFW_KEY_DOWN && action == GLFW_PRESS)
-		camOrigin += vec3(0.0, -0.1, 0.0);
-	if (key == GLFW_KEY_O && action == GLFW_PRESS)
-		camOrigin -= vec3(0.0, 0.0, 0.1);
-	if (key == GLFW_KEY_P && action == GLFW_PRESS)
-		camOrigin += vec3(0.0, 0.0, 0.1);
+	if (action == GLFW_PRESS)
+	{
+		switch (key)
+		{
+		case(GLFW_KEY_ESCAPE):
+			glfwSetWindowShouldClose(window, GL_TRUE);
 
+		case (GLFW_KEY_LEFT):
+			camOrigin -= vec3(-0.1, 0.0, 0.0);
+			break;
+		case (GLFW_KEY_RIGHT):
+			camOrigin -= vec3(0.1, 0.0, 0.0);
+			break;
+		case (GLFW_KEY_UP):
+			camOrigin -= vec3(0.0, 0.1, 0.0);
+			break;
+		case(GLFW_KEY_DOWN):
+			camOrigin -= vec3(0.0, -0.1, 0.0);
+			break;
+		case(GLFW_KEY_O):
+			camOrigin -= vec3(0.0, 0.0, 0.1);
+			break;
+		case(GLFW_KEY_P):
+			camOrigin += vec3(0.0, 0.0, 0.1);
+			break;
+
+		default:
+			break;
+		}
+	}
 }
 
 int main(
@@ -54,7 +62,6 @@ int main(
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	glfwWindowHint(GLFW_DOUBLEBUFFER, TRUE);
 	window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Ray Tracer Window", 0, 0);
 	if (!window) {
 		cout << "Program failed to create GLFW window, TERMINATING" << endl;
@@ -75,49 +82,50 @@ int main(
 	ImageBuffer imageBuffer;
 	imageBuffer.Initialize();
 
-	int oldScene = scene - 1;
-
 	vector<MyLight>		lightVec;
 	vector<MySphere>	sphereVec;
 	vector<MyPlane>		planeVec;
 	vector<MyTriangle>	triangleVec;
-	readFromFile("scene" + to_string(scene) + ".txt", lightVec, sphereVec, planeVec, triangleVec);
+	readFromFile("scene1.txt", lightVec, sphereVec, planeVec, triangleVec);
 
 	while (!glfwWindowShouldClose(window))
 	{
-		//if (oldScene != scene) {
-			// start recording time for render timer
-			cout << "Rendering... ";
-			time_t startTime = time(NULL);
-			vec3 colourVec;
+		// start recording time for render timer
+		cout << "Rendering... ";
+		time_t startTime = time(NULL);
+		vec3 colourVec;
 
-			// += 2.f since the window goes from -1 top 1, which is a distance of 2
-			int xcoord;
-			//#pragma omp parallel for schedule(dynamic)
-			for (xcoord = -WINDOW_WIDTH; xcoord < WINDOW_WIDTH; xcoord += 2)
+
+
+		int l = -1, r = 1, t = 1, b = -1;
+
+		// += 2.f since the window goes from -1 top 1, which is a distance of 2
+		#pragma omp parallel for schedule(dynamic)
+		for (int i = 0; i < WINDOW_WIDTH; i++)
+		{
+			for (int j = 0; j < WINDOW_HEIGHT; j++)
 			{
-				for (int ycoord = -WINDOW_HEIGHT; ycoord < WINDOW_HEIGHT; ycoord += 2)
-				{
-					int recursive = MAX_RECURSIVE_RAYS;
-					MyRay ray;
-					if (ratio >= 1.f) ray.direction = vec3((float)(xcoord / WINDOW_WIDTH) * ratio, (float)(ycoord / WINDOW_HEIGHT), FOCAL_LENGTH);
-					else ray.direction = vec3(xcoord, ycoord / ratio, FOCAL_LENGTH);
-					ray.origin = camOrigin;
-					myNormalize(ray);
-					colourVec = getColour(ray, sphereVec, triangleVec, planeVec, lightVec, recursive);
-					//imageBuffer.SetPixel((xcoord * HALF_WIDTH) + HALF_WIDTH,	(ycoord * HALF_HEIGHT) + HALF_HEIGHT,	colourVec);
-					imageBuffer.SetPixel(xcoord / 2 + HALF_WIDTH,	ycoord / 2 + HALF_HEIGHT,	colourVec);
-				}
+				int recursive = MAX_RECURSIVE_RAYS;
+				MyRay ray;
+
+				float	u = l + ((r - l)*(i + .5f)) / WINDOW_WIDTH,
+					v = b + ((t - b)*(j + .5f)) / WINDOW_HEIGHT,
+					w = -(r/tan(FOV/2));
+
+				ray.origin = camOrigin;
+				ray.direction = normalize(vec3(u, v, w) - ray.origin);
+
+				colourVec = getColour(ray, sphereVec, triangleVec, planeVec, lightVec, recursive);
+				imageBuffer.SetPixel(i, j, colourVec);
 			}
+		}
 
-			imageBuffer.Render();
+		imageBuffer.Render();
 
-			// scene is rendered to the back buffer, so swap to front for display
-			glfwSwapBuffers(window);
-			time_t endTime = time(NULL);
-			cout << difftime(endTime, startTime) << " seconds"<< endl;
-			oldScene = scene;
-		//}
+		// scene is rendered to the back buffer, so swap to front for display
+		glfwSwapBuffers(window);
+		time_t endTime = time(NULL);
+		cout << difftime(endTime, startTime) << " seconds"<< endl;
 		// sleep until next event before drawing again
 		glfwPollEvents();
 	}
