@@ -71,22 +71,22 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(ProjectDir)libraries\GLM;$(ProjectDir)libraries\GLFW x32\include;$(ProjectDir)libraries\GLAD V4.5\include;$(ProjectDir)libraries\GL;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)libraries\GLM;$(ProjectDir)libraries\GLFW x32\include;$(ProjectDir)libraries\GLAD V4.5\include;$(IncludePath)</IncludePath>
     <LibraryPath>$(ProjectDir)libraries\GLFW x32\lib-vc2015;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(ProjectDir)libraries\GLM;$(ProjectDir)libraries\GLFW x32\include;$(ProjectDir)libraries\GLAD V4.5\include;$(ProjectDir)libraries\GL;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)libraries\GLM;$(ProjectDir)libraries\GLFW x32\include;$(ProjectDir)libraries\GLAD V4.5\include;$(IncludePath)</IncludePath>
     <LibraryPath>$(ProjectDir)libraries\GLFW x32\lib-vc2015;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(ProjectDir)libraries\GLM;$(ProjectDir)libraries\GLFW x32\include;$(ProjectDir)libraries\GLAD V4.5\include;$(ProjectDir)libraries\GL;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)libraries\GLM;$(ProjectDir)libraries\GLFW x32\include;$(ProjectDir)libraries\GLAD V4.5\include;$(IncludePath)</IncludePath>
     <LibraryPath>$(ProjectDir)libraries\GLFW x32\lib-vc2015;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(ProjectDir)libraries\GLM;$(ProjectDir)libraries\GLFW x32\include;$(ProjectDir)libraries\GLAD V4.5\include;$(ProjectDir)libraries\GL;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)libraries\GLM;$(ProjectDir)libraries\GLFW x32\include;$(ProjectDir)libraries\GLAD V4.5\include;$(IncludePath)</IncludePath>
     <LibraryPath>$(ProjectDir)libraries\GLFW x32\lib-vc2015;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">

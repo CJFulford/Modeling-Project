@@ -13,22 +13,10 @@
 #ifndef IMAGEBUFFER_H
 #define IMAGEBUFFER_H
 
-#define USING_WINDOWS
-//#define USING_LINUX
-
 #include <string>
 #include <glm\glm.hpp>
 #include <vector>
-#ifdef USING_WINDOWS
 #include <glad\glad.h> 
-#endif
-
-#ifndef GLFW_VERSION_MAJOR
-#ifdef USING_LINUX
-#define GLFW_INCLUDE_GLCOREARB
-#define GL_GLEXT_PROTOTYPES
-#endif
-#include <GLFW\glfw3.h>
 #endif
 
 // --------------------------------------------------------------------------
@@ -71,10 +59,4 @@ public:
 
 	// call this in your render function to copy this image onto your screen
 	void Render();
-
-	// call this at the end of your render to save the image to file
-	bool SaveToFile(const std::string &imageFileName);
 };
-
-// --------------------------------------------------------------------------
-#endif // IMAGEBUFFER_H

@@ -8,7 +8,6 @@
 
 #include <glad\glad.h>
 #include <GLFW\glfw3.h>
-#include <glcorearb.h>
 #include <glm\glm.hpp>
 #include <omp.h>
 
