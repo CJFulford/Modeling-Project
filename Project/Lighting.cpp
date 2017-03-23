@@ -3,19 +3,18 @@
 // see if point is in shadow
 bool checkShadow(
 	vec3 intersection,
-	vector<MySphere>& sphereVec,
-	vector<MyPlane>& planeVec,
-	vector<MyTriangle>& triangleVec,
-	vector<MyLight>& lightVec)
+	vector<Sphere>& sphereVec,
+	vector<Plane>& planeVec,
+	vector<Triangle>& triangleVec,
+	vector<Light>& lightVec)
 
 {
 	bool inShadow = false;
-	MyRay ray;
+	Ray ray;
 	ray.origin = intersection;
-	for (MyLight light : lightVec)
+	for (Light light : lightVec)
 	{
-		ray.direction = light.point - ray.origin;
-		myNormalize(ray);
+		ray.direction = normalize(light.point - ray.origin);
 		float sScalar = getNearestSphereScalar(ray, sphereVec);
 		float tScalar = getNearestTriangleScalar(ray, triangleVec);
 		if (sScalar > error)
@@ -38,23 +37,19 @@ vec3 shading(
 	vec3 colourIn, 
 	vec3 intersection, 
 	vec3 origin, 
-	vector<MyLight>& lightVec, 
-	vec3 n, 
+	vector<Light>& lightVec, 
+	vec3 norm, 
 	float phong, 
 	vec3 specular)
 {
-	myNormalize(&n);
+	vec3 n = normalize(norm);
 	vec3 colVec, ambient;
 
-	vec3 v = origin - intersection;
-	myNormalize(&v);
+	vec3 v = normalize(origin - intersection);
 
-	for (MyLight light : lightVec) {
-		vec3 l = light.point - intersection;
-		myNormalize(&l);
-		//vec3 h = (v + l) / magnitude(v + l);
-		vec3 h = (v + l);
-		myNormalize(&h);
+	for (Light light : lightVec) {
+		vec3 l = normalize(light.point - intersection);
+		vec3 h = normalize((v + l));
 
 		float diffuseFactor = std::max(0.f, dot(n, l));
 		float specularFactor = std::max(0.f, dot(n, h));
@@ -66,11 +61,11 @@ vec3 shading(
 }
 
 vec3 getColour(
-	MyRay& ray,
-	vector<MySphere>& sphereVec,
-	vector<MyTriangle>& triangleVec,
-	vector<MyPlane>& planeVec,
-	vector<MyLight>& lightVec,
+	Ray& ray,
+	vector<Sphere>& sphereVec,
+	vector<Triangle>& triangleVec,
+	vector<Plane>& planeVec,
+	vector<Light>& lightVec,
 	int recursive)
 {
 	float scalar, sScalar, tScalar, pScalar;
@@ -126,10 +121,9 @@ vec3 getColour(
 		return shading(colourVec, intersection, ray.origin, lightVec, normal, phong, specular);
 
 	recursive--;
-	MyRay reflectedRay;
+	Ray reflectedRay;
 	reflectedRay.origin = intersection;
-	reflectedRay.direction = ray.direction - (2.f * (dot(ray.direction, normal) * normal));
-	myNormalize(reflectedRay);
+	reflectedRay.direction = normalize(ray.direction - (2.f * (dot(ray.direction, normal) * normal)));
 
 	vec3 reflectedColourVec = getColour(reflectedRay, sphereVec, triangleVec, planeVec, lightVec, recursive);
 

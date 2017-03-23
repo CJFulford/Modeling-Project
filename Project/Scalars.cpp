@@ -2,8 +2,8 @@
 
 // getting the scalars to shapes
 float getNearestSphereScalar(
-	MyRay ray, 
-	vector<MySphere>& sphereVec, 
+	Ray ray, 
+	vector<Sphere>& sphereVec, 
 	vec3 *colourVec, 
 	vec3 *normal, 
 	float *phong, 
@@ -12,21 +12,19 @@ float getNearestSphereScalar(
 {
 	vec3 colVec = BLACK, norm, spec;
 	float rayScalar = 0, tempScalar = 0, tempPhong = 0, tempReflect = 0;
-	for (MySphere sphere : sphereVec)
+	for (Sphere sphere : sphereVec)
 	{
 		tempScalar = 0;
 		float rootValue = pow(dot(ray.direction, (ray.origin - sphere.center)), 2.f)
-			- pow(length(ray.origin - sphere.center), 2.f)
-			+ pow(sphere.radius, 2.f);
-		if (rootValue < 0)
-			tempScalar = 0;
-		else
+						- pow(length(ray.origin - sphere.center), 2.f)
+						+ pow(sphere.radius, 2.f);
+		if (rootValue >= 0)
 		{
 			float first = -dot(ray.direction, (ray.origin - sphere.center));
 			if (rootValue > 0)
 			{
-				float pos = first + sqrt(rootValue);
-				float neg = first - sqrt(rootValue);
+				float	pos = first + sqrt(rootValue),
+						neg = first - sqrt(rootValue);
 				if (abs(neg) < abs(pos))
 					tempScalar = neg;
 				else
@@ -36,7 +34,7 @@ float getNearestSphereScalar(
 				tempScalar = first;
 		}
 
-		if (((rayScalar == 0) || abs(tempScalar) < abs(rayScalar)) && tempScalar > error)
+		if ((rayScalar == 0 || abs(tempScalar) < abs(rayScalar)) && tempScalar > error)
 		{
 			norm = ((ray.origin + (tempScalar * ray.direction)) - sphere.center) / sphere.radius;
 			rayScalar = tempScalar;
@@ -46,8 +44,7 @@ float getNearestSphereScalar(
 			tempReflect = sphere.reflect;
 		}
 	}
-	myNormalize(&norm);
-	*normal = norm;
+	*normal = normalize(norm);
 	*colourVec = colVec;
 	*phong = tempPhong;
 	*specular = spec;
@@ -56,8 +53,8 @@ float getNearestSphereScalar(
 }
 
 float getNearestSphereScalar(
-	MyRay ray, 
-	vector<MySphere>& sphereVec)
+	Ray ray, 
+	vector<Sphere>& sphereVec)
 {
 	float temp;
 	vec3 tempVec;
@@ -65,8 +62,8 @@ float getNearestSphereScalar(
 }
 
 float getNearestTriangleScalar(
-	MyRay ray, 
-	vector<MyTriangle>& triangleVec, 
+	Ray ray, 
+	vector<Triangle>& triangleVec, 
 	vec3 *colourVec, 
 	vec3 *normal, 
 	float *phong, 
@@ -75,7 +72,7 @@ float getNearestTriangleScalar(
 {
 	vec3 colVec = BLACK, norm, spec;
 	float rayScalar = 0, tempScalar = 0, tempPhong = 0, tempReflect = 0;
-	for (MyTriangle tri : triangleVec) {
+	for (Triangle tri : triangleVec) {
 		tempScalar = 0;
 		float a = tri.a;
 		float b = tri.b;
@@ -117,8 +114,7 @@ float getNearestTriangleScalar(
 			tempReflect = tri.reflect;
 		}
 	}
-	myNormalize(&norm);
-	*normal = norm;
+	*normal = normalize(norm);
 	*phong = tempPhong;
 	*colourVec = colVec;
 	*specular = spec;
@@ -127,8 +123,8 @@ float getNearestTriangleScalar(
 }
 
 float getNearestTriangleScalar(
-	MyRay ray, 
-	vector<MyTriangle>& triangleVec)
+	Ray ray, 
+	vector<Triangle>& triangleVec)
 {
 	float temp;
 	vec3 tempVec;
@@ -136,8 +132,8 @@ float getNearestTriangleScalar(
 }
 
 float getNearestPlaneScalar(
-	MyRay ray, 
-	vector<MyPlane>& planeVec, 
+	Ray ray, 
+	vector<Plane>& planeVec, 
 	vec3 *colourVec, 
 	vec3 *normal, 
 	float *phong, 
@@ -146,11 +142,11 @@ float getNearestPlaneScalar(
 {
 	vec3 colVec = BLACK, norm, spec;
 	float rayScalar = 0, tempScalar = 0, tempPhong = 0, tempReflect = 0;
-	for (MyPlane plane : planeVec) {
+	for (Plane plane : planeVec) {
 		tempScalar = 0;
 
-		float denominator = dot(ray.direction, plane.normal);
-		float numerator = dot((plane.point - ray.origin), plane.normal);
+		float	denominator = dot(ray.direction, plane.normal),
+				numerator = dot((plane.point - ray.origin), plane.normal);
 
 		if (denominator == 0) continue;
 
@@ -166,8 +162,7 @@ float getNearestPlaneScalar(
 			tempReflect = plane.reflect;
 		}
 	}
-	myNormalize(&norm);
-	*normal = norm;
+	*normal = normalize(norm);
 	*phong = tempPhong;
 	*colourVec = colVec;
 	*specular = spec;

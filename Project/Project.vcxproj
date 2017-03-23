@@ -19,9 +19,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{2A48ADCF-1806-4FB4-82D1-051C8A3E9FF3}</ProjectGuid>
+    <ProjectGuid>{D5A870DB-ABA0-450D-9807-A9F6316A5F23}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>RayTracer</RootNamespace>
+    <RootNamespace>Project</RootNamespace>
     <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -71,22 +71,22 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(ProjectDir)libraries\GLFW x32\include;$(ProjectDir)libraries\GLM;$(ProjectDir)libraries\GLAD V4.5\include;$(ProjectDir)libraries\GL;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)libraries\GLM;$(ProjectDir)libraries\GLFW x32\include;$(ProjectDir)libraries\GLAD V4.5\include;$(ProjectDir)libraries\GL;$(IncludePath)</IncludePath>
     <LibraryPath>$(ProjectDir)libraries\GLFW x32\lib-vc2015;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(ProjectDir)libraries\GLFW x32\include;$(ProjectDir)libraries\GLM;$(ProjectDir)libraries\GLAD V4.5\include;$(ProjectDir)libraries\GL;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)libraries\GLM;$(ProjectDir)libraries\GLFW x32\include;$(ProjectDir)libraries\GLAD V4.5\include;$(ProjectDir)libraries\GL;$(IncludePath)</IncludePath>
     <LibraryPath>$(ProjectDir)libraries\GLFW x32\lib-vc2015;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(ProjectDir)libraries\GLFW x32\include;$(ProjectDir)libraries\GLM;$(ProjectDir)libraries\GLAD V4.5\include;$(ProjectDir)libraries\GL;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)libraries\GLM;$(ProjectDir)libraries\GLFW x32\include;$(ProjectDir)libraries\GLAD V4.5\include;$(ProjectDir)libraries\GL;$(IncludePath)</IncludePath>
     <LibraryPath>$(ProjectDir)libraries\GLFW x32\lib-vc2015;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(ProjectDir)libraries\GLFW x32\include;$(ProjectDir)libraries\GLM;$(ProjectDir)libraries\GLAD V4.5\include;$(ProjectDir)libraries\GL;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)libraries\GLM;$(ProjectDir)libraries\GLFW x32\include;$(ProjectDir)libraries\GLAD V4.5\include;$(ProjectDir)libraries\GL;$(IncludePath)</IncludePath>
     <LibraryPath>$(ProjectDir)libraries\GLFW x32\lib-vc2015;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -165,25 +165,13 @@
     <ClCompile Include="Lighting.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Scalars.cpp" />
-    <ClCompile Include="Utility.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="FreeImage.dll" />
-    <None Include="Vertex.glsl" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Header.h" />
     <ClInclude Include="ImageBuffer.h" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="scene1.png" />
-    <Image Include="scene2.png" />
-    <Image Include="scene3.png" />
-  </ItemGroup>
-  <ItemGroup>
     <Text Include="scene1.txt" />
-    <Text Include="scene2.txt" />
-    <Text Include="scene3.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

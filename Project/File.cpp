@@ -17,10 +17,10 @@ void getPointFromLine(
 
 void readFromFile(
 	const string fileDir,
-	vector<MyLight>&  lightVec,
-	vector<MySphere>& sphereVec,
-	vector<MyPlane>& planeVec,
-	vector<MyTriangle>& triangleVec
+	vector<Light>&  lightVec,
+	vector<Sphere>& sphereVec,
+	vector<Plane>& planeVec,
+	vector<Triangle>& triangleVec
 	)
 {
 	ifstream file(fileDir);
@@ -31,7 +31,7 @@ void readFromFile(
 		{
 			if (line.compare(0, string::npos, "light {") == 0)
 			{
-				MyLight light;
+				Light light;
 				getline(file, line);
 				getPointFromLine(line, &light.point);
 
@@ -46,7 +46,7 @@ void readFromFile(
 
 			else if (line.compare(0, string::npos, "sphere {") == 0)
 			{
-				MySphere sphere;
+				Sphere sphere;
 				getline(file, line);
 				getPointFromLine(line, &sphere.center);
 
@@ -70,7 +70,7 @@ void readFromFile(
 
 			else if (line.compare(0, string::npos, "plane {") == 0)
 			{
-				MyPlane plane;
+				Plane plane;
 				getline(file, line);
 				getPointFromLine(line, &plane.normal);
 
@@ -94,7 +94,7 @@ void readFromFile(
 
 			else if (line.compare(0, string::npos, "triangle {") == 0)
 			{
-				MyTriangle tri;
+				Triangle tri;
 				getline(file, line);
 				getPointFromLine(line, &tri.p1);
 
