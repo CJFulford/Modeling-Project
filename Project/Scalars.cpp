@@ -34,7 +34,7 @@ float getNearestSphereScalar(
 				tempScalar = first;
 		}
 
-		if ((rayScalar == 0 || abs(tempScalar) < abs(rayScalar)) && tempScalar > error)
+		if ((rayScalar == 0 || abs(tempScalar) < abs(rayScalar)) && tempScalar > FLOAT_ERROR)
 		{
 			norm = ((ray.origin + (tempScalar * ray.direction)) - sphere.center) / sphere.radius;
 			rayScalar = tempScalar;
@@ -104,7 +104,7 @@ float getNearestTriangleScalar(
 		float beta = ((j * ei_hf) + (k * gf_di) + (l * dh_eg)) / M;
 		if (beta < 0 || beta  > 1 - gamma) continue;
 
-		if (((rayScalar == 0) || abs(tempScalar) < abs(rayScalar)) && tempScalar > error)
+		if (((rayScalar == 0) || abs(tempScalar) < abs(rayScalar)) && tempScalar > FLOAT_ERROR)
 		{
 			tempPhong = tri.phong;
 			norm = cross(tri.p3 - tri.p2, tri.p1 - tri.p2);

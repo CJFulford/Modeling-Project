@@ -14,19 +14,21 @@
 #define PI 3.1415
 #define FOVdeg 60
 #define FOV FOVdeg * PI / 180
+
+#define WINDOW_WIDTH	500
+#define WINDOW_HEIGHT	500
+#define HALF_WIDTH		(WINDOW_WIDTH / 2)
+#define HALF_HEIGHT		(WINDOW_HEIGHT / 2)
+#define aspectRatio		((float)(WINDOW_WIDTH / WINDOW_HEIGHT));
+#define FOCAL_LENGTH	-2.2f
+#define RAY_RECURSIONS	0
+#define FLOAT_ERROR		0.001f
+
+#define BLACK			vec3(0.0, 0.0, 0.0)
+#define WHITE			vec3(1.0, 1.0, 1.0);
+
 using namespace std;
 using namespace glm;
-
-const int WINDOW_WIDTH = 500;
-const int WINDOW_HEIGHT = WINDOW_WIDTH;
-const int HALF_WIDTH = WINDOW_WIDTH / 2;
-const int HALF_HEIGHT = WINDOW_HEIGHT / 2;
-const float ratio = WINDOW_WIDTH / WINDOW_HEIGHT;
-const float FOCAL_LENGTH = -2.2f;
-const int MAX_RECURSIVE_RAYS = 0;
-const float error = 0.001f;
-const vec3 BLACK = vec3(0.0, 0.0, 0.0);
-const vec3 WHITE = vec3(1.0, 1.0, 1.0);
 
 // shape structs
 struct Ray
@@ -49,11 +51,6 @@ struct Triangle
 {
 	float a, b, c, d, e, f, phong, reflect;
 	vec3 p1, p2, p3, colour, specular;
-};
-
-struct Vertex
-{
-	float x, y, z;
 };
 
 

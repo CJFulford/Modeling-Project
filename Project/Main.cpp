@@ -97,21 +97,19 @@ int main(
 
 
 		int l = -1, r = 1, t = 1, b = -1;
-		float w = -(r / tan(FOV / 2));
-		/*float	u = l + ((r - l)*(i + .5f)) / WINDOW_WIDTH,
-		v = b + ((t - b)*(j + .5f)) / WINDOW_HEIGHT;*/
 
-		// += 2.f since the window goes from -1 top 1, which is a distance of 2
+		float w = -(r / (float)tan(FOV / 2));
+		
 		#pragma omp parallel for schedule(dynamic)
 		for (int i = 0; i < WINDOW_WIDTH; i++)
 		{
 			for (int j = 0; j < WINDOW_HEIGHT; j++)
 			{
-				int recursive = MAX_RECURSIVE_RAYS;
+				int recursive = RAY_RECURSIONS;
 				Ray ray;
 
-				float	u = -1 + (2*i + 1.f) / WINDOW_WIDTH,
-						v = -1 + (2*j + 1.f) / WINDOW_HEIGHT;
+				float	u = l + ((r - l)*(i + .5f)) / WINDOW_WIDTH,
+						v = b + ((t - b)*(j + .5f)) / WINDOW_HEIGHT;
 
 				ray.origin = camOrigin;
 				ray.direction = normalize(vec3(u, v, w) - ray.origin);

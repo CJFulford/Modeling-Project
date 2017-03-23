@@ -16,13 +16,13 @@ bool checkShadow(
 		ray.direction = normalize(light.point - ray.origin);
 		float sScalar = getNearestSphereScalar(ray, sphereVec);
 		float tScalar = getNearestTriangleScalar(ray, triangleVec);
-		if (sScalar > error)
+		if (sScalar > FLOAT_ERROR)
 		{
 			vec3 point = ray.origin + (sScalar * ray.direction);
 			if (distance(ray.origin, light.point) > distance(ray.origin, point))
 				inShadow = true;
 		}
-		if (tScalar > error)
+		if (tScalar > FLOAT_ERROR)
 		{
 			vec3 point = ray.origin + (tScalar * ray.direction);
 			if (distance(ray.origin, light.point) > distance(ray.origin, point))
