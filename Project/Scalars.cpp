@@ -52,14 +52,6 @@ float getNearestSphereScalar(
 	return rayScalar;
 }
 
-float getNearestSphereScalar(
-	Ray ray, 
-	vector<Sphere>& sphereVec)
-{
-	float temp;
-	vec3 tempVec;
-	return getNearestSphereScalar(ray, sphereVec, &tempVec, &tempVec, &temp, &tempVec, &temp);
-}
 
 float getNearestTriangleScalar(
 	Ray ray, 
@@ -120,13 +112,4 @@ float getNearestTriangleScalar(
 	*specular = spec;
 	*reflect = tempReflect;
 	return rayScalar;
-}
-
-float getNearestTriangleScalar(
-	Ray ray, 
-	vector<Triangle>& triangleVec)
-{
-	float temp;
-	vec3 tempVec;
-	return getNearestTriangleScalar(ray, triangleVec, &tempVec, &tempVec, &temp, &tempVec, &temp);
 }

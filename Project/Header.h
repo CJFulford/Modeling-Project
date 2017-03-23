@@ -11,9 +11,9 @@
 #include <glm\glm.hpp>
 #include <omp.h>
 
-#define PI 3.1415
-#define FOVdeg 60
-#define FOV FOVdeg * PI / 180
+#define PI				3.1415
+#define FOVdeg			60
+#define FOV				FOVdeg * PI / 180
 
 #define WINDOW_WIDTH	500
 #define WINDOW_HEIGHT	500
@@ -69,12 +69,8 @@ vec3 shading(vec3 colourIn, vec3 intersection, vec3 origin, vector<Light>& light
 
 //------------------------------------
 //SCALAR FUNCTIONS
-	// spheres
 float getNearestSphereScalar(Ray ray, vector<Sphere>& sphereVec, vec3 *colourVec, vec3 *normal, float *phong, vec3 *specular, float *reflect);
-float getNearestSphereScalar(Ray ray, vector<Sphere>& sphereVec);
-	//triangles
 float getNearestTriangleScalar(Ray ray, vector<Triangle>& triangleVec, vec3 *colourVec, vec3 *normal, float *phong, vec3 *specular, float *reflect);
-float getNearestTriangleScalar(Ray ray, vector<Triangle>& triangleVec);
 
 //-------------------------------------
 // FILE FUNCTIONS

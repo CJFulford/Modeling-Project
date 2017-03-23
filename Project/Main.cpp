@@ -1,6 +1,12 @@
 #include "Header.h"
 #include "ImageBuffer.h"
 
+
+#define rayl	-1
+#define rayr	1
+#define rayt	1
+#define rayb	-1
+
 void QueryGLVersion();
 bool CheckGLErrors();
 
@@ -51,7 +57,7 @@ int main(
 {
 	// initialize the GLFW windowing system
 	if (!glfwInit()) {
-		cout << "ERROR: GLFW failed to initilize, TERMINATING" << endl;
+		std::cout << "ERROR: GLFW failed to initilize, TERMINATING" << endl;
 		return -1;
 	}
 	glfwSetErrorCallback(ErrorCallback);
@@ -64,7 +70,7 @@ int main(
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Ray Tracer Window", 0, 0);
 	if (!window) {
-		cout << "Program failed to create GLFW window, TERMINATING" << endl;
+		std::cout << "Program failed to create GLFW window, TERMINATING" << endl;
 		glfwTerminate();
 		return -1;
 	}
@@ -86,30 +92,36 @@ int main(
 	vector<Sphere>		sphereVec;
 	vector<Triangle>	triangleVec;
 	readFromFile("scene1.txt", lightVec, sphereVec, triangleVec);
+	
+
+	// variable initialization
+	double diff = 0;
+	time_t startTime = 0;
+	vec3 colourVec = BLACK;
+	int frames = 0,
+		recursive = RAY_RECURSIONS;
+	float	w = -(rayr / (float)tan(FOV / 2)),
+			u = 0,
+			v = 0;
+
 
 	while (!glfwWindowShouldClose(window))
 	{
-		// start recording time for render timer
-		cout << "Rendering... ";
-		time_t startTime = time(NULL);
-		vec3 colourVec;
+		startTime = time(NULL);
+		colourVec = BLACK;
 
 
-
-		int l = -1, r = 1, t = 1, b = -1;
-
-		float w = -(r / (float)tan(FOV / 2));
 		
 		#pragma omp parallel for schedule(dynamic)
 		for (int i = 0; i < WINDOW_WIDTH; i++)
 		{
 			for (int j = 0; j < WINDOW_HEIGHT; j++)
 			{
-				int recursive = RAY_RECURSIONS;
+				recursive = RAY_RECURSIONS;
 				Ray ray;
 
-				float	u = l + ((r - l)*(i + .5f)) / WINDOW_WIDTH,
-						v = b + ((t - b)*(j + .5f)) / WINDOW_HEIGHT;
+				u = rayl + ((rayr - rayl)*(i + .5f)) / WINDOW_WIDTH;
+				v = rayb + ((rayt - rayb)*(j + .5f)) / WINDOW_HEIGHT;
 
 				ray.origin = camOrigin;
 				ray.direction = normalize(vec3(u, v, w) - ray.origin);
@@ -119,13 +131,26 @@ int main(
 			}
 		}
 
+
+
 		imageBuffer.Render();
+
+
 
 		// scene is rendered to the back buffer, so swap to front for display
 		glfwSwapBuffers(window);
 		time_t endTime = time(NULL);
-		cout << difftime(endTime, startTime) << " seconds"<< endl;
-		// sleep until next event before drawing again
+		diff = difftime(endTime, startTime);
+		frames++;
+		if (diff >= 1)
+		{
+			std::cout << frames << std::endl;
+			frames = 0;
+		}
+
+
+
+
 		glfwPollEvents();
 	}
 
@@ -133,6 +158,6 @@ int main(
 	glfwDestroyWindow(window);
 	glfwTerminate();
 
-	cout << "Goodbye!" << endl;
+	std::cout << "Goodbye!" << endl;
 	return 0;
 }
