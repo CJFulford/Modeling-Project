@@ -19,7 +19,6 @@ void readFromFile(
 	const string fileDir,
 	vector<Light>&  lightVec,
 	vector<Sphere>& sphereVec,
-	vector<Plane>& planeVec,
 	vector<Triangle>& triangleVec
 	)
 {
@@ -66,30 +65,6 @@ void readFromFile(
 				sphere.reflect = stof(line.substr(line.find_first_not_of(' '), string::npos));
 
 				sphereVec.push_back(sphere);
-			}
-
-			else if (line.compare(0, string::npos, "plane {") == 0)
-			{
-				Plane plane;
-				getline(file, line);
-				getPointFromLine(line, &plane.normal);
-
-				getline(file, line);
-				getPointFromLine(line, &plane.point);
-
-				getline(file, line);
-				getPointFromLine(line, &plane.colour);
-
-				getline(file, line);
-				getPointFromLine(line, &plane.specular);
-
-				getline(file, line);
-				plane.phong = stof(line.substr(line.find_first_not_of(' '), string::npos));
-
-				getline(file, line);
-				plane.reflect = stof(line.substr(line.find_first_not_of(' '), string::npos));
-
-				planeVec.push_back(plane);
 			}
 
 			else if (line.compare(0, string::npos, "triangle {") == 0)

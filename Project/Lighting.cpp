@@ -4,7 +4,6 @@
 bool checkShadow(
 	vec3 intersection,
 	vector<Sphere>& sphereVec,
-	vector<Plane>& planeVec,
 	vector<Triangle>& triangleVec,
 	vector<Light>& lightVec)
 
@@ -64,23 +63,21 @@ vec3 getColour(
 	Ray& ray,
 	vector<Sphere>& sphereVec,
 	vector<Triangle>& triangleVec,
-	vector<Plane>& planeVec,
 	vector<Light>& lightVec,
 	int recursive)
 {
-	float scalar, sScalar, tScalar, pScalar;
-	vec3 colourVec, sCol, tCol, pCol;
-	vec3 normal, sNorm, tNorm, pNorm;
-	vec3 specular, sSpecular, tSpecular, pSpecular;
-	float phong, sPhong, tPhong, pPhong;
-	float reflect, sReflect, tReflect, pReflect;
+	float scalar, sScalar, tScalar;
+	vec3 colourVec, sCol, tCol;
+	vec3 normal, sNorm, tNorm;
+	vec3 specular, sSpecular, tSpecular;
+	float phong, sPhong, tPhong;
+	float reflect, sReflect, tReflect;
 
 	sScalar = getNearestSphereScalar(ray, sphereVec, &sCol, &sNorm, &sPhong, &sSpecular, &sReflect);
 	tScalar = getNearestTriangleScalar(ray, triangleVec, &tCol, &tNorm, &tPhong, &tSpecular, &tReflect);
-	pScalar = getNearestPlaneScalar(ray, planeVec, &pCol, &pNorm, &pPhong, &pSpecular, &pReflect);
 
 
-	if (sScalar > 0 && (sScalar < tScalar || tScalar == 0) && (sScalar < pScalar || pScalar == 0))
+	if (sScalar > 0 && (sScalar < tScalar || tScalar == 0))
 	{
 		normal = sNorm;
 		colourVec = sCol;
@@ -89,7 +86,7 @@ vec3 getColour(
 		specular = sSpecular;
 		reflect = sReflect;
 	}
-	else if (tScalar > 0 && (tScalar < sScalar || sScalar == 0) && (tScalar < pScalar || pScalar == 0))
+	else if (tScalar > 0 && (tScalar < sScalar || sScalar == 0))
 	{
 		normal = tNorm;
 		colourVec = tCol;
@@ -98,22 +95,13 @@ vec3 getColour(
 		specular = tSpecular;
 		reflect = tReflect;
 	}
-	else if (pScalar > 0 && (pScalar < sScalar || sScalar == 0) && (pScalar < tScalar || tScalar == 0))
-	{
-		normal = pNorm;
-		colourVec = pCol;
-		scalar = pScalar;
-		phong = pPhong;
-		specular = pSpecular;
-		reflect = pReflect;
-	}
 	else
 		return BLACK;
 
 
 	vec3 intersection = ray.origin + (scalar * ray.direction);
 
-	bool inShadow = checkShadow(intersection, sphereVec, planeVec, triangleVec, lightVec);
+	bool inShadow = checkShadow(intersection, sphereVec, triangleVec, lightVec);
 
 	if (recursive <= 0 && inShadow)
 		return colourVec * lightVec[0].ambient;
@@ -125,7 +113,7 @@ vec3 getColour(
 	reflectedRay.origin = intersection;
 	reflectedRay.direction = normalize(ray.direction - (2.f * (dot(ray.direction, normal) * normal)));
 
-	vec3 reflectedColourVec = getColour(reflectedRay, sphereVec, triangleVec, planeVec, lightVec, recursive);
+	vec3 reflectedColourVec = getColour(reflectedRay, sphereVec, triangleVec, lightVec, recursive);
 
 	if (inShadow)
 		return (colourVec + (specular * reflectedColourVec)) * lightVec[0].ambient;

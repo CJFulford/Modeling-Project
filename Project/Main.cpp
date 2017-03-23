@@ -83,10 +83,9 @@ int main(
 	imageBuffer.Initialize();
 
 	vector<Light>		lightVec;
-	vector<Sphere>	sphereVec;
-	vector<Plane>		planeVec;
+	vector<Sphere>		sphereVec;
 	vector<Triangle>	triangleVec;
-	readFromFile("scene1.txt", lightVec, sphereVec, planeVec, triangleVec);
+	readFromFile("scene1.txt", lightVec, sphereVec, triangleVec);
 
 	while (!glfwWindowShouldClose(window))
 	{
@@ -117,7 +116,7 @@ int main(
 				ray.origin = camOrigin;
 				ray.direction = normalize(vec3(u, v, w) - ray.origin);
 
-				colourVec = getColour(ray, sphereVec, triangleVec, planeVec, lightVec, recursive);
+				colourVec = getColour(ray, sphereVec, triangleVec, lightVec, recursive);
 				imageBuffer.SetPixel(i, j, colourVec);
 			}
 		}

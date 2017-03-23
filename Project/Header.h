@@ -45,12 +45,6 @@ struct Sphere
 	float radius, phong, reflect;
 };
 
-struct Plane
-{
-	vec3 normal, point, colour, specular;
-	float phong, reflect;
-};
-
 struct Triangle
 {
 	float a, b, c, d, e, f, phong, reflect;
@@ -73,9 +67,9 @@ bool CheckGLErrors();
 //------------------------------------
 //LIGHTING FUNCTIONS
 
-vec3 getColour(Ray& ray, vector<Sphere>& sphereVec, vector<Triangle>& triangleVec, vector<Plane>& planeVec, vector<Light>& lightVec, int recursive);
+vec3 getColour(Ray& ray, vector<Sphere>& sphereVec, vector<Triangle>& triangleVec, vector<Light>& lightVec, int recursive);
 vec3 shading(vec3 colourIn, vec3 intersection, vec3 origin, vector<Light>& lightVec, vec3 n, float phong, vec3 specular);
-bool checkShadow(vec3 intersection, vector<Sphere>& sphereVec, vector<Plane>& planeVec, vector<Triangle>& triangleVec, vector<Light>& lightVec);
+bool checkShadow(vec3 intersection, vector<Sphere>& sphereVec, vector<Triangle>& triangleVec, vector<Light>& lightVec);
 
 //------------------------------------
 //SCALAR FUNCTIONS
@@ -85,10 +79,7 @@ float getNearestSphereScalar(Ray ray, vector<Sphere>& sphereVec);
 	//triangles
 float getNearestTriangleScalar(Ray ray, vector<Triangle>& triangleVec, vec3 *colourVec, vec3 *normal, float *phong, vec3 *specular, float *reflect);
 float getNearestTriangleScalar(Ray ray, vector<Triangle>& triangleVec);
-	//planes
-float getNearestPlaneScalar(Ray ray, vector<Plane>& planeVec, vec3 *colourVec, vec3 *normal, float *phong, vec3 *specular, float *reflect);
 
 //-------------------------------------
 // FILE FUNCTIONS
-void readFromFile(const string fileDir, vector<Light>&  lightVec, vector<Sphere>& sphereVec, vector<Plane>& planeVec, vector<Triangle>& triangleVec);
-void getPointFromLine(string line, vec3 *point);
+void readFromFile(const string fileDir, vector<Light>&  lightVec, vector<Sphere>& sphereVec, vector<Triangle>& triangleVec);
