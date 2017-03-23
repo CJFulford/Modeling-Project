@@ -98,8 +98,7 @@ int main(
 	double diff = 0;
 	time_t startTime = 0;
 	vec3 colourVec = BLACK;
-	int frames = 0,
-		recursive = RAY_RECURSIONS;
+	int frames = 0;
 	float	w = -(rayr / (float)tan(FOV / 2)),
 			u = 0,
 			v = 0;
@@ -117,7 +116,6 @@ int main(
 		{
 			for (int j = 0; j < WINDOW_HEIGHT; j++)
 			{
-				recursive = RAY_RECURSIONS;
 				Ray ray;
 
 				u = rayl + ((rayr - rayl)*(i + .5f)) / WINDOW_WIDTH;
@@ -126,7 +124,7 @@ int main(
 				ray.origin = camOrigin;
 				ray.direction = normalize(vec3(u, v, w) - ray.origin);
 
-				colourVec = getColour(ray, sphereVec, triangleVec, lightVec, recursive);
+				colourVec = getColour(ray, sphereVec, triangleVec, lightVec);
 				imageBuffer.SetPixel(i, j, colourVec);
 			}
 		}

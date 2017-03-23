@@ -21,7 +21,6 @@
 #define HALF_HEIGHT		(WINDOW_HEIGHT / 2)
 #define aspectRatio		((float)(WINDOW_WIDTH / WINDOW_HEIGHT));
 #define FOCAL_LENGTH	-2.2f
-#define RAY_RECURSIONS	0
 #define FLOAT_ERROR		0.001f
 
 #define BLACK			vec3(0.0, 0.0, 0.0)
@@ -64,7 +63,7 @@ bool CheckGLErrors();
 //------------------------------------
 //LIGHTING FUNCTIONS
 
-vec3 getColour(Ray& ray, vector<Sphere>& sphereVec, vector<Triangle>& triangleVec, vector<Light>& lightVec, int recursive);
+vec3 getColour(Ray& ray, vector<Sphere>& sphereVec, vector<Triangle>& triangleVec, vector<Light>& lightVec);
 vec3 shading(vec3 colourIn, vec3 intersection, vec3 origin, vector<Light>& lightVec, vec3 n, float phong, vec3 specular);
 
 //------------------------------------

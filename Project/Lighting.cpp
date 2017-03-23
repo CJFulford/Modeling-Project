@@ -31,15 +31,14 @@ vec3 getColour(
 	Ray& ray,
 	vector<Sphere>& sphereVec,
 	vector<Triangle>& triangleVec,
-	vector<Light>& lightVec,
-	int recursive)
+	vector<Light>& lightVec)
 {
 	float scalar, sScalar, tScalar;
-	vec3 colourVec, sCol, tCol;
-	vec3 normal, sNorm, tNorm;
-	vec3 specular, sSpecular, tSpecular;
-	float phong, sPhong, tPhong;
-	float reflect, sReflect, tReflect;
+	vec3	colourVec, sCol, tCol,
+			normal, sNorm, tNorm,
+			specular, sSpecular, tSpecular;
+	float	phong, sPhong, tPhong,
+			reflect, sReflect, tReflect;
 
 	sScalar = getNearestSphereScalar(ray, sphereVec, &sCol, &sNorm, &sPhong, &sSpecular, &sReflect);
 	tScalar = getNearestTriangleScalar(ray, triangleVec, &tCol, &tNorm, &tPhong, &tSpecular, &tReflect);
@@ -66,18 +65,5 @@ vec3 getColour(
 	else
 		return BLACK;
 
-
-	vec3 intersection = ray.origin + (scalar * ray.direction);
-
-	if (recursive <= 0)
-		return shading(colourVec, intersection, ray.origin, lightVec, normal, phong, specular);
-
-	recursive--;
-	Ray reflectedRay;
-	reflectedRay.origin = intersection;
-	reflectedRay.direction = normalize(ray.direction - (2.f * (dot(ray.direction, normal) * normal)));
-
-	vec3 reflectedColourVec = getColour(reflectedRay, sphereVec, triangleVec, lightVec, recursive);
-
-	return shading(colourVec + (reflect * reflectedColourVec), intersection, ray.origin, lightVec, normal, phong, specular);
+	return shading(colourVec, ray.origin + (scalar * ray.direction), ray.origin, lightVec, normal, phong, specular);
 }
