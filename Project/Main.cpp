@@ -12,6 +12,9 @@ bool CheckGLErrors();
 
 vec3 camOrigin = vec3(0.0, 0.0, 0.0);
 
+
+
+// controls
 void KeyCallback(
 	GLFWwindow* window, 
 	int key, 
@@ -51,6 +54,9 @@ void KeyCallback(
 	}
 }
 
+
+
+
 int main(
 	int argc, 
 	char *argv[])
@@ -88,10 +94,9 @@ int main(
 	ImageBuffer imageBuffer;
 	imageBuffer.Initialize();
 
-	vector<Light>		lightVec;
 	vector<Sphere>		sphereVec;
 	vector<Triangle>	triangleVec;
-	readFromFile("scene1.txt", lightVec, sphereVec, triangleVec);
+	readFromFile("scene1.txt", sphereVec, triangleVec);
 	
 
 	// variable initialization
@@ -124,7 +129,7 @@ int main(
 				ray.origin = camOrigin;
 				ray.direction = normalize(vec3(u, v, w) - ray.origin);
 
-				colourVec = getColour(ray, sphereVec, triangleVec, lightVec);
+				colourVec = getColour(ray, sphereVec, triangleVec);
 				imageBuffer.SetPixel(i, j, colourVec);
 			}
 		}

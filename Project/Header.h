@@ -24,7 +24,9 @@
 #define FLOAT_ERROR		0.001f
 
 #define BLACK			vec3(0.0, 0.0, 0.0)
-#define WHITE			vec3(1.0, 1.0, 1.0);
+#define WHITE			vec3(1.0, 1.0, 1.0)
+#define AMBIENT			vec3(0.6f, 0.6f, 0.6f)
+#define LIGHT_POS		vec3(0.f, 2.f, 0.f)
 
 using namespace std;
 using namespace glm;
@@ -33,11 +35,6 @@ using namespace glm;
 struct Ray
 {
 	vec3 origin, direction;
-};
-
-struct Light
-{
-	vec3 point, colour, ambient;
 };
 
 struct Sphere
@@ -63,8 +60,8 @@ bool CheckGLErrors();
 //------------------------------------
 //LIGHTING FUNCTIONS
 
-vec3 getColour(Ray& ray, vector<Sphere>& sphereVec, vector<Triangle>& triangleVec, vector<Light>& lightVec);
-vec3 shading(vec3 colourIn, vec3 intersection, vec3 origin, vector<Light>& lightVec, vec3 n, float phong, vec3 specular);
+vec3 getColour(Ray& ray, vector<Sphere>& sphereVec, vector<Triangle>& triangleVec);
+vec3 shading(vec3 colourIn, vec3 intersection, vec3 origin, vec3 n, float phong, vec3 specular);
 
 //------------------------------------
 //SCALAR FUNCTIONS
@@ -73,4 +70,4 @@ float getNearestTriangleScalar(Ray ray, vector<Triangle>& triangleVec, vec3 *col
 
 //-------------------------------------
 // FILE FUNCTIONS
-void readFromFile(const string fileDir, vector<Light>&  lightVec, vector<Sphere>& sphereVec, vector<Triangle>& triangleVec);
+void readFromFile(const string fileDir, vector<Sphere>& sphereVec, vector<Triangle>& triangleVec);

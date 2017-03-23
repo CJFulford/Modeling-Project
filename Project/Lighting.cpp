@@ -4,7 +4,6 @@ vec3 shading(
 	vec3 colourIn, 
 	vec3 intersection, 
 	vec3 origin, 
-	vector<Light>& lightVec, 
 	vec3 norm, 
 	float phong, 
 	vec3 specular)
@@ -14,24 +13,23 @@ vec3 shading(
 
 	vec3 v = normalize(origin - intersection);
 
-	for (Light light : lightVec) {
-		vec3 l = normalize(light.point - intersection);
-		vec3 h = normalize((v + l));
+	// consider the light to always be at the camera location
+	vec3 l = normalize(LIGHT_POS - intersection);
+	vec3 h = normalize((v + l));
 
-		float diffuseFactor = std::max(0.f, dot(n, l));
-		float specularFactor = std::max(0.f, dot(n, h));
+	float diffuseFactor = std::max(0.f, dot(n, l));
+	float specularFactor = std::max(0.f, dot(n, h));
 
-		colVec += (colourIn * light.colour * diffuseFactor) + (specular * light.colour * pow(specularFactor, phong));
-		ambient += light.ambient;
-	}
+	colVec += (colourIn * WHITE * diffuseFactor) + (specular * WHITE * pow(specularFactor, phong));
+	ambient += AMBIENT;
+
 	return colVec + (colourIn * ambient);
 }
 
 vec3 getColour(
 	Ray& ray,
 	vector<Sphere>& sphereVec,
-	vector<Triangle>& triangleVec,
-	vector<Light>& lightVec)
+	vector<Triangle>& triangleVec)
 {
 	float scalar, sScalar, tScalar;
 	vec3	colourVec, sCol, tCol,
@@ -65,5 +63,5 @@ vec3 getColour(
 	else
 		return BLACK;
 
-	return shading(colourVec, ray.origin + (scalar * ray.direction), ray.origin, lightVec, normal, phong, specular);
+	return shading(colourVec, ray.origin + (scalar * ray.direction), ray.origin, normal, phong, specular);
 }

@@ -17,7 +17,6 @@ void getPointFromLine(
 
 void readFromFile(
 	const string fileDir,
-	vector<Light>&  lightVec,
 	vector<Sphere>& sphereVec,
 	vector<Triangle>& triangleVec
 	)
@@ -28,22 +27,7 @@ void readFromFile(
 		string line;
 		while (getline(file, line))
 		{
-			if (line.compare(0, string::npos, "light {") == 0)
-			{
-				Light light;
-				getline(file, line);
-				getPointFromLine(line, &light.point);
-
-				getline(file, line);
-				getPointFromLine(line, &light.colour);
-
-				light.ambient = light.colour * 0.6f;
-
-				lightVec.push_back(light);
-
-			}
-
-			else if (line.compare(0, string::npos, "sphere {") == 0)
+			if (line.compare(0, string::npos, "sphere {") == 0)
 			{
 				Sphere sphere;
 				getline(file, line);
