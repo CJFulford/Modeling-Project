@@ -1,37 +1,5 @@
 #include "Header.h"
 
-// see if point is in shadow
-bool checkShadow(
-	vec3 intersection,
-	vector<Sphere>& sphereVec,
-	vector<Triangle>& triangleVec,
-	vector<Light>& lightVec)
-
-{
-	bool inShadow = false;
-	Ray ray;
-	ray.origin = intersection;
-	for (Light light : lightVec)
-	{
-		ray.direction = normalize(light.point - ray.origin);
-		float sScalar = getNearestSphereScalar(ray, sphereVec);
-		float tScalar = getNearestTriangleScalar(ray, triangleVec);
-		if (sScalar > FLOAT_ERROR)
-		{
-			vec3 point = ray.origin + (sScalar * ray.direction);
-			if (distance(ray.origin, light.point) > distance(ray.origin, point))
-				inShadow = true;
-		}
-		if (tScalar > FLOAT_ERROR)
-		{
-			vec3 point = ray.origin + (tScalar * ray.direction);
-			if (distance(ray.origin, light.point) > distance(ray.origin, point))
-				inShadow = true;
-		}
-	}
-	return inShadow;
-}
-
 vec3 shading(
 	vec3 colourIn, 
 	vec3 intersection, 
@@ -101,11 +69,7 @@ vec3 getColour(
 
 	vec3 intersection = ray.origin + (scalar * ray.direction);
 
-	bool inShadow = checkShadow(intersection, sphereVec, triangleVec, lightVec);
-
-	if (recursive <= 0 && inShadow)
-		return colourVec * lightVec[0].ambient;
-	else if (recursive <= 0 && !inShadow)
+	if (recursive <= 0)
 		return shading(colourVec, intersection, ray.origin, lightVec, normal, phong, specular);
 
 	recursive--;
@@ -115,8 +79,5 @@ vec3 getColour(
 
 	vec3 reflectedColourVec = getColour(reflectedRay, sphereVec, triangleVec, lightVec, recursive);
 
-	if (inShadow)
-		return (colourVec + (specular * reflectedColourVec)) * lightVec[0].ambient;
-	else
-		return shading(colourVec + (reflect * reflectedColourVec), intersection, ray.origin, lightVec, normal, phong, specular);
+	return shading(colourVec + (reflect * reflectedColourVec), intersection, ray.origin, lightVec, normal, phong, specular);
 }

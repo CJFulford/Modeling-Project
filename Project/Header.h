@@ -66,7 +66,6 @@ bool CheckGLErrors();
 
 vec3 getColour(Ray& ray, vector<Sphere>& sphereVec, vector<Triangle>& triangleVec, vector<Light>& lightVec, int recursive);
 vec3 shading(vec3 colourIn, vec3 intersection, vec3 origin, vector<Light>& lightVec, vec3 n, float phong, vec3 specular);
-bool checkShadow(vec3 intersection, vector<Sphere>& sphereVec, vector<Triangle>& triangleVec, vector<Light>& lightVec);
 
 //------------------------------------
 //SCALAR FUNCTIONS
