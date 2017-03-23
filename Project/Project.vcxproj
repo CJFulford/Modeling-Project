@@ -159,7 +159,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="File.cpp" />
-    <ClCompile Include="givenOpenGLFunctions.cpp" />
+    <ClCompile Include="Utilities.cpp" />
     <ClCompile Include="glad.c" />
     <ClCompile Include="ImageBuffer.cpp" />
     <ClCompile Include="Lighting.cpp" />

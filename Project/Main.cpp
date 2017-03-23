@@ -7,55 +7,7 @@
 #define rayt	1
 #define rayb	-1
 
-void QueryGLVersion();
-bool CheckGLErrors();
-
 vec3 camOrigin = vec3(0.0, 0.0, 0.0);
-
-
-
-// controls
-void KeyCallback(
-	GLFWwindow* window, 
-	int key, 
-	int scancode, 
-	int action, 
-	int mods)
-{
-	if (action == GLFW_PRESS)
-	{
-		switch (key)
-		{
-		case(GLFW_KEY_ESCAPE):
-			glfwSetWindowShouldClose(window, GL_TRUE);
-
-		case (GLFW_KEY_LEFT):
-			camOrigin -= vec3(-0.1, 0.0, 0.0);
-			break;
-		case (GLFW_KEY_RIGHT):
-			camOrigin -= vec3(0.1, 0.0, 0.0);
-			break;
-		case (GLFW_KEY_UP):
-			camOrigin -= vec3(0.0, 0.1, 0.0);
-			break;
-		case(GLFW_KEY_DOWN):
-			camOrigin -= vec3(0.0, -0.1, 0.0);
-			break;
-		case(GLFW_KEY_O):
-			camOrigin -= vec3(0.0, 0.0, 0.1);
-			break;
-		case(GLFW_KEY_P):
-			camOrigin += vec3(0.0, 0.0, 0.1);
-			break;
-
-		default:
-			break;
-		}
-	}
-}
-
-
-
 
 int main(
 	int argc, 
@@ -101,7 +53,7 @@ int main(
 
 	// variable initialization
 	double diff = 0;
-	time_t startTime = 0;
+	time_t startTime = 0, endTime = 0;
 	vec3 colourVec = BLACK;
 	int frames = 0;
 	float	w = -(rayr / (float)tan(FOV / 2)),
@@ -142,7 +94,7 @@ int main(
 
 		// scene is rendered to the back buffer, so swap to front for display
 		glfwSwapBuffers(window);
-		time_t endTime = time(NULL);
+		endTime = time(NULL);
 		diff = difftime(endTime, startTime);
 		frames++;
 		if (diff >= 1)

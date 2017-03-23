@@ -7,6 +7,7 @@
 #include <iostream>
 
 #include <glad\glad.h>
+#include <GLFW\glfw3.h>
 #include <glcorearb.h>
 #include <glm\glm.hpp>
 #include <omp.h>
@@ -30,6 +31,8 @@
 
 using namespace std;
 using namespace glm;
+
+extern vec3 camOrigin;
 
 // shape structs
 struct Ray
@@ -56,10 +59,10 @@ struct Triangle
 void ErrorCallback(int error, const char* description);
 void QueryGLVersion();
 bool CheckGLErrors();
+void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
 
 //------------------------------------
 //LIGHTING FUNCTIONS
-
 vec3 getColour(Ray& ray, vector<Sphere>& sphereVec, vector<Triangle>& triangleVec);
 vec3 shading(vec3 colourIn, vec3 intersection, vec3 origin, vec3 n, float phong, vec3 specular);
 

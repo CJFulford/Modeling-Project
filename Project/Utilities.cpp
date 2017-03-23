@@ -44,3 +44,43 @@ bool CheckGLErrors()
 	}
 	return error;
 }
+
+// controls
+void KeyCallback(
+	GLFWwindow* window,
+	int key,
+	int scancode,
+	int action,
+	int mods)
+{
+	if (action == GLFW_PRESS)
+	{
+		switch (key)
+		{
+		case(GLFW_KEY_ESCAPE):
+			glfwSetWindowShouldClose(window, GL_TRUE);
+
+		case (GLFW_KEY_LEFT):
+			camOrigin -= vec3(-0.1, 0.0, 0.0);
+			break;
+		case (GLFW_KEY_RIGHT):
+			camOrigin -= vec3(0.1, 0.0, 0.0);
+			break;
+		case (GLFW_KEY_UP):
+			camOrigin -= vec3(0.0, 0.1, 0.0);
+			break;
+		case(GLFW_KEY_DOWN):
+			camOrigin -= vec3(0.0, -0.1, 0.0);
+			break;
+		case(GLFW_KEY_O):
+			camOrigin -= vec3(0.0, 0.0, 0.1);
+			break;
+		case(GLFW_KEY_P):
+			camOrigin += vec3(0.0, 0.0, 0.1);
+			break;
+
+		default:
+			break;
+		}
+	}
+}

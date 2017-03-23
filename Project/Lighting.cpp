@@ -14,7 +14,7 @@ vec3 shading(
 	vec3 v = normalize(origin - intersection);
 
 	// consider the light to always be at the camera location
-	vec3 l = normalize(LIGHT_POS - intersection);
+	vec3 l = normalize(camOrigin - intersection);
 	vec3 h = normalize((v + l));
 
 	float diffuseFactor = std::max(0.f, dot(n, l));

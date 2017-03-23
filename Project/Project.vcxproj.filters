@@ -18,9 +18,6 @@
     <ClCompile Include="File.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="givenOpenGLFunctions.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="ImageBuffer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -35,6 +32,9 @@
     </ClCompile>
     <ClCompile Include="glad.c">
       <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Utilities.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
