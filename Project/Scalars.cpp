@@ -44,7 +44,7 @@ float getSphereScalar(Ray *ray, std::vector<Sphere> *sphereVec, vec3 *normal, un
         AND 
         the reflection is not intersecting with itself) 
         */
-		if ((scalar == 0 || abs(tempScalar) < abs(scalar)) && tempScalar > FLOAT_ERROR)
+		if ((scalar == 0 || abs(tempScalar) < abs(scalar)) && tempScalar > 0)
 		{
 			norm = ((ray->origin + (tempScalar * ray->direction)) - sphere->center);
 			scalar = tempScalar;
@@ -62,7 +62,7 @@ When function returns, index will contain the normal of the triangle
 
 Algorithm from "Fundamentals of Computer Graphics 3rd ed. - P. Shirley, S. Marschner (CRC, 2009), p. 77"
 */
-float getTriScalar(Ray *ray, std::vector<Triangle> *triangleVec, unsigned int *index)
+float getTriangleScalar(Ray *ray, std::vector<Triangle> *triangleVec, unsigned int *index)
 {
     vec3 norm;
 	float scalar = 0, tempScalar = 0;
@@ -113,7 +113,7 @@ float getTriScalar(Ray *ray, std::vector<Triangle> *triangleVec, unsigned int *i
         AND
         the reflection is not intersecting with itself)
         */
-		if (((scalar == 0) || abs(tempScalar) < abs(scalar)) && tempScalar > FLOAT_ERROR)
+		if (((scalar == 0) || abs(tempScalar) < abs(scalar)) && tempScalar > 0)
 		{
 			scalar = tempScalar;
             *index = iter;
@@ -155,7 +155,7 @@ float getTorusScalar(Ray *ray, std::vector<Torus> *torusVec, vec3 *normal, unsig
         AND
         the reflection is not intersecting with itself)
         */
-        if ((scalar == 0 || abs(tempScalar) < abs(scalar)) && tempScalar > FLOAT_ERROR)
+        if ((scalar == 0 || abs(tempScalar) < abs(scalar)) && tempScalar > 0)
         {
             // TODO norm = ((ray->origin + (tempScalar * ray->direction)) - torus->center);
             scalar = tempScalar;

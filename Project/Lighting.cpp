@@ -24,7 +24,7 @@ vec3 getColour(Ray *ray, std::vector<Sphere> *sphereVec, std::vector<Triangle> *
 
     // find the closest sphere and triangle by scalar
 	sScalar = getSphereScalar(ray, sphereVec, &sNorm, &sIndex);
-	tScalar = getTriScalar(ray, triangleVec, &tIndex);
+	tScalar = getTriangleScalar(ray, triangleVec, &tIndex);
 
     /*
     If the sphere is infront of the camera

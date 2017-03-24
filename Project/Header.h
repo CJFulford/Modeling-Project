@@ -8,7 +8,6 @@
 #define PI				3.14159265359f
 #define radToDeg        (PI / 180)
 #define identity		glm::mat4(1.f)
-#define FLOAT_ERROR		0.001f
 
 // window info
 #define WINDOW_WIDTH	500
@@ -79,7 +78,7 @@ struct Torus
     glm::vec3 center, colour;
     float mainRadius, subRadius, phong;
 };
-
+ 
 // ============================== Utilities.cpp
 // Error Checking
 void ErrorCallback(int error, const char* description);
@@ -96,9 +95,8 @@ void printOpenGLVersion(GLenum majorVer, GLenum minorVer, GLenum langVer);
 
 // ============================== Lighting.cpp
 glm::vec3 getColour(Ray *ray, std::vector<Sphere> *sphereVec, std::vector<Triangle> *triangleVec);
-glm::vec3 Blinn_Phong(Ray *ray, float scalar, glm::vec3 colourIn, glm::vec3 norm, float phong);
 
 // ============================== Scalars.cpp
 float getSphereScalar(Ray *ray, std::vector<Sphere> *sphereVec, glm::vec3 *normal, unsigned int *index);
-float getTriScalar(Ray *ray, std::vector<Triangle> *triangleVec, unsigned int *index);
+float getTriangleScalar(Ray *ray, std::vector<Triangle> *triangleVec, unsigned int *index);
 float getTorusScalar(Ray *ray, std::vector<Torus> *torusVec, glm::vec3 *normal, unsigned int *index);
