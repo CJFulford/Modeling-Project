@@ -19,12 +19,12 @@ vec3 Blinn_Phong(Ray *ray, float scalar, vec3 colour, vec3 normal, float phong)
 vec3 getColour(Ray *ray, std::vector<Sphere> *sphereVec, std::vector<Triangle> *triangleVec)
 {
 	float sScalar, tScalar;
-    vec3 sNorm, tNorm;
+    vec3 sNorm;
     unsigned int sIndex, tIndex;
 
     // find the closest sphere and triangle by scalar
 	sScalar = getSphereScalar(ray, sphereVec, &sNorm, &sIndex);
-	tScalar = getTriScalar(ray, triangleVec, &tNorm, &tIndex);
+	tScalar = getTriScalar(ray, triangleVec, &tIndex);
 
     /*
     If the sphere is infront of the camera
@@ -48,7 +48,7 @@ vec3 getColour(Ray *ray, std::vector<Sphere> *sphereVec, std::vector<Triangle> *
 	else if (tScalar > 0 && (tScalar < sScalar || sScalar == 0))
 	{
         Triangle *t = &(*triangleVec)[tIndex];
-        return Blinn_Phong(ray, tScalar, t->colour, tNorm, t->phong);
+        return Blinn_Phong(ray, tScalar, t->colour, t->normal, t->phong);
 	}
     // no intersection
 	else

@@ -67,7 +67,7 @@ and the triangleVec index of the sphere respectivly.
 
 Algorithm from "Fundamentals of Computer Graphics 3rd ed. - P. Shirley, S. Marschner (CRC, 2009), p. 77"
 */
-float getTriScalar(Ray *ray, std::vector<Triangle> *triangleVec, vec3 *normal, unsigned int *index)
+float getTriScalar(Ray *ray, std::vector<Triangle> *triangleVec, unsigned int *index)
 {
     vec3 norm;
 	float scalar = 0, tempScalar = 0;
@@ -119,11 +119,9 @@ float getTriScalar(Ray *ray, std::vector<Triangle> *triangleVec, vec3 *normal, u
         */
 		if (((scalar == 0) || abs(tempScalar) < abs(scalar)) && tempScalar > FLOAT_ERROR)
 		{
-			norm = cross(tri->p3 - tri->p2, tri->p1 - tri->p2);
 			scalar = tempScalar;
             *index = iter;
 		}
 	}
-	*normal = normalize(norm);
 	return scalar;
 }

@@ -66,8 +66,10 @@ struct Triangle
         d = p1.x - p3.x;
         e = p1.y - p3.y;
         f = p1.z - p3.z;
+
+        normal = normalize(cross(p3 - p2, p1 - p2));
     }
-    glm::vec3 p1, p2, p3, colour;
+    glm::vec3 p1, p2, p3, colour, normal;
 	float phong, a, b, c, d, e, f;
 };
 
@@ -91,7 +93,4 @@ glm::vec3 Blinn_Phong(Ray *ray, float scalar, glm::vec3 colourIn, glm::vec3 norm
 
 // ============================== Scalars.cpp
 float getSphereScalar(Ray *ray, std::vector<Sphere> *sphereVec, glm::vec3 *normal, unsigned int *index);
-float getTriScalar(Ray *ray, std::vector<Triangle> *triangleVec, glm::vec3 *normal, unsigned int *index);
-
-// ============================== File.cpp
-void readFromFile(const std::string fileDir, std::vector<Sphere>& sphereVec, std::vector<Triangle>& triangleVec);
+float getTriScalar(Ray *ray, std::vector<Triangle> *triangleVec, unsigned int *index);
