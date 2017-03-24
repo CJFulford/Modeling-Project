@@ -32,6 +32,7 @@
 #define DEF_ZOOM        1.f
 #define MAX_ZOOM        .001f
 #define DEF_ROTATION    glm::vec3(0.f)
+#define DEF_MOVEMENT	glm::vec3(0.f)
 
 #define LIGHT_POS       glm::vec3(1.f, 2.f, 1.f)
 

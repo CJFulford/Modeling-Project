@@ -12,7 +12,6 @@ float   rotate_x = 0.0,
 
 glm::vec3 rotation = DEF_ROTATION;
 
-
 // Error Checking
 void ErrorCallback(int error, const char* description)
 {
@@ -68,6 +67,7 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
 		{
 		case(GLFW_KEY_ESCAPE):
 			glfwSetWindowShouldClose(window, GL_TRUE);
+			break;
 		default:
 			break;
 		}

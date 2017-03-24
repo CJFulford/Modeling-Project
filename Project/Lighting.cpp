@@ -52,5 +52,5 @@ vec3 getColour(Ray *ray, std::vector<Sphere> *sphereVec, std::vector<Triangle> *
 	}
     // no intersection
 	else
-		return WHITE;
+		return BLUE * .1f;
 }
