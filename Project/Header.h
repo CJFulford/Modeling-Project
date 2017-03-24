@@ -1,15 +1,8 @@
-#include <fstream>
-#include <string>
-#include <iterator>
-#include <algorithm>
 #include <vector>
-#include <ctime>
-#include <iostream>
 
 #include <glad\glad.h>
 #include <GLFW\glfw3.h>
 #include <glm\glm.hpp>
-#include <omp.h>
 
 // Mathematical values
 #define PI				3.14159265359f
@@ -44,7 +37,6 @@
 #define LIGHT_POS       glm::vec3(1.f, 2.f, 1.f)
 
 extern glm::vec3 camOrigin;
-extern glm::vec3 rotation;
 extern float zoom;
 extern float rotate_x;
 extern float rotate_y;
@@ -58,14 +50,25 @@ struct Ray
 
 struct Sphere
 {
+    Sphere(glm::vec3 center, float radius, glm::vec3 colour, float phong) : center(center), colour(colour), radius(radius), phong(phong) {}
     glm::vec3 center, colour;
-	float radius, phong, reflect;
+	float radius, phong;
 };
 
 struct Triangle
 {
+    Triangle(glm::vec3 p1, glm::vec3 p2, glm::vec3 p3, glm::vec3 colour, float phong) : p1(p1), p2(p2), p3(p3), colour(colour), phong(phong) 
+    {
+        a = p1.x - p2.x;
+        b = p1.y - p2.y;
+        c = p1.z - p2.z;
+
+        d = p1.x - p3.x;
+        e = p1.y - p3.y;
+        f = p1.z - p3.z;
+    }
     glm::vec3 p1, p2, p3, colour;
-	float a, b, c, d, e, f, phong, reflect;
+	float phong, a, b, c, d, e, f;
 };
 
 // ============================== Utilities.cpp

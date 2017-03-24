@@ -1,4 +1,5 @@
 #include "Header.h"
+#include <iostream>
 
 using namespace std;
 
@@ -90,5 +91,5 @@ void scrollCallback(GLFWwindow* window, double xoffset, double yoffset)
     if (yoffset < 0)
         zoom += ZOOM_SENS;
     else if (yoffset > 0)
-        zoom = max(zoom - ZOOM_SENS, MAX_ZOOM);
+        zoom = glm::max(zoom - ZOOM_SENS, MAX_ZOOM);
 }

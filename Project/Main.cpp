@@ -1,5 +1,9 @@
 #include "Header.h"
 #include "ImageBuffer.h"
+
+#include <iostream>
+#include <ctime>
+#include <omp.h>
 #include <glm/gtx/rotate_vector.hpp>
 
 // definitions of variables used in ray tracing
@@ -9,6 +13,48 @@
 #define rayb	-1
 
 glm::vec3 camOrigin = DEF_CAM_POS;
+
+// default scene consists of 2 spheres and a pyramid
+void defaultScene(std::vector<Sphere> *sphereVec, std::vector<Triangle> *triangleVec)
+{   //              center                 radius      colour                  phong
+    Sphere s1(glm::vec3(0.f, 0.f, 0.f),     0.5f,   glm::vec3(1.f, 0.f, 0.f),   30);
+    Sphere s2(glm::vec3(0.5f, 0.f, -1.5f),  0.5f,   glm::vec3(0.f, 1.f, 0.f),   50);
+    
+    Triangle t1(
+        glm::vec3(-0.4f, -2.75f, -9.55f),   //p1
+        glm::vec3(-0.93f, 0.55f, -8.51f),   //p2
+        glm::vec3(0.11f, -2.75f, -7.98f),   //p3
+        glm::vec3(0.1f, 0.8f, 0.9f),        //colour
+        30.f);                              //phong
+    Triangle t2(
+        glm::vec3(0.11f, -2.75f, -7.98f),  //p1
+        glm::vec3(-0.93f, 0.55f, -8.51f),   //p2
+        glm::vec3(-1.46f, -2.75f, -7.47f),  //p3
+        glm::vec3(0.1f, 0.8f, 0.9f),        //colour
+        30.f);                              //phong
+    Triangle t3(
+        glm::vec3(-1.46f, -2.75f, -7.47f),  //p1
+        glm::vec3(-0.93f, 0.55f, -8.51f),   //p2
+        glm::vec3(-1.97f, -2.75f, -9.04),   //p3
+        glm::vec3(0.1f, 0.8f, 0.9f),        //colour
+        30.f);                              //phong
+    Triangle t4(
+        glm::vec3(-1.97f, -2.75f, -9.04f),  //p1
+        glm::vec3(-0.93f, 0.55f, -8.51f),   //p2
+        glm::vec3(-0.4f, -2.75f, -9.55f),   //p3
+        glm::vec3(0.1f, 0.8f, 0.9f),        //colour
+        30.f);                              //phong
+
+
+    sphereVec->push_back(s1);
+    sphereVec->push_back(s2);
+    triangleVec->push_back(t1);
+    triangleVec->push_back(t2);
+    triangleVec->push_back(t3);
+    triangleVec->push_back(t4);
+
+
+}
 
 int main(int argc, char *argv[])
 {
@@ -46,7 +92,7 @@ int main(int argc, char *argv[])
 
     std::vector<Sphere>		sphereVec;
     std::vector<Triangle>	triangleVec;
-	readFromFile("scene1.txt", sphereVec, triangleVec);
+    defaultScene(&sphereVec, &triangleVec);
 	
 
 	// variable initialization

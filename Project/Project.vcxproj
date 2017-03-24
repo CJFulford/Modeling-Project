@@ -158,7 +158,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="File.cpp" />
     <ClCompile Include="Utilities.cpp" />
     <ClCompile Include="glad.c" />
     <ClCompile Include="ImageBuffer.cpp" />
@@ -169,9 +168,6 @@
   <ItemGroup>
     <ClInclude Include="Header.h" />
     <ClInclude Include="ImageBuffer.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="scene1.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
