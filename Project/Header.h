@@ -101,3 +101,4 @@ glm::vec3 Blinn_Phong(Ray *ray, float scalar, glm::vec3 colourIn, glm::vec3 norm
 // ============================== Scalars.cpp
 float getSphereScalar(Ray *ray, std::vector<Sphere> *sphereVec, glm::vec3 *normal, unsigned int *index);
 float getTriScalar(Ray *ray, std::vector<Triangle> *triangleVec, unsigned int *index);
+float getTorusScalar(Ray *ray, std::vector<Torus> *torusVec, glm::vec3 *normal, unsigned int *index);

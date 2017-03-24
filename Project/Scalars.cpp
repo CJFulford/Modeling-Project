@@ -1,5 +1,4 @@
 #include "Header.h"
-#include <iostream>
 
 using namespace glm;
 
@@ -27,7 +26,6 @@ float getSphereScalar(Ray *ray, std::vector<Sphere> *sphereVec, vec3 *normal, un
 
         if (tca >= 0)
         {
-            std::cout << dot(L, L) << std::endl;
             float d2 = dot(L, L) - (tca * tca),
                     r2 = sphere->radius * sphere->radius;
             if (d2 <= r2)
@@ -60,8 +58,7 @@ float getSphereScalar(Ray *ray, std::vector<Sphere> *sphereVec, vec3 *normal, un
 /*
 Finds the scalar along the ray direction of the triangle closest to the ray origin.
 Returns the scalar.
-When function returns, normal and index will contain the normal of the triangle 
-and the triangleVec index of the sphere respectivly.
+When function returns, index will contain the normal of the triangle
 
 Algorithm from "Fundamentals of Computer Graphics 3rd ed. - P. Shirley, S. Marschner (CRC, 2009), p. 77"
 */
@@ -123,4 +120,48 @@ float getTriScalar(Ray *ray, std::vector<Triangle> *triangleVec, unsigned int *i
 		}
 	}
 	return scalar;
+}
+
+/*
+Finds the scalar along the ray direction of the torus closest to the ray origin.
+Returns the scalar.
+When function returns, normal and index will contain the normal of the torus
+and the torusVec index of the torus respectivly.
+
+resources for intersection
+https://www.cl.cam.ac.uk/teaching/1999/AGraphHCI/SMAG/node2.html#SECTION00023400000000000000
+http://www.cosinekitty.com/raytrace/chapter13_torus.html
+http://www.wseas.org/multimedia/journals/computers/2013/025705-201.pdf
+
+*/
+float getTorusScalar(Ray *ray, std::vector<Torus> *torusVec, vec3 *normal, unsigned int *index)
+{
+    vec3 norm;
+    float scalar = 0;
+
+    for (unsigned int i = 0; i < torusVec->size(); i++)
+    {
+        Torus *torus = &(*torusVec)[i];
+        float tempScalar = 0;
+
+
+
+
+
+        /*
+        If it is the first case
+        OR
+        (If the new scalar is absolutly closer to the camera
+        AND
+        the reflection is not intersecting with itself)
+        */
+        if ((scalar == 0 || abs(tempScalar) < abs(scalar)) && tempScalar > FLOAT_ERROR)
+        {
+            // TODO norm = ((ray->origin + (tempScalar * ray->direction)) - torus->center);
+            scalar = tempScalar;
+            *index = i;
+        }
+    }
+    *normal = normalize(norm);
+    return scalar;
 }
