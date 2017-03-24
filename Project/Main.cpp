@@ -1,60 +1,57 @@
 #include "Header.h"
 #include "ImageBuffer.h"
+#include <glm/gtx/rotate_vector.hpp>
 
-
+// definitions of variables used in ray tracing
 #define rayl	-1
 #define rayr	1
 #define rayt	1
 #define rayb	-1
 
-vec3 camOrigin = vec3(0.0, 0.0, 0.0);
+glm::vec3 camOrigin = DEF_CAM_POS;
 
-int main(
-	int argc, 
-	char *argv[])
+int main(int argc, char *argv[])
 {
 	// initialize the GLFW windowing system
-	if (!glfwInit()) {
-		std::cout << "ERROR: GLFW failed to initilize, TERMINATING" << endl;
+	if (!glfwInit()) 
+    {
+		std::cout << "ERROR: GLFW failed to initilize, TERMINATING" << std::endl;
 		return -1;
 	}
-	glfwSetErrorCallback(ErrorCallback);
 
-	// attempt to create a window with an OpenGL 4.1 core profile context
-	GLFWwindow *window;
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 4);
-	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Ray Tracer Window", 0, 0);
-	if (!window) {
-		std::cout << "Program failed to create GLFW window, TERMINATING" << endl;
+	// attempt to create a window with an OpenGL 4.4 core profile context
+	GLFWwindow *window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Implicit Surfaces", 0, 0);
+	if (!window) 
+    {
+		std::cout << "Program failed to create GLFW window, TERMINATING" << std::endl;
 		glfwTerminate();
 		return -1;
 	}
 
-	// set keyboard callback function and make our context current (active)
-	glfwSetKeyCallback(window, KeyCallback);
-	glfwMakeContextCurrent(window);
+	// set Callbacks
+    glfwSetErrorCallback(ErrorCallback);
+    glfwSetKeyCallback(window, keyCallback);
+    glfwSetCursorPosCallback(window, mouseMotion);
+    glfwSetScrollCallback(window, scrollCallback);
+    glfwMakeContextCurrent(window);
 
 	// load glad
 	gladLoadGL();
 
 	// query and print out information about our OpenGL environment
-	QueryGLVersion();
+    printOpenGLVersion(GL_MAJOR_VERSION, GL_MINOR_VERSION, GL_SHADING_LANGUAGE_VERSION);
 
 	ImageBuffer imageBuffer;
 	imageBuffer.Initialize();
 
-	vector<Sphere>		sphereVec;
-	vector<Triangle>	triangleVec;
+    std::vector<Sphere>		sphereVec;
+    std::vector<Triangle>	triangleVec;
 	readFromFile("scene1.txt", sphereVec, triangleVec);
 	
 
 	// variable initialization
-	double diff = 0;
 	time_t startTime = 0, endTime = 0;
-	vec3 colourVec = BLACK;
+    glm::vec3 colourVec = BLACK;
 	int frames = 0;
 	float	w = -(rayr / (float)tan(FOV / 2)),
 			u = 0,
@@ -63,23 +60,30 @@ int main(
 
 	while (!glfwWindowShouldClose(window))
 	{
-		startTime = time(NULL);
-		colourVec = BLACK;
+        startTime = time(NULL);
 
+        // rotateX, rotateY, zoom. Do here for single calc
+        glm::vec3 origin =  rotateY(
+                                rotateX(camOrigin, rotate_x)
+                                , rotate_y) 
+                            * zoom;
 
-		
 		#pragma omp parallel for schedule(dynamic)
 		for (int i = 0; i < WINDOW_WIDTH; i++)
 		{
 			for (int j = 0; j < WINDOW_HEIGHT; j++)
 			{
-				Ray ray;
 
 				u = rayl + ((rayr - rayl)*(i + .5f)) / WINDOW_WIDTH;
 				v = rayb + ((rayt - rayb)*(j + .5f)) / WINDOW_HEIGHT;
 
-				ray.origin = camOrigin;
-				ray.direction = normalize(vec3(u, v, w) - ray.origin);
+                // construct the ray
+                // rotate the direction along the x axis then the y axis
+				Ray ray(origin, 
+                        glm::normalize(
+                            rotateY(
+                                rotateX(glm::vec3(u, v, w), rotate_x)
+                                , rotate_y)));
 
 				colourVec = getColour(ray, sphereVec, triangleVec);
 				imageBuffer.SetPixel(i, j, colourVec);
@@ -89,17 +93,16 @@ int main(
 
 
 		imageBuffer.Render();
+        glfwSwapBuffers(window);
 
 
 
-		// scene is rendered to the back buffer, so swap to front for display
-		glfwSwapBuffers(window);
+        // update and print frames per second
 		endTime = time(NULL);
-		diff = difftime(endTime, startTime);
 		frames++;
-		if (diff >= 1)
+		if (difftime(endTime, startTime) >= 1)
 		{
-			std::cout << frames << std::endl;
+            printf("\rFPS: %i", frames);
 			frames = 0;
 		}
 
@@ -112,7 +115,5 @@ int main(
 	// clean up allocated resources before exit
 	glfwDestroyWindow(window);
 	glfwTerminate();
-
-	std::cout << "Goodbye!" << endl;
 	return 0;
 }

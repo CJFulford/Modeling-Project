@@ -6,7 +6,7 @@
 # No materials are specified.
 #
 # Instructions for reading this file:
-#   - lines beginning with â€˜#â€™ are comments
+#   - lines beginning with ‘#’ are comments
 #   - all objects are expressed in the camera reference frame
 #   - objects are described with the following parameters:
 #      - point light source has a single position
@@ -29,15 +29,10 @@
 # as you complete your ray tracing system.
 # ============================================================
 
-light {
-  0 2.5 -7.75
-  0.65 0.65 0.65
-}
-
 # Reflective grey sphere
 sphere {
-  0.9 -1.925 -6.69
-  0.825
+  0.0 0.0 0.0
+  0.5
   0.2 0.2 0.2
   1.0 1.0 1.0
   2000
@@ -171,4 +166,3 @@ plane {
   10
   0.0
 }
-

@@ -1,8 +1,10 @@
 #include "Header.h"
 
+using namespace std;
+
 void getPointFromLine(
 	string line, 
-	vec3 *point
+	glm::vec3 *point
 	)
 {
 	int first = line.find_first_not_of(' ');
@@ -12,7 +14,7 @@ void getPointFromLine(
 	float y = stof(line.substr(0, line.find_first_of(' ')));		// place the y value in a placeholder
 	line = line.substr(line.find_first_of(' ') + 1, string::npos);	// cut out the y value from the string
 	float z = stof(line.substr(0, string::npos));					// place the z value in a placeholder
-	*point = vec3(x, y, z);											// place the points in the vec3
+	*point = glm::vec3(x, y, z);											// place the points in the vec3
 }
 
 void readFromFile(

@@ -1,9 +1,11 @@
 #include "Header.h"
 
+using namespace glm;
+
 // getting the scalars to shapes
 float getNearestSphereScalar(
 	Ray ray, 
-	vector<Sphere>& sphereVec, 
+	std::vector<Sphere>& sphereVec, 
 	vec3 *colourVec, 
 	vec3 *normal, 
 	float *phong, 
@@ -55,7 +57,7 @@ float getNearestSphereScalar(
 
 float getNearestTriangleScalar(
 	Ray ray, 
-	vector<Triangle>& triangleVec, 
+    std::vector<Triangle>& triangleVec,
 	vec3 *colourVec, 
 	vec3 *normal, 
 	float *phong, 

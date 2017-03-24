@@ -11,65 +11,81 @@
 #include <glm\glm.hpp>
 #include <omp.h>
 
-#define PI				3.1415
-#define FOVdeg			60
-#define FOV				FOVdeg * PI / 180
+// Mathematical values
+#define PI				3.14159265359f
+#define radToDeg        (PI / 180)
+#define identity		glm::mat4(1.f)
+#define FLOAT_ERROR		0.001f
 
+// window info
 #define WINDOW_WIDTH	500
 #define WINDOW_HEIGHT	500
 #define HALF_WIDTH		(WINDOW_WIDTH / 2)
 #define HALF_HEIGHT		(WINDOW_HEIGHT / 2)
-#define aspectRatio		((float)(WINDOW_WIDTH / WINDOW_HEIGHT));
+
+// basic colours
+#define BLACK			glm::vec3(0.f, 0.f, 0.f)
+#define WHITE			glm::vec3(1.f, 1.f, 1.f)
+#define RED             glm::vec3(1.f, 0.f, 0.f)
+#define GREEN           glm::vec3(0.f, 1.f, 0.f)
+#define BLUE            glm::vec3(0.f, 0.f, 1.f)
+
+// camera info
+#define FOV_DEGREE  	45
+#define FOV				FOV_DEGREE * PI / 180
 #define FOCAL_LENGTH	-2.2f
-#define FLOAT_ERROR		0.001f
+#define DEF_CAM_POS     glm::vec3(0.f, 0.f, 4.f)
+#define ZOOM_SENS       .1f
+#define DEF_ZOOM        1.f
+#define MAX_ZOOM        .001f
+#define DEF_ROTATION    glm::vec3(0.f, 0.f, 0.f)
 
-#define BLACK			vec3(0.0, 0.0, 0.0)
-#define WHITE			vec3(1.0, 1.0, 1.0)
-#define AMBIENT			vec3(0.6f, 0.6f, 0.6f)
-#define LIGHT_POS		vec3(0.f, 2.f, 0.f)
-
-using namespace std;
-using namespace glm;
-
-extern vec3 camOrigin;
+extern glm::vec3 camOrigin;
+extern glm::vec3 rotation;
+extern float zoom;
+extern float rotate_x;
+extern float rotate_y;
 
 // shape structs
 struct Ray
 {
-	vec3 origin, direction;
+    Ray(glm::vec3 orig, glm::vec3 dir) : origin(orig), direction(dir) {}
+	glm::vec3 origin, direction;
 };
 
 struct Sphere
 {
-	vec3 center, colour, specular;
+    glm::vec3 center, colour, specular;
 	float radius, phong, reflect;
 };
 
 struct Triangle
 {
+    glm::vec3 p1, p2, p3, colour, specular;
 	float a, b, c, d, e, f, phong, reflect;
-	vec3 p1, p2, p3, colour, specular;
 };
 
-
-//------------------------------------
-// GIVEN OPEN GL FUNCTIONS
-
+// ============================== Utilities.cpp
+// Error Checking
 void ErrorCallback(int error, const char* description);
-void QueryGLVersion();
 bool CheckGLErrors();
-void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
 
-//------------------------------------
-//LIGHTING FUNCTIONS
-vec3 getColour(Ray& ray, vector<Sphere>& sphereVec, vector<Triangle>& triangleVec);
-vec3 shading(vec3 colourIn, vec3 intersection, vec3 origin, vec3 n, float phong, vec3 specular);
+// user info
+void printOpenGLVersion(GLenum majorVer, GLenum minorVer, GLenum langVer);
 
-//------------------------------------
-//SCALAR FUNCTIONS
-float getNearestSphereScalar(Ray ray, vector<Sphere>& sphereVec, vec3 *colourVec, vec3 *normal, float *phong, vec3 *specular, float *reflect);
-float getNearestTriangleScalar(Ray ray, vector<Triangle>& triangleVec, vec3 *colourVec, vec3 *normal, float *phong, vec3 *specular, float *reflect);
+// control Functions
+void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
+void scrollCallback (GLFWwindow* window, double xoffset, double yoffset);
+void mouseMotion(GLFWwindow* window, double x, double y);
+void printOpenGLVersion(GLenum majorVer, GLenum minorVer, GLenum langVer);
 
-//-------------------------------------
-// FILE FUNCTIONS
-void readFromFile(const string fileDir, vector<Sphere>& sphereVec, vector<Triangle>& triangleVec);
+// ============================== Lighting.cpp
+glm::vec3 getColour(Ray& ray, std::vector<Sphere>& sphereVec, std::vector<Triangle>& triangleVec);
+glm::vec3 shading(glm::vec3 colourIn, glm::vec3 intersection, glm::vec3 origin, glm::vec3 n, float phong, glm::vec3 specular);
+
+// ============================== Scalars.cpp
+float getNearestSphereScalar(Ray ray, std::vector<Sphere>& sphereVec, glm::vec3 *colourVec, glm::vec3 *normal, float *phong, glm::vec3 *specular, float *reflect);
+float getNearestTriangleScalar(Ray ray, std::vector<Triangle>& triangleVec, glm::vec3 *colourVec, glm::vec3 *normal, float *phong, glm::vec3 *specular, float *reflect);
+
+// ============================== File.cpp
+void readFromFile(const std::string fileDir, std::vector<Sphere>& sphereVec, std::vector<Triangle>& triangleVec);

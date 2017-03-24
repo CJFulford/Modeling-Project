@@ -1,5 +1,7 @@
 #include "Header.h"
 
+using namespace glm;
+
 vec3 shading(
 	vec3 colourIn, 
 	vec3 intersection, 
@@ -14,22 +16,21 @@ vec3 shading(
 	vec3 v = normalize(origin - intersection);
 
 	// consider the light to always be at the camera location
-	vec3 l = normalize(camOrigin - intersection);
+	vec3 l = normalize(origin - intersection);
 	vec3 h = normalize((v + l));
 
 	float diffuseFactor = std::max(0.f, dot(n, l));
 	float specularFactor = std::max(0.f, dot(n, h));
 
 	colVec += (colourIn * WHITE * diffuseFactor) + (specular * WHITE * pow(specularFactor, phong));
-	ambient += AMBIENT;
 
-	return colVec + (colourIn * ambient);
+	return colVec;
 }
 
 vec3 getColour(
 	Ray& ray,
-	vector<Sphere>& sphereVec,
-	vector<Triangle>& triangleVec)
+    std::vector<Sphere>& sphereVec,
+    std::vector<Triangle>& triangleVec)
 {
 	float scalar, sScalar, tScalar;
 	vec3	colourVec, sCol, tCol,

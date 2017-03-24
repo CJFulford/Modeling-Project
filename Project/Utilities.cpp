@@ -1,57 +1,65 @@
 #include "Header.h"
 
-void ErrorCallback(
-	int error, 
-	const char* description)
+using namespace std;
+
+double mouse_old_x, mouse_old_y;
+
+float   rotate_x = 0.0,
+        rotate_y = 0.0,
+        zoom = DEF_ZOOM,
+        aspectRatio = (float)WINDOW_WIDTH / (float)WINDOW_HEIGHT;
+
+glm::vec3 rotation = DEF_ROTATION;
+
+
+// Error Checking
+void ErrorCallback(int error, const char* description)
 {
 	cout << "GLFW ERROR " << error << ":" << endl;
 	cout << description << endl;
 }
 
-void QueryGLVersion()
-{
-	// query opengl version and renderer information
-	string version = reinterpret_cast<const char *>(glGetString(GL_VERSION));
-	string glslver = reinterpret_cast<const char *>(glGetString(GL_SHADING_LANGUAGE_VERSION));
-	string renderer = reinterpret_cast<const char *>(glGetString(GL_RENDERER));
-
-	cout << "OpenGL [ " << version << " ] "
-		<< "with GLSL [ " << glslver << " ] "
-		<< "on renderer [ " << renderer << " ]" << endl;
-}
-
 bool CheckGLErrors()
 {
-	bool error = false;
-	for (GLenum flag = glGetError(); flag != GL_NO_ERROR; flag = glGetError())
-	{
-		cout << "OpenGL ERROR:  ";
-		switch (flag) {
-		case GL_INVALID_ENUM:
-			cout << "GL_INVALID_ENUM" << endl; break;
-		case GL_INVALID_VALUE:
-			cout << "GL_INVALID_VALUE" << endl; break;
-		case GL_INVALID_OPERATION:
-			cout << "GL_INVALID_OPERATION" << endl; break;
-		case GL_INVALID_FRAMEBUFFER_OPERATION:
-			cout << "GL_INVALID_FRAMEBUFFER_OPERATION" << endl; break;
-		case GL_OUT_OF_MEMORY:
-			cout << "GL_OUT_OF_MEMORY" << endl; break;
-		default:
-			cout << "[unknown error code]" << endl;
-		}
-		error = true;
-	}
-	return error;
+    bool error = false;
+    for (GLenum flag = glGetError(); flag != GL_NO_ERROR; flag = glGetError())
+    {
+        cout << "OpenGL ERROR:  ";
+        switch (flag) {
+        case GL_INVALID_ENUM:
+            cout << "GL_INVALID_ENUM" << endl; break;
+        case GL_INVALID_VALUE:
+            cout << "GL_INVALID_VALUE" << endl; break;
+        case GL_INVALID_OPERATION:
+            cout << "GL_INVALID_OPERATION" << endl; break;
+        case GL_INVALID_FRAMEBUFFER_OPERATION:
+            cout << "GL_INVALID_FRAMEBUFFER_OPERATION" << endl; break;
+        case GL_OUT_OF_MEMORY:
+            cout << "GL_OUT_OF_MEMORY" << endl; break;
+        default:
+            cout << "[unknown error code]" << endl;
+        }
+        error = true;
+    }
+    return error;
 }
 
+
+// For User Information
+void printOpenGLVersion(GLenum majorVer, GLenum minorVer, GLenum langVer)
+{
+    GLint major, minor;
+    glGetIntegerv(majorVer, &major);
+    glGetIntegerv(minorVer, &minor);
+    printf("OpenGL on %s %s\n", glGetString(GL_VENDOR), glGetString(GL_RENDERER));
+    printf("OpenGL version supported %s\n", glGetString(GL_VERSION));
+    printf("GLSL version supported %s\n", glGetString(langVer));
+    printf("GL version major, minor: %i.%i\n", major, minor);
+}
+
+
 // controls
-void KeyCallback(
-	GLFWwindow* window,
-	int key,
-	int scancode,
-	int action,
-	int mods)
+void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
 	if (action == GLFW_PRESS)
 	{
@@ -59,28 +67,28 @@ void KeyCallback(
 		{
 		case(GLFW_KEY_ESCAPE):
 			glfwSetWindowShouldClose(window, GL_TRUE);
-
-		case (GLFW_KEY_LEFT):
-			camOrigin -= vec3(-0.1, 0.0, 0.0);
-			break;
-		case (GLFW_KEY_RIGHT):
-			camOrigin -= vec3(0.1, 0.0, 0.0);
-			break;
-		case (GLFW_KEY_UP):
-			camOrigin -= vec3(0.0, 0.1, 0.0);
-			break;
-		case(GLFW_KEY_DOWN):
-			camOrigin -= vec3(0.0, -0.1, 0.0);
-			break;
-		case(GLFW_KEY_O):
-			camOrigin -= vec3(0.0, 0.0, 0.1);
-			break;
-		case(GLFW_KEY_P):
-			camOrigin += vec3(0.0, 0.0, 0.1);
-			break;
-
 		default:
 			break;
 		}
 	}
+}
+
+void mouseMotion(GLFWwindow* window, double x, double y)
+{
+    if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_1))
+    {
+        rotate_x += (float)((y - mouse_old_y)) * radToDeg;
+        rotate_y += (float)((x - mouse_old_x)) * radToDeg;
+    }
+    mouse_old_x = x;
+    mouse_old_y = y;
+
+}
+
+void scrollCallback(GLFWwindow* window, double xoffset, double yoffset)
+{
+    if (yoffset < 0)
+        zoom += ZOOM_SENS;
+    else if (yoffset > 0)
+        zoom = max(zoom - ZOOM_SENS, MAX_ZOOM);
 }

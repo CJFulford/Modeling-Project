@@ -7,12 +7,9 @@ The purpose behind the project is to assist modeling instructors teach their stu
 Currently, Much of the code has been taken from Cody Fulford's Ray Tracer assignment from CPSC 453 - Graphics W16 from the University of Calgary but has been heavily modified
 
 #Controls:
-    UP      Move the camera up
-    DOWN    Move the camera down
-    LEFT    Move the camera left
-    RIGHT   Move the camera right
-    O       Move the camera away from the scene
-    P       Move the camera towards the scene
+    Scroll-Up   Zoom Camera in
+    Scroll-Down Zoom Camera out
+    Click&Move  to rotate the camera
 
 #The Program   
 The program will operate via a real-time ray tracer.
