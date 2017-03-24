@@ -1,4 +1,5 @@
 #include "Header.h"
+#include <iostream>
 
 using namespace glm;
 
@@ -8,38 +9,35 @@ Returns the scalar.
 when function returns, normal and index will contain the normal of the sphere at
 the intersection point and the sphereVec index of the sphere respectivly.
 
-Algorithm from "Fundamentals of Computer Graphics 3rd ed. - P. Shirley, S. Marschner (CRC, 2009), p. 76
+Algorithm from https://www.cs.princeton.edu/courses/archive/fall00/cs426/lectures/raycast/sld013.htm
 */
 float getSphereScalar(Ray *ray, std::vector<Sphere> *sphereVec, vec3 *normal, unsigned int *index)
 {
 	vec3 norm;
-	float scalar = 0, tempScalar = 0;
+	float scalar = 0;
     
     for (unsigned int i = 0; i < sphereVec->size(); i++)
 	{
         Sphere *sphere = &(*sphereVec)[i];
-
-		tempScalar = 0;
-
-        // algorithm derives to the quadratic equation
-        // value under the square root in the quadratic equation
-		float rootValue = pow(dot(ray->direction, (ray->origin - sphere->center)), 2.f)
-						- pow(length(ray->origin - sphere->center), 2.f)
-						+ (sphere->radius * sphere->radius);
+		float tempScalar = 0;
 
 
-		if (rootValue >= 0)
-		{
-			float first = -dot(ray->direction, (ray->origin - sphere->center));
-			if (rootValue > 0)
-			{
-				float	pos = first + sqrt(rootValue),
-						neg = first - sqrt(rootValue);
-				(abs(neg) < abs(pos)) ? tempScalar = neg : tempScalar = pos;
-			}
-			else
-				tempScalar = first;
-		}
+        vec3 L = sphere->center - ray->origin;
+        float tca = dot(L, ray->direction);
+
+        if (tca >= 0)
+        {
+            std::cout << dot(L, L) << std::endl;
+            float d2 = dot(L, L) - (tca * tca),
+                    r2 = sphere->radius * sphere->radius;
+            if (d2 <= r2)
+            {
+                float thc = sqrt(r2 - d2),
+                        t1 = tca - thc,
+                        t2 = tca + thc;
+                (abs(t1) < abs(t2)) ? tempScalar = t1 : tempScalar = t2;
+            }
+        }
 
         /* 
         If it is the first case 
@@ -77,7 +75,8 @@ float getTriScalar(Ray *ray, std::vector<Triangle> *triangleVec, unsigned int *i
     for (unsigned int iter = 0; iter < triangleVec->size(); iter++) {
         Triangle *tri = &(*triangleVec)[iter];
 		tempScalar = 0;
-		float   a = tri->a,
+		
+        float   a = tri->a,
 		        b = tri->b,
 		        c = tri->c,
                 d = tri->d,

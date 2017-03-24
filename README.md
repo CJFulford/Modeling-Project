@@ -26,7 +26,10 @@ Currently the ray tacer operates only via the CPU, with multithreading via OpenM
 ## Functionality
     Spheres:        Enabled
     Triangles:      Enabled
-    Planes:        Disabled
+    Cube:           Disabled
+    Cylinder:       Disabled
+    Cone:           Disabled
+    Torus:          Disabled
 
     Operations:     None
 

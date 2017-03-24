@@ -73,6 +73,13 @@ struct Triangle
 	float phong, a, b, c, d, e, f;
 };
 
+struct Torus
+{
+    Torus(glm::vec3 center, float mainRadius, float subRadius, glm::vec3 colour, float phong) : center(center), mainRadius(mainRadius), subRadius(subRadius), phong(phong) {}
+    glm::vec3 center, colour;
+    float mainRadius, subRadius, phong;
+};
+
 // ============================== Utilities.cpp
 // Error Checking
 void ErrorCallback(int error, const char* description);
