@@ -2,67 +2,55 @@
 
 using namespace glm;
 
-vec3 shading(
-	vec3 colourIn, 
-	vec3 intersection, 
-	vec3 origin, 
-	vec3 norm, 
-	float phong, 
-	vec3 specular)
+// assuming that the incoming normal is normalized
+vec3 Blinn_Phong(Ray *ray, float scalar, vec3 colour, vec3 normal, float phong)
 {
-	vec3 n = normalize(norm);
-	vec3 colVec, ambient;
+    vec3 intersect = ray->origin + (scalar * ray->direction),
+        viewRay = normalize(ray->origin - intersect),
+        lightRay = normalize(LIGHT_POS - intersect),
+        halfRay = normalize((viewRay + lightRay));
 
-	vec3 v = normalize(origin - intersection);
-
-	// consider the light to always be at the camera location
-	vec3 l = normalize(origin - intersection);
-	vec3 h = normalize((v + l));
-
-	float diffuseFactor = std::max(0.f, dot(n, l));
-	float specularFactor = std::max(0.f, dot(n, h));
-
-	colVec += (colourIn * WHITE * diffuseFactor) + (specular * WHITE * pow(specularFactor, phong));
-
-	return colVec;
+    // specular colour is always white, add ambient for no black sides
+	return  (colour * AMBIENT) + 
+            (WHITE * ((colour * std::max(0.f, dot(normal, lightRay))) + 
+                      (WHITE * pow(std::max(0.f, dot(normal, halfRay)), phong))));
 }
 
-vec3 getColour(
-	Ray& ray,
-    std::vector<Sphere>& sphereVec,
-    std::vector<Triangle>& triangleVec)
+vec3 getColour(Ray *ray, std::vector<Sphere> *sphereVec, std::vector<Triangle> *triangleVec)
 {
-	float scalar, sScalar, tScalar;
-	vec3	colourVec, sCol, tCol,
-			normal, sNorm, tNorm,
-			specular, sSpecular, tSpecular;
-	float	phong, sPhong, tPhong,
-			reflect, sReflect, tReflect;
+	float sScalar, tScalar;
+    vec3 sNorm, tNorm;
+    unsigned int sIndex, tIndex;
 
-	sScalar = getNearestSphereScalar(ray, sphereVec, &sCol, &sNorm, &sPhong, &sSpecular, &sReflect);
-	tScalar = getNearestTriangleScalar(ray, triangleVec, &tCol, &tNorm, &tPhong, &tSpecular, &tReflect);
+    // find the closest sphere and triangle by scalar
+	sScalar = getSphereScalar(ray, sphereVec, &sNorm, &sIndex);
+	tScalar = getTriScalar(ray, triangleVec, &tNorm, &tIndex);
 
-
+    /*
+    If the sphere is infront of the camera
+    AND
+    (the closest sphere is closer than the closest triangle
+    OR
+    the closest triangle is the reflecting object)
+    */
 	if (sScalar > 0 && (sScalar < tScalar || tScalar == 0))
 	{
-		normal = sNorm;
-		colourVec = sCol;
-		scalar = sScalar;
-		phong = sPhong;
-		specular = sSpecular;
-		reflect = sReflect;
+        Sphere *s = &(*sphereVec)[sIndex];
+        return Blinn_Phong(ray, sScalar, s->colour, sNorm, s->phong);
 	}
+    /*
+    If the triangle is infront of the camera
+    AND
+    (the closest triangle is closer than the closest sphere
+    OR
+    the closest sphere is the reflecting object)
+    */
 	else if (tScalar > 0 && (tScalar < sScalar || sScalar == 0))
 	{
-		normal = tNorm;
-		colourVec = tCol;
-		scalar = tScalar;
-		phong = tPhong;
-		specular = tSpecular;
-		reflect = tReflect;
+        Triangle *t = &(*triangleVec)[tIndex];
+        return Blinn_Phong(ray, tScalar, t->colour, tNorm, t->phong);
 	}
+    // no intersection
 	else
-		return BLACK;
-
-	return shading(colourVec, ray.origin + (scalar * ray.direction), ray.origin, normal, phong, specular);
+		return WHITE;
 }

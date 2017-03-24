@@ -42,9 +42,6 @@ void readFromFile(
 				getPointFromLine(line, &sphere.colour);
 
 				getline(file, line);
-				getPointFromLine(line, &sphere.specular);
-
-				getline(file, line);
 				sphere.phong = stof(line.substr(line.find_first_not_of(' '), string::npos));
 
 				getline(file, line);
@@ -67,9 +64,6 @@ void readFromFile(
 
 				getline(file, line);
 				getPointFromLine(line, &tri.colour);
-
-				getline(file, line);
-				getPointFromLine(line, &tri.specular);
 
 				getline(file, line);
 				tri.phong = stof(line.substr(line.find_first_not_of(' '), string::npos));

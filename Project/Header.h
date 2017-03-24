@@ -24,11 +24,12 @@
 #define HALF_HEIGHT		(WINDOW_HEIGHT / 2)
 
 // basic colours
-#define BLACK			glm::vec3(0.f, 0.f, 0.f)
-#define WHITE			glm::vec3(1.f, 1.f, 1.f)
+#define BLACK			glm::vec3(0.f)
+#define WHITE			glm::vec3(1.f)
 #define RED             glm::vec3(1.f, 0.f, 0.f)
 #define GREEN           glm::vec3(0.f, 1.f, 0.f)
 #define BLUE            glm::vec3(0.f, 0.f, 1.f)
+#define AMBIENT         glm::vec3(0.2f)
 
 // camera info
 #define FOV_DEGREE  	45
@@ -38,7 +39,9 @@
 #define ZOOM_SENS       .1f
 #define DEF_ZOOM        1.f
 #define MAX_ZOOM        .001f
-#define DEF_ROTATION    glm::vec3(0.f, 0.f, 0.f)
+#define DEF_ROTATION    glm::vec3(0.f)
+
+#define LIGHT_POS       glm::vec3(1.f, 2.f, 1.f)
 
 extern glm::vec3 camOrigin;
 extern glm::vec3 rotation;
@@ -55,13 +58,13 @@ struct Ray
 
 struct Sphere
 {
-    glm::vec3 center, colour, specular;
+    glm::vec3 center, colour;
 	float radius, phong, reflect;
 };
 
 struct Triangle
 {
-    glm::vec3 p1, p2, p3, colour, specular;
+    glm::vec3 p1, p2, p3, colour;
 	float a, b, c, d, e, f, phong, reflect;
 };
 
@@ -80,12 +83,12 @@ void mouseMotion(GLFWwindow* window, double x, double y);
 void printOpenGLVersion(GLenum majorVer, GLenum minorVer, GLenum langVer);
 
 // ============================== Lighting.cpp
-glm::vec3 getColour(Ray& ray, std::vector<Sphere>& sphereVec, std::vector<Triangle>& triangleVec);
-glm::vec3 shading(glm::vec3 colourIn, glm::vec3 intersection, glm::vec3 origin, glm::vec3 n, float phong, glm::vec3 specular);
+glm::vec3 getColour(Ray *ray, std::vector<Sphere> *sphereVec, std::vector<Triangle> *triangleVec);
+glm::vec3 Blinn_Phong(Ray *ray, float scalar, glm::vec3 colourIn, glm::vec3 norm, float phong);
 
 // ============================== Scalars.cpp
-float getNearestSphereScalar(Ray ray, std::vector<Sphere>& sphereVec, glm::vec3 *colourVec, glm::vec3 *normal, float *phong, glm::vec3 *specular, float *reflect);
-float getNearestTriangleScalar(Ray ray, std::vector<Triangle>& triangleVec, glm::vec3 *colourVec, glm::vec3 *normal, float *phong, glm::vec3 *specular, float *reflect);
+float getSphereScalar(Ray *ray, std::vector<Sphere> *sphereVec, glm::vec3 *normal, unsigned int *index);
+float getTriScalar(Ray *ray, std::vector<Triangle> *triangleVec, glm::vec3 *normal, unsigned int *index);
 
 // ============================== File.cpp
 void readFromFile(const std::string fileDir, std::vector<Sphere>& sphereVec, std::vector<Triangle>& triangleVec);

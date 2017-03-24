@@ -85,7 +85,7 @@ int main(int argc, char *argv[])
                                 rotateX(glm::vec3(u, v, w), rotate_x)
                                 , rotate_y)));
 
-				colourVec = getColour(ray, sphereVec, triangleVec);
+				colourVec = getColour(&ray, &sphereVec, &triangleVec);
 				imageBuffer.SetPixel(i, j, colourVec);
 			}
 		}
