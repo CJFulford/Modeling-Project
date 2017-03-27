@@ -55,9 +55,4 @@ void mouseMotion(GLFWwindow* window, double x, double y);
 void printOpenGLVersion(GLenum majorVer, GLenum minorVer, GLenum langVer);
 
 // ============================== Lighting.cpp
-glm::vec3 getColour(Ray *ray, std::vector<Sphere> *sphereVec, std::vector<Triangle> *triangleVec);
-
-// ============================== Scalars.cpp
-float getSphereScalar(Ray *ray, std::vector<Sphere> *sphereVec, glm::vec3 *normal, unsigned int *index);
-float getTriangleScalar(Ray *ray, std::vector<Triangle> *triangleVec, unsigned int *index);
-float getTorusScalar(Ray *ray, std::vector<Torus> *torusVec, glm::vec3 *normal, unsigned int *index);
+glm::vec3 getColour(Ray *ray, std::vector<Object*> *objectVec);

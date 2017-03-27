@@ -15,59 +15,52 @@
 glm::vec3 camOrigin = DEF_CAM_POS;
 
 // default scene consists of 2 spheres and a pyramid
-void defaultScene(std::vector<Sphere> *sphereVec, std::vector<Torus> *torusVec, std::vector<Triangle> *triangleVec)
+void defaultScene(std::vector<Object*> *objectVec)
 {
-    Sphere s1(glm::vec3(0.f, 0.f, 0.f),     // center
-            0.5f,                           // radius
-            glm::vec3(1.f, 0.f, 0.f),       // colour
-            30);                            // phong
-
-    Sphere s2(glm::vec3(-1.f, 0.f, -1.5f),  // center
+    objectVec->push_back(new Sphere(
+        glm::vec3(0.f, 0.f, 0.f),           // center
         0.5f,                               // radius
-        glm::vec3(0.f, 0.f, 1.f),           // colour
-        50);                                // phong
+        glm::vec3(1.f, 0.f, 0.f),           // colour
+        30));                                // phong
 
-    Torus tor(glm::vec3(1.f, 0.f, 2.f),     // center
-            1.f,                            // mainRadius
-            .2f,                            // subRadius
-            glm::vec3(0.f, 1.f, 0.f),       // colour
-            50);                            // phong
+    objectVec->push_back(new Sphere(
+        glm::vec3(-1.f, 0.f, -1.5f),        // center
+		0.5f,							    // radius
+		glm::vec3(0.f, 0.f, 1.f),           // colour
+		50));                                // phong
+
+    /*objectVec->push_back(new Torus(
+        glm::vec3(1.f, 0.f, 2.f),           // center
+        1.f,                                // mainRadius
+        .2f,                                // subRadius
+        glm::vec3(0.f, 1.f, 0.f),           // colour
+        50));                                // phong
+        */
     
-    Triangle t1(
+    objectVec->push_back(new Triangle(
         glm::vec3(-0.4f, -2.75f, -9.55f),   //p1
         glm::vec3(-0.93f, 0.55f, -8.51f),   //p2
         glm::vec3(0.11f, -2.75f, -7.98f),   //p3
         glm::vec3(0.1f, 0.8f, 0.9f),        //colour
-        30.f);                              //phong
-    Triangle t2(
+        30.f));                              //phong
+    objectVec->push_back(new Triangle(
         glm::vec3(0.11f, -2.75f, -7.98f),
         glm::vec3(-0.93f, 0.55f, -8.51f),
         glm::vec3(-1.46f, -2.75f, -7.47f),
         glm::vec3(0.1f, 0.8f, 0.9f),
-        30.f);
-    Triangle t3(
+        30.f));
+    objectVec->push_back(new Triangle(
         glm::vec3(-1.46f, -2.75f, -7.47f),
         glm::vec3(-0.93f, 0.55f, -8.51f),
         glm::vec3(-1.97f, -2.75f, -9.04),
         glm::vec3(0.1f, 0.8f, 0.9f),
-        30.f);
-    Triangle t4(
+        30.f));
+    objectVec->push_back(new Triangle(
         glm::vec3(-1.97f, -2.75f, -9.04f),
         glm::vec3(-0.93f, 0.55f, -8.51f),
         glm::vec3(-0.4f, -2.75f, -9.55f),
         glm::vec3(0.1f, 0.8f, 0.9f),
-        30.f);
-
-
-    sphereVec->push_back(s1);
-    sphereVec->push_back(s2);
-    torusVec->push_back(tor);
-    triangleVec->push_back(t1);
-    triangleVec->push_back(t2);
-    triangleVec->push_back(t3);
-    triangleVec->push_back(t4);
-
-
+        30.f));
 }
 
 int main(int argc, char *argv[])
@@ -104,10 +97,8 @@ int main(int argc, char *argv[])
 	ImageBuffer imageBuffer;
 	imageBuffer.Initialize();
 
-    std::vector<Sphere>		sphereVec;
-    std::vector<Torus>      torusVec;
-    std::vector<Triangle>	triangleVec;
-    defaultScene(&sphereVec, &torusVec, &triangleVec);
+    std::vector<Object*> objectVec;
+    defaultScene(&objectVec);
 	
 
 	// variable initialization
@@ -146,7 +137,7 @@ int main(int argc, char *argv[])
                                 rotateX(glm::vec3(u, v, w), rotate_x)
                                 , rotate_y)));
 
-				colourVec = getColour(&ray, &sphereVec, &triangleVec);
+				colourVec = getColour(&ray, &objectVec);
 				imageBuffer.SetPixel(i, j, colourVec);
 			}
 		}
@@ -176,5 +167,9 @@ int main(int argc, char *argv[])
 	// clean up allocated resources before exit
 	glfwDestroyWindow(window);
 	glfwTerminate();
+    for (Object *object : objectVec)
+    {
+        delete object;
+    }
 	return 0;
 }
