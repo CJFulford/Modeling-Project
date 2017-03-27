@@ -1,8 +1,7 @@
-#include <vector>
+#include "Structs.h"
 
 #include <glad\glad.h>
 #include <GLFW\glfw3.h>
-#include <glm\glm.hpp>
 
 // Mathematical values
 #define PI				3.14159265359f
@@ -40,45 +39,6 @@ extern glm::vec3 camOrigin;
 extern float zoom;
 extern float rotate_x;
 extern float rotate_y;
-
-// shape structs
-struct Ray
-{
-    Ray(glm::vec3 orig, glm::vec3 dir) : origin(orig), direction(dir) {}
-	glm::vec3 origin, direction;
-};
-
-struct Sphere
-{
-    Sphere(glm::vec3 center, float radius, glm::vec3 colour, float phong) : center(center), colour(colour), radius(radius), phong(phong) {}
-    glm::vec3 center, colour;
-	float radius, phong;
-};
-
-struct Triangle
-{
-    Triangle(glm::vec3 p1, glm::vec3 p2, glm::vec3 p3, glm::vec3 colour, float phong) : p1(p1), p2(p2), p3(p3), colour(colour), phong(phong) 
-    {
-        a = p1.x - p2.x;
-        b = p1.y - p2.y;
-        c = p1.z - p2.z;
-
-        d = p1.x - p3.x;
-        e = p1.y - p3.y;
-        f = p1.z - p3.z;
-
-        normal = normalize(cross(p3 - p2, p1 - p2));
-    }
-    glm::vec3 p1, p2, p3, colour, normal;
-	float phong, a, b, c, d, e, f;
-};
-
-struct Torus
-{
-    Torus(glm::vec3 center, float mainRadius, float subRadius, glm::vec3 colour, float phong) : center(center), mainRadius(mainRadius), subRadius(subRadius), phong(phong) {}
-    glm::vec3 center, colour;
-    float mainRadius, subRadius, phong;
-};
  
 // ============================== Utilities.cpp
 // Error Checking

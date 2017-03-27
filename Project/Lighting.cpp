@@ -12,8 +12,8 @@ vec3 Blinn_Phong(Ray *ray, float scalar, vec3 colour, vec3 normal, float phong)
 
     // specular colour is always white, add ambient for no black sides
 	return  (colour * AMBIENT) + 
-            (WHITE * ((colour * glm::max(0.f, dot(normal, lightRay))) + 
-                      (WHITE * pow(glm::max(0.f, dot(normal, halfRay)), phong))));
+            (WHITE * ((colour * max(0.f, dot(normal, lightRay))) + 
+                      (WHITE * pow(max(0.f, dot(normal, halfRay)), phong))));
 }
 
 vec3 getColour(Ray *ray, std::vector<Sphere> *sphereVec, std::vector<Triangle> *triangleVec)

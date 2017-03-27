@@ -168,6 +168,7 @@
   <ItemGroup>
     <ClInclude Include="Header.h" />
     <ClInclude Include="ImageBuffer.h" />
+    <ClInclude Include="Structs.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

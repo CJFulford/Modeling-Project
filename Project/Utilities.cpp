@@ -91,5 +91,5 @@ void scrollCallback(GLFWwindow* window, double xoffset, double yoffset)
     if (yoffset < 0)
         zoom += ZOOM_SENS;
     else if (yoffset > 0)
-        zoom = glm::max(zoom - ZOOM_SENS, MAX_ZOOM);
+        zoom = max(zoom - ZOOM_SENS, MAX_ZOOM);
 }
