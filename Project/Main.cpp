@@ -42,7 +42,7 @@ void defaultScene(std::vector<Object*> *objectVec)
         glm::vec3(-0.93f, 0.55f, -8.51f),   //p2
         glm::vec3(0.11f, -2.75f, -7.98f),   //p3
         glm::vec3(0.1f, 0.8f, 0.9f),        //colour
-        30.f));                              //phong
+        30.f));                             //phong
     objectVec->push_back(new Triangle(
         glm::vec3(0.11f, -2.75f, -7.98f),
         glm::vec3(-0.93f, 0.55f, -8.51f),

@@ -140,16 +140,15 @@ struct Triangle : Object
 
 		// if gamma < 0 || gamma > 1 then the ray is missing the triangle
 		float gamma = ((i * ak_jb) + (h * jc_al) + (g * bl_kc)) / M;
-		if (gamma < 0 || gamma > 1)
-		{
-			// if beta < 0 || beta > 1 then the ray is missing the triangle
-			float beta = ((j * ei_hf) + (k * gf_di) + (l * dh_eg)) / M;
-			if (beta < 0 || beta  > 1 - gamma)
-			{
-				float scalar = -(((f * ak_jb) + (e * jc_al) + (d * bl_kc)) / M);
-				ray->volumes.push_back(Volume(scalar, scalar, this));
-			}
-		}
+        if (gamma < 0 || gamma > 1) return;
+		
+            // if beta < 0 || beta > 1 then the ray is missing the triangle
+		float beta = ((j * ei_hf) + (k * gf_di) + (l * dh_eg)) / M;
+        if (beta < 0 || beta  > 1 - gamma) return;
+		
+            
+        float scalar = -(((f * ak_jb) + (e * jc_al) + (d * bl_kc)) / M);
+		ray->volumes.push_back(Volume(scalar, scalar, this));
 	}
 	glm::vec3 getNormal(glm::vec3 intersection)
 	{

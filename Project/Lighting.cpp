@@ -30,8 +30,8 @@ vec3 getColour(Ray *ray, std::vector<Object*> *objectVec)
 	float scalar = 0;
 	Object *obj= ray->getClosestScalar(&scalar);
 
-	if (scalar != 0.f)
+	if (scalar != 0)
 		return Blinn_Phong(ray, scalar, obj);
 	else 
-		return BLUE * .1f;
+		return BLUE * .1f; // navy blue background
 }
