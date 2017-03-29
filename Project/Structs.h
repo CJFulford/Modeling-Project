@@ -1,11 +1,10 @@
 #pragma once
 #include <glm\glm.hpp>
 #include <vector>
+#include <utility>
 #define FLOAT_ERROR 1e-6
 
-
 struct Object;
-
 
 
 struct Volume
@@ -45,6 +44,10 @@ struct Ray
 		*scalar = min;
 		return object;
 	}
+    glm::vec3 applyScalar(float scalar)
+    {
+        return origin + (scalar * direction);
+    }
 };
 
 
@@ -59,7 +62,12 @@ struct Object
 
 struct Plane : Object
 {
-    Plane(glm::vec3 point, glm::vec3 normal) : point(point), normal(normalize(normal)) {}
+    Plane(glm::vec3 point, glm::vec3 normal, glm::vec3 col, float ph) : 
+        point(point), normal(normalize(normal)) 
+    {
+        colour = col;
+        phong = ph;
+    }
     glm::vec3 point, normal;
 
     // returns scalar if it exists, returns null if ray and plane are parallel
@@ -180,19 +188,27 @@ struct Sphere : Object
 
 struct Cube : Object
 {
-    Cube(glm::vec3 center, glm::vec3 top, glm::vec3 side, float radius, glm::vec3 col, float ph) :
-        center(center), top(normalize(top)), side(normalize(side)), radius(radius)
+    // variables
+    Plane* planes[6];
+    glm::vec3 center, top, side, front;
+    float radius;
+
+    // constructors
+    Cube(glm::vec3 c, glm::vec3 t, glm::vec3 s, float r, glm::vec3 col, float ph) :
+        center(c), radius(r)
     {
-        front = normalize(glm::cross(side, top));
+        top = normalize(t);
+        side = normalize(s);
+        front = normalize(cross(side, top));
         colour = col;
         phong = ph;
 
-        planes[0] = new Plane(center + (radius * side), side);
-        planes[1] = new Plane(center + (radius * -side), -side);
-        planes[2] = new Plane(center + (radius * top), top);
-        planes[3] = new Plane(center + (radius * -top), -top);
-        planes[4] = new Plane(center + (radius * front), front);
-        planes[5] = new Plane(center + (radius * -front), -front);
+        planes[0] = new Plane(center + (radius * side), side, col, ph);
+        planes[1] = new Plane(center + (radius * -side), -side, col, ph);
+        planes[2] = new Plane(center + (radius * top), top, col, ph);
+        planes[3] = new Plane(center + (radius * -top), -top, col, ph);
+        planes[4] = new Plane(center + (radius * front), front, col, ph);
+        planes[5] = new Plane(center + (radius * -front), -front, col, ph);
     }
     ~Cube() 
     {
@@ -200,43 +216,52 @@ struct Cube : Object
             delete plane;
     };
 
-    Plane* planes[6];
-    glm::vec3 center, top, side, front;
-    float radius;
-
     void getVolume(Ray *ray)
     {
-        std::vector<float> points;
+        std::vector<std::pair<float, int>> points;
 
         // 6 is the number of planes in planes
-        for (Plane* plane : planes)
+        for (int i = 0; i < 6; i++)
         {
-            float scalar = plane->getIntersection(ray);
+            float scalar = planes[i]->getIntersection(ray);
             // if parallel, the scalar will be NULL
             if (!scalar) continue;
 
             // intersect position relative to the cube center
-            glm::vec3 relativeIntersect = (ray->origin + (scalar * ray->direction)) - center,
-                        corner = radius * (top + side + front);
+            glm::vec3 relativeIntersect = ray->applyScalar(scalar) - center,
+                        corner = radius * (abs(top) + abs(side) + abs(front));
 
             // if the intersection does not exceed the bounds of the normals
-            if (abs(relativeIntersect.x) <= abs(corner.x) + FLOAT_ERROR &&
-                abs(relativeIntersect.y) <= abs(corner.y) + FLOAT_ERROR &&
-                abs(relativeIntersect.z) <= abs(corner.z) + FLOAT_ERROR)
-                    points.push_back(scalar);
+            if (abs(relativeIntersect.x) <= corner.x + FLOAT_ERROR &&
+                abs(relativeIntersect.y) <= corner.y + FLOAT_ERROR &&
+                abs(relativeIntersect.z) <= corner.z + FLOAT_ERROR)
+            {
+                points.push_back(std::make_pair(scalar, i));
+            }
         }
 
         // add intersections to ray
-        if (points.size() == 1) ray->volumes.push_back(Volume(points[0], points[0], this));
+        if (points.size() == 2)
+        {
+            float p0 =  points[0].first,    p1 = points[1].first;
+            int i0 =    points[0].second,   i1 = points[1].second;
+            ray->volumes.push_back(Volume(glm::min(p0, p1), 
+                                          glm::max(p0, p1), 
+                                          planes[(p0 < p1) ? i0 : i1]));
+        }
         else if (points.size() >= 2)
         {
-            float min = points[0], max = points[0];
-            for (float point : points)
+            std::pair<float, int> minP = points[0], maxP = points[0];
+            for (unsigned int i = 1; i < points.size(); i++)
             {
-                if (point < min) min = point;
-                else if (point > max) max = point;
+                if (points[i].first < minP.first)
+                    minP = points[i];
+                else if (points[i].first > maxP.first)
+                    maxP = points[i];
             }
-            ray->volumes.push_back(Volume(min, max, this));
+            ray->volumes.push_back(Volume(minP.first, 
+                                          maxP.first, 
+                                          planes[minP.second]));
         }
     }
     glm::vec3 getNormal(glm::vec3 intersection)

@@ -7,7 +7,7 @@ using namespace glm;
 // assuming that the incoming normal is normalized
 vec3 Blinn_Phong(Ray *ray, float scalar, Object *object)
 {
-    vec3 intersect = ray->origin + (scalar * ray->direction),
+    vec3 intersect = ray->applyScalar(scalar),
         viewRay = normalize(ray->origin - intersect),
         lightRay = normalize(LIGHT_POS - intersect),
         halfRay = normalize((viewRay + lightRay)),

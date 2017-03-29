@@ -40,8 +40,8 @@ void defaultScene(std::vector<Object*> *objectVec)
     objectVec->push_back(new Cube(
         glm::vec3(0.f, 0.f, 0.f),           // center
         glm::vec3(0.f, 1.f, 0.f),           // top
-        glm::vec3(1.f, 0.f, 0.f),           // side
-        0.5f,                               // radius
+        glm::vec3(1.f, 0.f, 0.1f),           // side
+        .5f,                                // radius
         glm::vec3(0.f, 1.f, 0.f),           // colour
         30.f));                             // phong
     

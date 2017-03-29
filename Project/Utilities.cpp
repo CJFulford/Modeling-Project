@@ -12,6 +12,7 @@ float   rotate_x = 0.0,
 
 glm::vec3 rotation = DEF_ROTATION;
 
+
 // Error Checking
 void ErrorCallback(int error, const char* description)
 {
