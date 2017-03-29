@@ -1,9 +1,7 @@
 #pragma once
-
-// https://www.siggraph.org/education/materials/HyperGraph/raytrace/rtinter0.htm
-
 #include <glm\glm.hpp>
 #include <vector>
+#define FLOAT_ERROR 1e-6
 
 
 struct Object;
@@ -61,7 +59,7 @@ struct Object
 
 struct Plane : Object
 {
-    Plane(glm::vec3 point, glm::vec3 normal) : point(point), normal(normal) {}
+    Plane(glm::vec3 point, glm::vec3 normal) : point(point), normal(normalize(normal)) {}
     glm::vec3 point, normal;
 
     // returns scalar if it exists, returns null if ray and plane are parallel
@@ -69,9 +67,7 @@ struct Plane : Object
     {
         float denominator = dot(ray->direction, normal);
         if (denominator == 0) return NULL;
-
-        float numerator = dot((point - ray->origin), normal);
-        return numerator / denominator;
+        return dot((point - ray->origin), normal) / denominator;
     }
 
     void getVolume(Ray *ray) {}
@@ -190,89 +186,76 @@ struct Cube : Object
         front = normalize(glm::cross(side, top));
         colour = col;
         phong = ph;
+
+        planes[0] = new Plane(center + (radius * side), side);
+        planes[1] = new Plane(center + (radius * -side), -side);
+        planes[2] = new Plane(center + (radius * top), top);
+        planes[3] = new Plane(center + (radius * -top), -top);
+        planes[4] = new Plane(center + (radius * front), front);
+        planes[5] = new Plane(center + (radius * -front), -front);
     }
+    ~Cube() 
+    {
+        for (Plane* plane : planes)
+            delete plane;
+    };
+
+    Plane* planes[6];
     glm::vec3 center, top, side, front;
     float radius;
 
     void getVolume(Ray *ray)
     {
-        float scalars[6];
-        glm::vec3 intersects[6];
         std::vector<float> points;
 
-        // define all the planes
-        Plane xPos(center + (radius * side), side);
-        Plane xNeg(center - (radius * side), -side);
-        Plane yPos(center + (radius * top), top);
-        Plane yNeg(center - (radius * top), -top);
-        Plane zPos(center + (radius * front), front);
-        Plane zNeg(center - (radius * front), -front);
-
-        // get the intersect for each plane
-        scalars[0] = xPos.getIntersection(ray);
-        scalars[1] = xNeg.getIntersection(ray);
-        scalars[2] = yPos.getIntersection(ray);
-        scalars[3] = yNeg.getIntersection(ray);
-        scalars[4] = zPos.getIntersection(ray);
-        scalars[5] = zNeg.getIntersection(ray);
-
-        // max distance that the intersection can be from the center
-        float maxDistance = distance(center, radius * (top + side + front));
-
-        // generate itersection points for all 
-        for (float scalar : scalars)
+        // 6 is the number of planes in planes
+        for (Plane* plane : planes)
         {
-            // if parallel, the scalar will ne NULL
+            float scalar = plane->getIntersection(ray);
+            // if parallel, the scalar will be NULL
             if (!scalar) continue;
 
-            // scalar exists, find intersectoin
-            glm::vec3 intersection = ray->origin + (scalar * ray->direction);
-            
-            // find distance between intersection and cube center
-            float dist = distance(intersection, center);
+            // intersect position relative to the cube center
+            glm::vec3 relativeIntersect = (ray->origin + (scalar * ray->direction)) - center,
+                        corner = radius * (top + side + front);
 
-            // if the intersection is in the max distance range, add it to the list
-            if (dist <= maxDistance)
-                points.push_back(scalar);
+            // if the intersection does not exceed the bounds of the normals
+            if (abs(relativeIntersect.x) <= abs(corner.x) + FLOAT_ERROR &&
+                abs(relativeIntersect.y) <= abs(corner.y) + FLOAT_ERROR &&
+                abs(relativeIntersect.z) <= abs(corner.z) + FLOAT_ERROR)
+                    points.push_back(scalar);
         }
 
-        if (points.size() == 1)
-            ray->volumes.push_back(Volume(points[0], points[0], this));
-        else if (points.size() == 2)
+        // add intersections to ray
+        if (points.size() == 1) ray->volumes.push_back(Volume(points[0], points[0], this));
+        else if (points.size() >= 2)
         {
-            if (points[0] < points[1])
-                ray->volumes.push_back(Volume(points[0], points[1], this));
-            else
-                ray->volumes.push_back(Volume(points[1], points[0], this));
+            float min = points[0], max = points[0];
+            for (float point : points)
+            {
+                if (point < min) min = point;
+                else if (point > max) max = point;
+            }
+            ray->volumes.push_back(Volume(min, max, this));
         }
     }
     glm::vec3 getNormal(glm::vec3 intersection)
     {
-        glm::vec3 relative = normalize(intersection - center);
-        float ang1 = dot(top, relative);
-        float ang2 = dot(side, relative);
-        float ang3 = dot(front, relative);
-
-        if (abs(ang1) < abs(ang2) && abs(ang1) < abs(ang3))
+        glm::vec3 relative = intersection - center;
+        if (abs(relative.x) > abs(relative.y) && abs(relative.x) > abs(relative.z))
         {
-            if (ang1 >= 0)
-                return top;
-            else
-                return -top;
+            if (relative.x >= 0) return side;
+            else return -side;
         }
-        else if (abs(ang2) < abs(ang3))
+        else if (abs(relative.y) > abs(relative.z))
         {
-            if (ang2 >= 0)
-                return side;
-            else
-                return -side;
+            if (relative.y >= 0) return top;
+            else return -top;
         }
         else
         {
-            if (ang3 >= 0)
-                return front;
-            else
-                return -front;
+            if (relative.z >= 0) return front;
+            else return -front;
         }
     }
 };
