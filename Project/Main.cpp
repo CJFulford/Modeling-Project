@@ -17,7 +17,7 @@ glm::vec3 camOrigin = DEF_CAM_POS;
 // default scene consists of 2 spheres and a pyramid
 void defaultScene(std::vector<Object*> *objectVec)
 {
-    objectVec->push_back(new Sphere(
+    /*objectVec->push_back(new Sphere(
         glm::vec3(0.f, 0.f, 0.f),           // center
         0.5f,                               // radius
         glm::vec3(1.f, 0.f, 0.f),           // colour
@@ -27,15 +27,23 @@ void defaultScene(std::vector<Object*> *objectVec)
         glm::vec3(-1.f, 0.f, -1.5f),        // center
 		0.5f,							    // radius
 		glm::vec3(0.f, 0.f, 1.f),           // colour
-		50));                                // phong
+		50));   */                             // phong
 
     /*objectVec->push_back(new Torus(
         glm::vec3(1.f, 0.f, 2.f),           // center
         1.f,                                // mainRadius
         .2f,                                // subRadius
         glm::vec3(0.f, 1.f, 0.f),           // colour
-        50));                                // phong
+        50));                               // phong
         */
+
+    objectVec->push_back(new Cube(
+        glm::vec3(0.f, 0.f, 0.f),           // center
+        glm::vec3(0.f, 1.f, 0.f),           // top
+        glm::vec3(1.f, 0.f, 0.f),           // side
+        0.5f,                               // radius
+        glm::vec3(0.f, 1.f, 0.f),           // colour
+        30.f));                             // phong
     
     objectVec->push_back(new Triangle(
         glm::vec3(-0.4f, -2.75f, -9.55f),   //p1
