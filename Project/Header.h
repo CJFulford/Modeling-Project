@@ -3,10 +3,7 @@
 #include <glad\glad.h>
 #include <GLFW\glfw3.h>
 
-// Mathematical values
-#define PI				3.14159265359f
-#define radToDeg        (PI / 180)
-#define identity		glm::mat4(1.f)
+
 
 // window info
 #define WINDOW_WIDTH	500
@@ -35,6 +32,7 @@
 
 #define LIGHT_POS       glm::vec3(1.f, 2.f, 1.f)
 
+extern std::vector<Object*> objectVec;
 extern glm::vec3 camOrigin;
 extern float zoom;
 extern float rotate_x;
@@ -52,6 +50,7 @@ void printOpenGLVersion(GLenum majorVer, GLenum minorVer, GLenum langVer);
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
 void scrollCallback (GLFWwindow* window, double xoffset, double yoffset);
 void mouseMotion(GLFWwindow* window, double x, double y);
+void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
 void printOpenGLVersion(GLenum majorVer, GLenum minorVer, GLenum langVer);
 
 // ============================== Lighting.cpp

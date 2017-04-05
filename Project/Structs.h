@@ -2,7 +2,13 @@
 #include <glm\glm.hpp>
 #include <vector>
 #include <utility>
+#include <glm/gtx/rotate_vector.hpp>
+
+// Mathematical values
+#define PI				3.14159265359f
+#define identity		glm::mat4(1.f)
 #define FLOAT_ERROR 1e-6
+#define radToDeg    (PI / 180)
 
 struct Object;
 
@@ -18,7 +24,10 @@ struct Volume
 struct Ray
 {
 	Ray(glm::vec3 orig, glm::vec3 dir) :
-		origin(orig), direction(dir) {}
+        origin(orig)
+    {
+        direction = normalize(dir);
+    }
 	glm::vec3 origin, direction;
 	std::vector<Volume> volumes;
 
@@ -58,6 +67,7 @@ struct Object
 	virtual glm::vec3 getNormal(glm::vec3 intersection) = 0;
 	glm::vec3 colour;
 	float phong;
+    bool selected = false;
 };
 
 struct Plane : Object
@@ -188,17 +198,23 @@ struct Sphere : Object
 
 struct Cube : Object
 {
+#define XAXIS glm::vec3(1.f, 0.f, 0.f)
+#define YAXIS glm::vec3(0.f, 1.f, 0.f)
+#define ZAXIS glm::vec3(0.f, 0.f, 1.f)
+
     // variables
     Plane* planes[6];
     glm::vec3 center, top, side, front;
-    float radius;
+    float radius, xRot, yRot;
 
     // constructors
-    Cube(glm::vec3 c, glm::vec3 t, glm::vec3 s, float r, glm::vec3 col, float ph) :
+    Cube(glm::vec3 c, float x, float y, float r, glm::vec3 col, float ph) :
         center(c), radius(r)
     {
-        top = normalize(t);
-        side = normalize(s);
+        xRot = x * radToDeg;
+        yRot = y * radToDeg;
+        top = glm::rotateY(glm::rotateX(YAXIS, xRot), yRot);
+        side = glm::rotateY(glm::rotateX(XAXIS, xRot), yRot);
         front = normalize(cross(side, top));
         colour = col;
         phong = ph;
@@ -223,13 +239,16 @@ struct Cube : Object
         // 6 is the number of planes in planes
         for (int i = 0; i < 6; i++)
         {
-            float scalar = planes[i]->getIntersection(ray);
+            Ray tempRay(glm::rotateY(glm::rotateX(ray->origin, -xRot), -yRot),
+                        glm::rotateY(glm::rotateX(ray->direction, -xRot), -yRot));
+
+            float scalar = planes[i]->getIntersection(&tempRay);
             // if parallel, the scalar will be NULL
             if (!scalar) continue;
 
             // intersect position relative to the cube center
-            glm::vec3 relativeIntersect = ray->applyScalar(scalar) - center,
-                        corner = radius * (abs(top) + abs(side) + abs(front));
+            glm::vec3 relativeIntersect = tempRay.applyScalar(scalar) - center,
+                        corner = radius * (YAXIS + XAXIS + ZAXIS);
 
             // if the intersection does not exceed the bounds of the normals
             if (abs(relativeIntersect.x) <= corner.x + FLOAT_ERROR &&

@@ -7,27 +7,25 @@
 #include <glm/gtx/rotate_vector.hpp>
 
 // definitions of variables used in ray tracing
-#define rayl	-1
-#define rayr	1
-#define rayt	1
-#define rayb	-1
+
 
 glm::vec3 camOrigin = DEF_CAM_POS;
+std::vector<Object*> objectVec;
 
 // default scene consists of 2 spheres and a pyramid
 void defaultScene(std::vector<Object*> *objectVec)
 {
-    /*objectVec->push_back(new Sphere(
+    objectVec->push_back(new Sphere(
         glm::vec3(0.f, 0.f, 0.f),           // center
         0.5f,                               // radius
         glm::vec3(1.f, 0.f, 0.f),           // colour
-        30));                                // phong
+        30));                               // phong
 
     objectVec->push_back(new Sphere(
-        glm::vec3(-1.f, 0.f, -1.5f),        // center
+        glm::vec3(0.f, 0.f, .9f),           // center
 		0.5f,							    // radius
 		glm::vec3(0.f, 0.f, 1.f),           // colour
-		50));   */                             // phong
+		50));                               // phong
 
     /*objectVec->push_back(new Torus(
         glm::vec3(1.f, 0.f, 2.f),           // center
@@ -37,10 +35,10 @@ void defaultScene(std::vector<Object*> *objectVec)
         50));                               // phong
         */
 
-    objectVec->push_back(new Cube(
+    /*objectVec->push_back(new Cube(
         glm::vec3(0.f, 0.f, 0.f),           // center
-        glm::vec3(0.f, 1.f, 0.f),           // top
-        glm::vec3(1.f, 0.f, 0.1f),           // side
+        30.f,                               // rotation about local x axis in degrees
+        0.f,                                // rotation about local y axis in degrees
         .5f,                                // radius
         glm::vec3(0.f, 1.f, 0.f),           // colour
         30.f));                             // phong
@@ -69,6 +67,7 @@ void defaultScene(std::vector<Object*> *objectVec)
         glm::vec3(-0.4f, -2.75f, -9.55f),
         glm::vec3(0.1f, 0.8f, 0.9f),
         30.f));
+        */
 }
 
 int main(int argc, char *argv[])
@@ -94,6 +93,7 @@ int main(int argc, char *argv[])
     glfwSetKeyCallback(window, keyCallback);
     glfwSetCursorPosCallback(window, mouseMotion);
     glfwSetScrollCallback(window, scrollCallback);
+    glfwSetMouseButtonCallback(window, mouseButtonCallback);
     glfwMakeContextCurrent(window);
 
 	// load glad
@@ -105,11 +105,14 @@ int main(int argc, char *argv[])
 	ImageBuffer imageBuffer;
 	imageBuffer.Initialize();
 
-    std::vector<Object*> objectVec;
     defaultScene(&objectVec);
 	
 
 	// variable initialization
+    #define rayl	-1
+    #define rayr	1
+    #define rayt	1
+    #define rayb	-1
 	time_t startTime = 0, endTime = 0;
     glm::vec3 colourVec = BLACK;
 	int frames = 0;
@@ -120,6 +123,7 @@ int main(int argc, char *argv[])
 
 	while (!glfwWindowShouldClose(window))
 	{
+        
         startTime = time(NULL);
 
         // rotateX, rotateY, zoom. Do here for single calc
