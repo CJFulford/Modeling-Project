@@ -11,13 +11,19 @@ float   rotate_x = 0.0,
         aspectRatio = (float)WINDOW_WIDTH / (float)WINDOW_HEIGHT;
 bool    select1 = true, 
         scale = false, 
+
         movement = false,
         movementX = false,
         movementY = false,
-        movementZ = false;
+        movementZ = false,
+
+        rotation = false,
+        rotationX = false,
+        rotationY = false,
+        rotationZ = false;
 int selected1 = -1, selected2 = -1;
 
-glm::vec3 rotation = DEF_ROTATION;
+//glm::vec3 rotation = DEF_ROTATION;
 
 
 // Error Checking
@@ -73,22 +79,23 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
     {
         switch (key)
         {
-        // scale
-        case (GLFW_KEY_S):
-            if (selected1 != -1 && selected2 == -1)
-                scale = false;
-            break;
         case(GLFW_KEY_X):
             if (movement)
                 movementX = false;
+            else if (rotation)
+                rotationX = false;
             break;
         case(GLFW_KEY_Y):
             if (movement)
                 movementY = false;
+            else if (rotation)
+                rotationY = false;
             break;
         case(GLFW_KEY_Z):
             if (movement)
                 movementZ = false;
+            else if (rotation)
+                rotationZ = false;
             break;
         }
     }
@@ -107,6 +114,9 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
                 delete objectVec[selected1];
                 objectVec.erase(objectVec.begin() + selected1);
                 selected1 = -1;
+                scale = false;
+                movement = false;
+                rotation = false;
             }
             break;
 
@@ -114,25 +124,50 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
         // scale
         case (GLFW_KEY_S):
             if (selected1 != -1 && selected2 == -1)
-                scale = true;
+            {
+                scale = !scale;
+                movement = false;
+                rotation = false;
+            }
             break;
-
         // movement toggle
         case (GLFW_KEY_G):
             if (selected1 != -1 && selected2 == -1)
+            {
                 movement = !movement;
+                scale = false;
+                rotation = false;
+            }
             break;
+        // rotation toggle
+        case (GLFW_KEY_R):
+            if (selected1 != -1 && selected2 == -1)
+            {
+                rotation = !rotation;
+                scale = false;
+                movement = false;
+            }
+            break;
+
+
+        // movement and rotation axis selections
         case(GLFW_KEY_X):
             if (movement)
                 movementX = true;
+            else if (rotation)
+                rotationX = true;
             break;
         case(GLFW_KEY_Y):
             if (movement)
                 movementY = true;
+            else if (rotation)
+                rotationY = true;
             break;
         case(GLFW_KEY_Z):
             if (movement)
                 movementZ = true;
+            else if (rotation)
+                rotationZ = true;
             break;
 
 
@@ -243,6 +278,7 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
 
 void mouseMotion(GLFWwindow* window, double x, double y)
 {
+    #define SCREEN_CONTROL_SCALE (2.f / WINDOW_HEIGHT)
     if (scale)
     {
         if (y - mouse_old_y < 0)
@@ -250,26 +286,26 @@ void mouseMotion(GLFWwindow* window, double x, double y)
         else
             objectVec[selected1]->scale(false);
     }
-    else if (movementX)
+    else if (movementX || rotationX)
     {
-        if (y - mouse_old_y < 0)
-            objectVec[selected1]->center.x += MOVEMENT_CHANGE;
-        else
-            objectVec[selected1]->center.x -= MOVEMENT_CHANGE;
+        if (movement)
+            objectVec[selected1]->center.x += (float)(x - mouse_old_x) * SCREEN_CONTROL_SCALE;
+        else if (rotation)
+            objectVec[selected1]->rotate(glm::vec3((float)(x - mouse_old_x) * SCREEN_CONTROL_SCALE, 0.f, 0.f));
     }
-    else if (movementY)
+    else if (movementY || rotationY)
     {
-        if (y - mouse_old_y < 0)
-            objectVec[selected1]->center.y += MOVEMENT_CHANGE;
-        else
-            objectVec[selected1]->center.y -= MOVEMENT_CHANGE;
+        if (movement)
+            objectVec[selected1]->center.y -= (float)(y - mouse_old_y) * SCREEN_CONTROL_SCALE;
+        else if (rotation)
+            objectVec[selected1]->rotate(glm::vec3(0.f, (float)(y - mouse_old_y) * SCREEN_CONTROL_SCALE, 0.f));
     }
-    else if (movementZ)
+    else if (movementZ || rotationZ)
     {
-        if (y - mouse_old_y < 0)
-            objectVec[selected1]->center.z += MOVEMENT_CHANGE;
-        else
-            objectVec[selected1]->center.z -= MOVEMENT_CHANGE;
+        if (movement)
+            objectVec[selected1]->center.z += (float)(y - mouse_old_y) * SCREEN_CONTROL_SCALE;
+        else if (rotation)
+            objectVec[selected1]->rotate(glm::vec3(0.f, 0.f, (float)(y - mouse_old_y) * SCREEN_CONTROL_SCALE));
     }
     else if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_1))
     {
@@ -341,6 +377,9 @@ void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
             selected1 = -1;
             selected2 = -1;
             select1 = true;
+            scale = false;
+            movement = false;
+            rotation = false;
         }
     }
 }
