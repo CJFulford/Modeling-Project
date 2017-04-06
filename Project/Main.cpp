@@ -16,13 +16,13 @@ std::vector<Object*> objectVec;
 void defaultScene(std::vector<Object*> *objectVec)
 {
     objectVec->push_back(new Sphere(
-        glm::vec3(0.f, 0.f, 0.f),           // center
+        glm::vec3(-0.25f, 0.f, -3.f),       // center
         0.5f,                               // radius
         glm::vec3(1.f, 0.f, 0.f),           // colour
         30));                               // phong
 
     objectVec->push_back(new Sphere(
-        glm::vec3(0.f, 0.f, .9f),           // center
+        glm::vec3(0.25f, 0.f, -3.f),        // center
 		0.5f,							    // radius
 		glm::vec3(0.f, 0.f, 1.f),           // colour
 		50));                               // phong
@@ -35,14 +35,20 @@ void defaultScene(std::vector<Object*> *objectVec)
         50));                               // phong
         */
 
-    /*objectVec->push_back(new Cube(
+    objectVec->push_back(new Cube(
         glm::vec3(0.f, 0.f, 0.f),           // center
         30.f,                               // rotation about local x axis in degrees
-        0.f,                                // rotation about local y axis in degrees
+        30.f,                                // rotation about local y axis in degrees
         .5f,                                // radius
         glm::vec3(0.f, 1.f, 0.f),           // colour
         30.f));                             // phong
-    */
+
+    objectVec->push_back(new Sphere(
+        glm::vec3(0.f, 0.f, 0.f),         // center
+        0.6f,							    // radius
+        glm::vec3(0.f, 0.f, 1.f),           // colour
+        50));                               // phong
+    
     objectVec->push_back(new Triangle(
         glm::vec3(-2.f, -2.f, -2.f),   //p1
         glm::vec3(-2.f, -2.f, 2.f),   //p2
@@ -55,19 +61,6 @@ void defaultScene(std::vector<Object*> *objectVec)
         glm::vec3( 2.f, -2.f,  2.f),
         glm::vec3(0.1f, 0.8f, 0.9f),
         30.f));
-    /*objectVec->push_back(new Triangle(
-        glm::vec3(-1.46f, -2.75f, -7.47f),
-        glm::vec3(-0.93f, 0.55f, -8.51f),
-        glm::vec3(-1.97f, -2.75f, -9.04),
-        glm::vec3(0.1f, 0.8f, 0.9f),
-        30.f));
-    objectVec->push_back(new Triangle(
-        glm::vec3(-1.97f, -2.75f, -9.04f),
-        glm::vec3(-0.93f, 0.55f, -8.51f),
-        glm::vec3(-0.4f, -2.75f, -9.55f),
-        glm::vec3(0.1f, 0.8f, 0.9f),
-        30.f));
-        */
 }
 
 int main(int argc, char *argv[])

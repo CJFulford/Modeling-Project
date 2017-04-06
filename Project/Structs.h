@@ -8,7 +8,7 @@
 // Mathematical values
 #define PI				3.14159265359f
 #define identity		glm::mat4(1.f)
-#define FLOAT_ERROR 1e-5
+#define FLOAT_ERROR 1e-4
 #define radToDeg    (PI / 180)
 
 struct Object;
@@ -66,10 +66,12 @@ struct Object
 {
 	virtual void getVolume(Ray *ray) = 0;
     virtual glm::vec3 getNormal(glm::vec3 intersection) = 0;
-    virtual void breakBoolean(std::vector<Object*> *objectVec) = 0;
+    virtual void breakBoolean(std::vector<Object*> *objectVec, int index) = 0;
+    virtual void select() = 0;
+    virtual void deselect() = 0;
 	glm::vec3 center, colour;
 	float phong, radius;
-    bool selected = false;
+    bool selected = false, selectable = true;
 };
 
 // the actual objects
@@ -97,7 +99,9 @@ struct Plane : Object
     {
         return normal;
     }
-    void breakBoolean(std::vector<Object*> *objectVec){}
+    void select() { selected = true; }
+    void deselect() { selected = false; }
+    void breakBoolean(std::vector<Object*> *objectVec, int index){}
 };
 
 struct Triangle : Object
@@ -116,6 +120,7 @@ struct Triangle : Object
         normal = normalize(cross(p3 - p2, p1 - p2));
         colour = col;
         phong = ph;
+        selectable = false;
     }
     glm::vec3 p1, p2, p3, normal;
     float a, b, c, d, e, f;
@@ -159,7 +164,9 @@ struct Triangle : Object
     {
         return normal;
     }
-    void breakBoolean(std::vector<Object*> *objectVec){}
+    void select() {}
+    void deselect() {}
+    void breakBoolean(std::vector<Object*> *objectVec, int index){}
 };
 
 struct Sphere : Object
@@ -200,10 +207,12 @@ struct Sphere : Object
 	{
 		return glm::normalize(intersection - center);
 	}
-    void breakBoolean(std::vector<Object*> *objectVec){}
+    void select() { selected = true; }
+    void deselect() { selected = false; }
+    void breakBoolean(std::vector<Object*> *objectVec, int index){}
 };
 
-/*struct Cube : Object
+struct Cube : Object
 {
 #define XAXIS glm::vec3(1.f, 0.f, 0.f)
 #define YAXIS glm::vec3(0.f, 1.f, 0.f)
@@ -220,8 +229,8 @@ struct Sphere : Object
     {
         xRot = x * radToDeg;
         yRot = y * radToDeg;
-        top = glm::rotateY(glm::rotateX(YAXIS, xRot), yRot);
-        side = glm::rotateY(glm::rotateX(XAXIS, xRot), yRot);
+        top = normalize(glm::rotateY(glm::rotateX(YAXIS, xRot), yRot));
+        side = normalize(glm::rotateY(glm::rotateX(XAXIS, xRot), yRot));
         front = normalize(cross(side, top));
         colour = col;
         phong = ph;
@@ -241,43 +250,44 @@ struct Sphere : Object
 
     void getVolume(Ray *ray)
     {
-        std::vector<std::pair<float, int>> points;
+        std::vector<std::pair<float, Plane*>> points;
 
         // 6 is the number of planes in planes
-        for (int i = 0; i < 6; i++)
+        for (Plane *plane : planes)
         {
-            Ray tempRay(glm::rotateY(glm::rotateX(ray->origin, -xRot), -yRot),
-                        glm::rotateY(glm::rotateX(ray->direction, -xRot), -yRot));
-
-            float scalar = planes[i]->getIntersection(&tempRay);
+            float scalar = plane->getIntersection(ray);
             // if parallel, the scalar will be NULL
             if (!scalar) continue;
 
-            // intersect position relative to the cube center
-            glm::vec3 relativeIntersect = tempRay.applyScalar(scalar) - center,
-                        corner = radius * (YAXIS + XAXIS + ZAXIS);
 
-            // if the intersection does not exceed the bounds of the normals
-            if (abs(relativeIntersect.x) <= corner.x + FLOAT_ERROR &&
-                abs(relativeIntersect.y) <= corner.y + FLOAT_ERROR &&
-                abs(relativeIntersect.z) <= corner.z + FLOAT_ERROR)
+            bool contained = true;
+            for (Plane *planeCheck : planes)
             {
-                points.push_back(std::make_pair(scalar, i));
+                glm::vec3 relativeIntersect = normalize(ray->applyScalar(scalar) - planeCheck->center);
+                if (dot(relativeIntersect, planeCheck->normal) > FLOAT_ERROR)
+                {
+                    contained = false;
+                    break;
+                }
             }
+
+            if (!contained) continue;
+
+            points.push_back(std::make_pair(scalar, plane));
         }
 
         // add intersections to ray
         if (points.size() == 2)
         {
             float p0 =  points[0].first,    p1 = points[1].first;
-            int i0 =    points[0].second,   i1 = points[1].second;
+            Plane *i0 = points[0].second,   *i1 = points[1].second;
             ray->volumes.push_back(Volume(glm::min(p0, p1), 
                                           glm::max(p0, p1), 
-                                          planes[(p0 < p1) ? i0 : i1]));
+                                          this));
         }
         else if (points.size() >= 2)
         {
-            std::pair<float, int> minP = points[0], maxP = points[0];
+            std::pair<float, Plane*> minP = points[0], maxP = points[0];
             for (unsigned int i = 1; i < points.size(); i++)
             {
                 if (points[i].first < minP.first)
@@ -287,29 +297,35 @@ struct Sphere : Object
             }
             ray->volumes.push_back(Volume(minP.first, 
                                           maxP.first, 
-                                          planes[minP.second]));
+                                          this));
         }
     }
     glm::vec3 getNormal(glm::vec3 intersection)
     {
-        glm::vec3 relative = intersection - center;
-        if (abs(relative.x) > abs(relative.y) && abs(relative.x) > abs(relative.z))
+        for (Plane *plane : planes)
         {
-            if (relative.x >= 0) return side;
-            else return -side;
+            glm::vec3 relativeIntersect = normalize(intersection - plane->center);
+            if (abs(dot(relativeIntersect, plane->normal)) <= FLOAT_ERROR)
+            {
+                return plane->normal;
+            }
         }
-        else if (abs(relative.y) > abs(relative.z))
-        {
-            if (relative.y >= 0) return top;
-            else return -top;
-        }
-        else
-        {
-            if (relative.z >= 0) return front;
-            else return -front;
-        }
+        return glm::vec3(1.f);
     }
-};*/
+    void select()
+    {
+        selected = true;
+        for (Plane *plane : planes)
+            plane->selected = true;
+    }
+    void deselect()
+    {
+        selected = false;
+        for (Plane *plane : planes)
+            plane->selected = false;
+    }
+    void breakBoolean(std::vector<Object*> *objectVec, int index) {}
+};
 
 struct Torus : Object
 {
@@ -337,7 +353,9 @@ struct Torus : Object
     {
         return glm::vec3(0);
     }
-    void breakBoolean(std::vector<Object*> *objectVec){}
+    void select() { selected = true; }
+    void deselect() { selected = false; }
+    void breakBoolean(std::vector<Object*> *objectVec, int index){}
 };
 
 // the combinations
@@ -375,10 +393,14 @@ struct Intersection : Object
         else
             return object2->getNormal(intersection);
     }
-    void breakBoolean(std::vector<Object*> *objectVec)
+    void select() { selected = true; }
+    void deselect() { selected = false; }
+    void breakBoolean(std::vector<Object*> *objectVec, int index)
     {
+        objectVec->erase(objectVec->begin() + index);
         objectVec->push_back(object1);
         objectVec->push_back(object2);
+        delete this;
     }
 };
 
@@ -416,10 +438,14 @@ struct Union : Object
         else
             return object2->getNormal(intersection);
     }
-    void breakBoolean(std::vector<Object*> *objectVec)
+    void select() { selected = true; }
+    void deselect() { selected = false; }
+    void breakBoolean(std::vector<Object*> *objectVec, int index)
     {
+        objectVec->erase(objectVec->begin() + index);
         objectVec->push_back(object1);
         objectVec->push_back(object2);
+        delete this;
     }
 };
 
@@ -489,9 +515,13 @@ struct Difference : Object
         else
             return -object2->getNormal(intersection);
     }
-    void breakBoolean(std::vector<Object*> *objectVec)
+    void select() { selected = true; }
+    void deselect() { selected = false; }
+    void breakBoolean(std::vector<Object*> *objectVec, int index)
     {
+        objectVec->erase(objectVec->begin() + index);
         objectVec->push_back(object1);
         objectVec->push_back(object2);
+        delete this;
     }
 };

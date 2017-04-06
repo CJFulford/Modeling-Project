@@ -143,9 +143,7 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
         case(GLFW_KEY_B): // Break join
             if (selected1 != -1 && selected2 == -1)
             {
-                objectVec[selected1]->breakBoolean(&objectVec);
-                delete objectVec[selected1];
-                objectVec.erase(objectVec.begin() + selected1);
+                objectVec[selected1]->breakBoolean(&objectVec, selected1);
                 selected1 = -1;
                 select1 = true;
             }
@@ -200,21 +198,21 @@ void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
         Object *obj = ray.getClosestScalar(&scalar);
 
         auto temp = std::find(objectVec.begin(), objectVec.end(), obj);
-        if (temp != objectVec.end())
+        int index = temp - objectVec.begin();
+        if (temp != objectVec.end() && objectVec[index]->selectable)
         {
-            int index = temp - objectVec.begin();
             if (select1 && selected1 != index && selected2 != index)
             {
                 if (selected1 != -1 && selected1 != index)
-                    objectVec[selected1]->selected = false;
+                    objectVec[selected1]->deselect();
                 selected1 = index;
-                objectVec[selected1]->selected = true;
+                objectVec[selected1]->select();
                 select1 = false;
             }
             else if (selected1 != index && selected2 != index)
             {
                 if (selected2 != -1 && selected2 != index)
-                    objectVec[selected2]->selected = false;
+                    objectVec[selected2]->deselect();
                 selected2 = index;
                 objectVec[selected2]->selected = true;
                 select1 = true;
@@ -222,8 +220,8 @@ void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
         }
         else
         {
-            if (selected1 != -1) objectVec[selected1]->selected = false;
-            if (selected2 != -1) objectVec[selected2]->selected = false;
+            if (selected1 != -1) objectVec[selected1]->deselect();
+            if (selected2 != -1) objectVec[selected2]->deselect();
             selected1 = -1;
             selected2 = -1;
             select1 = true;
