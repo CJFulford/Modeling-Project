@@ -71,6 +71,28 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
 		case(GLFW_KEY_ESCAPE):
 			glfwSetWindowShouldClose(window, GL_TRUE);
 			break;
+        case(GLFW_KEY_I):
+            if (selected1 != -1 && selected2 != -1 && selected1 != selected2)
+            {
+                objectVec.push_back(new Intersection(objectVec[selected1], objectVec[selected2]));
+                objectVec[selected1]->selected = false;
+                objectVec[selected2]->selected = false;
+
+                // need to check otherwise selected 2 will add the wrong object
+                if (selected1 > selected2)
+                {
+                    objectVec.erase(objectVec.begin() + selected1);
+                    objectVec.erase(objectVec.begin() + selected2);
+                }
+                else
+                {
+                    objectVec.erase(objectVec.begin() + selected1);
+                    objectVec.erase(objectVec.begin() + selected2 - 1);
+                }
+                selected1 = -1;
+                selected2 = -1;
+            }
+            break;
 		default:
 			break;
 		}

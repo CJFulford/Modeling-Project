@@ -17,7 +17,7 @@
 #define RED             glm::vec3(1.f, 0.f, 0.f)
 #define GREEN           glm::vec3(0.f, 1.f, 0.f)
 #define BLUE            glm::vec3(0.f, 0.f, 1.f)
-#define AMBIENT         glm::vec3(0.2f)
+#define AMBIENT         glm::vec3(0.5f)
 
 // camera info
 #define FOV_DEGREE  	45
@@ -30,7 +30,7 @@
 #define DEF_ROTATION    glm::vec3(0.f)
 #define DEF_MOVEMENT	glm::vec3(0.f)
 
-#define LIGHT_POS       glm::vec3(1.f, 2.f, 1.f)
+#define LIGHT_POS       glm::vec3(2.f, 2.f, 0.f)
 
 extern std::vector<Object*> objectVec;
 extern glm::vec3 camOrigin;

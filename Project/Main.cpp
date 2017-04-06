@@ -42,20 +42,20 @@ void defaultScene(std::vector<Object*> *objectVec)
         .5f,                                // radius
         glm::vec3(0.f, 1.f, 0.f),           // colour
         30.f));                             // phong
-    
+    */
     objectVec->push_back(new Triangle(
-        glm::vec3(-0.4f, -2.75f, -9.55f),   //p1
-        glm::vec3(-0.93f, 0.55f, -8.51f),   //p2
-        glm::vec3(0.11f, -2.75f, -7.98f),   //p3
+        glm::vec3(-2.f, -2.f, -2.f),   //p1
+        glm::vec3(-2.f, -2.f, 2.f),   //p2
+        glm::vec3( 2.f, -2.f, -2.f),   //p3
         glm::vec3(0.1f, 0.8f, 0.9f),        //colour
         30.f));                             //phong
     objectVec->push_back(new Triangle(
-        glm::vec3(0.11f, -2.75f, -7.98f),
-        glm::vec3(-0.93f, 0.55f, -8.51f),
-        glm::vec3(-1.46f, -2.75f, -7.47f),
+        glm::vec3( 2.f, -2.f, -2.f),
+        glm::vec3(-2.f, -2.f,  2.f),
+        glm::vec3( 2.f, -2.f,  2.f),
         glm::vec3(0.1f, 0.8f, 0.9f),
         30.f));
-    objectVec->push_back(new Triangle(
+    /*objectVec->push_back(new Triangle(
         glm::vec3(-1.46f, -2.75f, -7.47f),
         glm::vec3(-0.93f, 0.55f, -8.51f),
         glm::vec3(-1.97f, -2.75f, -9.04),

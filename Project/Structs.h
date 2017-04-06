@@ -1,4 +1,5 @@
 #pragma once
+#include <algorithm>
 #include <glm\glm.hpp>
 #include <vector>
 #include <utility>
@@ -65,27 +66,29 @@ struct Object
 {
 	virtual void getVolume(Ray *ray) = 0;
 	virtual glm::vec3 getNormal(glm::vec3 intersection) = 0;
-	glm::vec3 colour;
+	glm::vec3 center, colour;
 	float phong;
     bool selected = false;
 };
 
+// the actual objects
 struct Plane : Object
 {
     Plane(glm::vec3 point, glm::vec3 normal, glm::vec3 col, float ph) : 
-        point(point), normal(normalize(normal)) 
+        normal(normalize(normal)) 
     {
+        center = point;
         colour = col;
         phong = ph;
     }
-    glm::vec3 point, normal;
+    glm::vec3 normal;
 
     // returns scalar if it exists, returns null if ray and plane are parallel
     float getIntersection(Ray *ray)
     {
         float denominator = dot(ray->direction, normal);
         if (denominator == 0) return NULL;
-        return dot((point - ray->origin), normal) / denominator;
+        return dot((center - ray->origin), normal) / denominator;
     }
 
     void getVolume(Ray *ray) {}
@@ -158,13 +161,13 @@ struct Triangle : Object
 
 struct Sphere : Object
 {
-	Sphere(glm::vec3 center, float radius, glm::vec3 col, float ph) : 
-		center(center), radius(radius)
+	Sphere(glm::vec3 cent, float radius, glm::vec3 col, float ph) : 
+		radius(radius)
 	{
+        center = cent;
 		colour = col;
 		phong = ph;
 	}
-	glm::vec3 center;
 	float radius;
 
 	/*
@@ -196,7 +199,7 @@ struct Sphere : Object
 	}
 };
 
-struct Cube : Object
+/*struct Cube : Object
 {
 #define XAXIS glm::vec3(1.f, 0.f, 0.f)
 #define YAXIS glm::vec3(0.f, 1.f, 0.f)
@@ -302,17 +305,17 @@ struct Cube : Object
             else return -front;
         }
     }
-};
+};*/
 
 struct Torus : Object
 {
-    Torus(glm::vec3 center, float mainRadius, float subRadius, glm::vec3 col, float ph) :
-        center(center), mainRadius(mainRadius), subRadius(subRadius)
+    Torus(glm::vec3 cent, float mainRadius, float subRadius, glm::vec3 col, float ph) :
+         mainRadius(mainRadius), subRadius(subRadius)
     {
+        center = cent;
         colour = col;
         phong = ph;
     }
-    glm::vec3 center;
     float mainRadius, subRadius;
 
     /*
@@ -332,4 +335,45 @@ struct Torus : Object
     }
 };
 
+// the combinations
+struct Intersection : Object
+{
+    Intersection(Object *obj1, Object *obj2) : object1(obj1), object2(obj2) 
+    {
+        phong = (obj1->phong + obj2->phong) / 2.f;
+        colour = (obj1->colour + obj2->colour) / 2.f;
+        center = (obj1->center + obj2->center) / 2.f;
+        selected = false;
+    }
+    Object *object1, *object2;
+    
+    void getVolume(Ray *ray)
+    {
+        Ray tempRay(ray->origin, ray->direction);
+        object1->getVolume(&tempRay);
+        object2->getVolume(&tempRay);
 
+        // ray needs to intersect both to collide with the intersection
+        if (tempRay.volumes.size() != 2) return;
+
+        std::vector<float> entrances, exits;
+        for (Volume vol : tempRay.volumes)
+        {
+            entrances.push_back(vol.entrance);
+            exits.push_back(vol.exit);
+        }
+
+        std::sort(entrances.begin(), entrances.end());
+        std::sort(exits.begin(), exits.end());
+        ray->volumes.push_back(Volume(entrances.front(), exits.back(), this));
+    }
+    glm::vec3 getNormal(glm::vec3 intersection)
+    {
+        float dist1 = distance(intersection, object1->center);
+        float dist2 = distance(intersection, object2->center);
+        if (dist1 >= dist2)
+            return object1->getNormal(intersection);
+        else
+            return object2->getNormal(intersection);
+    }
+};
