@@ -513,7 +513,7 @@ struct Difference : Object
     }
     glm::vec3 getNormal(glm::vec3 intersection)
     {
-        if (abs(distance(intersection, object1->center) - object1->radius) <= FLOAT_ERROR)
+        if (object1->getNormal(intersection) != glm::vec3(0.f))
             return object1->getNormal(intersection);
         else
             return -object2->getNormal(intersection);
