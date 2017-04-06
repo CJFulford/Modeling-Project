@@ -9,7 +9,12 @@ float   rotate_x = 0.0,
         rotate_y = 0.0,
         zoom = DEF_ZOOM,
         aspectRatio = (float)WINDOW_WIDTH / (float)WINDOW_HEIGHT;
-bool select1 = true, scale = false;
+bool    select1 = true, 
+        scale = false, 
+        movement = false,
+        movementX = false,
+        movementY = false,
+        movementZ = false;
 int selected1 = -1, selected2 = -1;
 
 glm::vec3 rotation = DEF_ROTATION;
@@ -71,9 +76,19 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
         // scale
         case (GLFW_KEY_S):
             if (selected1 != -1 && selected2 == -1)
-            {
                 scale = false;
-            }
+            break;
+        case(GLFW_KEY_X):
+            if (movement)
+                movementX = false;
+            break;
+        case(GLFW_KEY_Y):
+            if (movement)
+                movementY = false;
+            break;
+        case(GLFW_KEY_Z):
+            if (movement)
+                movementZ = false;
             break;
         }
     }
@@ -99,23 +114,39 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
         // scale
         case (GLFW_KEY_S):
             if (selected1 != -1 && selected2 == -1)
-            {
                 scale = true;
-            }
+            break;
+
+        // movement toggle
+        case (GLFW_KEY_G):
+            if (selected1 != -1 && selected2 == -1)
+                movement = !movement;
+            break;
+        case(GLFW_KEY_X):
+            if (movement)
+                movementX = true;
+            break;
+        case(GLFW_KEY_Y):
+            if (movement)
+                movementY = true;
+            break;
+        case(GLFW_KEY_Z):
+            if (movement)
+                movementZ = true;
             break;
 
 
         
         // sphere
-        case (GLFW_KEY_Z):
+        case (GLFW_KEY_Q):
             objectVec.push_back(new Sphere(
-                glm::vec3(0.f, 0.f, 0.f),        // center
+                glm::vec3(0.f, 0.f, 0.f),           // center
                 0.5f,							    // radius
                 glm::vec3(0.f, 1.f, 0.f),           // colour
                 50));                               // phong
             break;
         // cube
-        case (GLFW_KEY_X):
+        case (GLFW_KEY_W):
             objectVec.push_back(new Cube(
                 glm::vec3(0.f, 0.f, 0.f),           // center
                 .5f,                                // radius
@@ -170,7 +201,7 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
                 select1 = true;
             }
             break;
-        case(GLFW_KEY_Y): // difference
+        case(GLFW_KEY_D): // difference
             if (selected1 != -1 && selected2 != -1 && selected1 != selected2)
             {
                 objectVec.push_back(new Difference(objectVec[selected1], objectVec[selected2]));
@@ -214,21 +245,37 @@ void mouseMotion(GLFWwindow* window, double x, double y)
 {
     if (scale)
     {
-        if (y - mouse_old_y > 0)
+        if (y - mouse_old_y < 0)
             objectVec[selected1]->scale(true);
         else
             objectVec[selected1]->scale(false);
+    }
+    else if (movementX)
+    {
+        if (y - mouse_old_y < 0)
+            objectVec[selected1]->center.x += MOVEMENT_CHANGE;
+        else
+            objectVec[selected1]->center.x -= MOVEMENT_CHANGE;
+    }
+    else if (movementY)
+    {
+        if (y - mouse_old_y < 0)
+            objectVec[selected1]->center.y += MOVEMENT_CHANGE;
+        else
+            objectVec[selected1]->center.y -= MOVEMENT_CHANGE;
+    }
+    else if (movementZ)
+    {
+        if (y - mouse_old_y < 0)
+            objectVec[selected1]->center.z += MOVEMENT_CHANGE;
+        else
+            objectVec[selected1]->center.z -= MOVEMENT_CHANGE;
     }
     else if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_1))
     {
         rotate_x += (float)((y - mouse_old_y)) * radToDeg;
         rotate_y += (float)((x - mouse_old_x)) * radToDeg;
     }
-
-
-
-
-
     mouse_old_x = x;
     mouse_old_y = y;
 
@@ -236,7 +283,8 @@ void mouseMotion(GLFWwindow* window, double x, double y)
 
 void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
 {
-    if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS)
+    // selection
+    if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS && !scale && !movement)
     {
         #define rayl	-1
         #define rayr	1

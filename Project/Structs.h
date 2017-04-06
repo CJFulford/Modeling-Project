@@ -14,6 +14,8 @@
 #define SCALE_CHANGE .01f
 #define MIN_SCALE .1f
 
+#define MOVEMENT_CHANGE .025f
+
 struct Object;
 
 
@@ -220,7 +222,7 @@ struct Sphere : Object
         if (enlarge)
             radius += SCALE_CHANGE;
         else
-            glm::max(MIN_SCALE, radius -= SCALE_CHANGE);
+            radius = glm::max(MIN_SCALE, radius - SCALE_CHANGE);
     }
     void select() { selected = true; }
     void deselect() { selected = false; }
@@ -338,7 +340,7 @@ struct Cube : Object
         }
         else
         {
-            glm::max(MIN_SCALE, radius -= SCALE_CHANGE);
+            radius = glm::max(MIN_SCALE, radius - SCALE_CHANGE);
             for (Plane *plane : planes)
                 plane->center = center + (radius * plane->normal);
         }
