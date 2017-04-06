@@ -71,7 +71,7 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
 		case(GLFW_KEY_ESCAPE):
 			glfwSetWindowShouldClose(window, GL_TRUE);
 			break;
-        case(GLFW_KEY_I):
+        case(GLFW_KEY_I): // intersection
             if (selected1 != -1 && selected2 != -1 && selected1 != selected2)
             {
                 objectVec.push_back(new Intersection(objectVec[selected1], objectVec[selected2]));
@@ -91,6 +91,63 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
                 }
                 selected1 = -1;
                 selected2 = -1;
+                select1 = true;
+            }
+            break;
+        case(GLFW_KEY_U): // union
+            if (selected1 != -1 && selected2 != -1 && selected1 != selected2)
+            {
+                objectVec.push_back(new Union(objectVec[selected1], objectVec[selected2]));
+                objectVec[selected1]->selected = false;
+                objectVec[selected2]->selected = false;
+
+                // need to check otherwise selected 2 will add the wrong object
+                if (selected1 > selected2)
+                {
+                    objectVec.erase(objectVec.begin() + selected1);
+                    objectVec.erase(objectVec.begin() + selected2);
+                }
+                else
+                {
+                    objectVec.erase(objectVec.begin() + selected1);
+                    objectVec.erase(objectVec.begin() + selected2 - 1);
+                }
+                selected1 = -1;
+                selected2 = -1;
+                select1 = true;
+            }
+            break;
+        case(GLFW_KEY_Y): // difference
+            if (selected1 != -1 && selected2 != -1 && selected1 != selected2)
+            {
+                objectVec.push_back(new Difference(objectVec[selected1], objectVec[selected2]));
+                objectVec[selected1]->selected = false;
+                objectVec[selected2]->selected = false;
+
+                // need to check otherwise selected 2 will add the wrong object
+                if (selected1 > selected2)
+                {
+                    objectVec.erase(objectVec.begin() + selected1);
+                    objectVec.erase(objectVec.begin() + selected2);
+                }
+                else
+                {
+                    objectVec.erase(objectVec.begin() + selected1);
+                    objectVec.erase(objectVec.begin() + selected2 - 1);
+                }
+                selected1 = -1;
+                selected2 = -1;
+                select1 = true;
+            }
+            break;
+        case(GLFW_KEY_B): // Break join
+            if (selected1 != -1 && selected2 == -1)
+            {
+                objectVec[selected1]->breakBoolean(&objectVec);
+                delete objectVec[selected1];
+                objectVec.erase(objectVec.begin() + selected1);
+                selected1 = -1;
+                select1 = true;
             }
             break;
 		default:
@@ -124,8 +181,8 @@ void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
         double xpos, ypos;
         glfwGetCursorPos(window, &xpos, &ypos);
 
-        float u = rayl + ((rayr - rayl)*(xpos + .5f)) / WINDOW_WIDTH;
-        float v = rayb + ((rayt - rayb)*(WINDOW_HEIGHT - ypos + .5f)) / WINDOW_HEIGHT;
+        float u = rayl + ((rayr - rayl)*((float)xpos + .5f)) / WINDOW_WIDTH;
+        float v = rayb + ((rayt - rayb)*(WINDOW_HEIGHT - (float)ypos + .5f)) / WINDOW_HEIGHT;
         float w = -(rayr / (float)tan(FOV / 2));
 
         // construct the ray
@@ -152,7 +209,6 @@ void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
                     objectVec[selected1]->selected = false;
                 selected1 = index;
                 objectVec[selected1]->selected = true;
-                std::cout << "\nsel1:" << selected1 << std::endl;
                 select1 = false;
             }
             else if (selected1 != index && selected2 != index)
@@ -161,7 +217,6 @@ void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
                     objectVec[selected2]->selected = false;
                 selected2 = index;
                 objectVec[selected2]->selected = true;
-                std::cout << "\nsel2:" << selected2 << std::endl;
                 select1 = true;
             }
         }

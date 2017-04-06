@@ -8,7 +8,7 @@
 // Mathematical values
 #define PI				3.14159265359f
 #define identity		glm::mat4(1.f)
-#define FLOAT_ERROR 1e-6
+#define FLOAT_ERROR 1e-5
 #define radToDeg    (PI / 180)
 
 struct Object;
@@ -65,9 +65,10 @@ struct Ray
 struct Object
 {
 	virtual void getVolume(Ray *ray) = 0;
-	virtual glm::vec3 getNormal(glm::vec3 intersection) = 0;
+    virtual glm::vec3 getNormal(glm::vec3 intersection) = 0;
+    virtual void breakBoolean(std::vector<Object*> *objectVec) = 0;
 	glm::vec3 center, colour;
-	float phong;
+	float phong, radius;
     bool selected = false;
 };
 
@@ -96,6 +97,7 @@ struct Plane : Object
     {
         return normal;
     }
+    void breakBoolean(std::vector<Object*> *objectVec){}
 };
 
 struct Triangle : Object
@@ -157,18 +159,19 @@ struct Triangle : Object
     {
         return normal;
     }
+    void breakBoolean(std::vector<Object*> *objectVec){}
 };
 
 struct Sphere : Object
 {
-	Sphere(glm::vec3 cent, float radius, glm::vec3 col, float ph) : 
-		radius(radius)
+	Sphere(glm::vec3 cent, float radi, glm::vec3 col, float ph) : radi(radi)
 	{
+        radius = radi;
         center = cent;
 		colour = col;
 		phong = ph;
 	}
-	float radius;
+    float radi;
 
 	/*
 	Finds where the ray enters and exits this sphere, if at all, and adds the points to the rays volume array
@@ -197,6 +200,7 @@ struct Sphere : Object
 	{
 		return glm::normalize(intersection - center);
 	}
+    void breakBoolean(std::vector<Object*> *objectVec){}
 };
 
 /*struct Cube : Object
@@ -333,6 +337,7 @@ struct Torus : Object
     {
         return glm::vec3(0);
     }
+    void breakBoolean(std::vector<Object*> *objectVec){}
 };
 
 // the combinations
@@ -353,27 +358,140 @@ struct Intersection : Object
         object1->getVolume(&tempRay);
         object2->getVolume(&tempRay);
 
-        // ray needs to intersect both to collide with the intersection
-        if (tempRay.volumes.size() != 2) return;
+        // if ray does not collide with both in the intersection
+        if (tempRay.volumes.size() != 2 ||
+            tempRay.volumes[0].exit <= tempRay.volumes[1].entrance ||
+            tempRay.volumes[1].exit <= tempRay.volumes[0].entrance) 
+                return;
 
-        std::vector<float> entrances, exits;
-        for (Volume vol : tempRay.volumes)
-        {
-            entrances.push_back(vol.entrance);
-            exits.push_back(vol.exit);
-        }
-
-        std::sort(entrances.begin(), entrances.end());
-        std::sort(exits.begin(), exits.end());
-        ray->volumes.push_back(Volume(entrances.front(), exits.back(), this));
+        float entrance = glm::max(tempRay.volumes[0].entrance, tempRay.volumes[1].entrance);
+        float exit = glm::min(tempRay.volumes[0].exit, tempRay.volumes[1].exit);
+        ray->volumes.push_back(Volume(entrance, exit, this));
     }
     glm::vec3 getNormal(glm::vec3 intersection)
     {
-        float dist1 = distance(intersection, object1->center);
-        float dist2 = distance(intersection, object2->center);
-        if (dist1 >= dist2)
+        if (distance(intersection, object1->center) >= distance(intersection, object2->center))
             return object1->getNormal(intersection);
         else
             return object2->getNormal(intersection);
+    }
+    void breakBoolean(std::vector<Object*> *objectVec)
+    {
+        objectVec->push_back(object1);
+        objectVec->push_back(object2);
+    }
+};
+
+struct Union : Object
+{
+    Union(Object *obj1, Object *obj2) : object1(obj1), object2(obj2)
+    {
+        phong  = (obj1->phong + obj2->phong) / 2.f;
+        colour = (obj1->colour + obj2->colour) / 2.f;
+        center = (obj1->center + obj2->center) / 2.f;
+        selected = false;
+    }
+    Object *object1, *object2;
+
+    void getVolume(Ray *ray)
+    {
+        Ray tempRay(ray->origin, ray->direction);
+        object1->getVolume(&tempRay);
+        object2->getVolume(&tempRay);
+
+        // ray needs to intersect both to collide with the intersection
+        if (tempRay.volumes.size() == 1)
+            ray->volumes.push_back(Volume(tempRay.volumes[0].entrance, tempRay.volumes[0].exit, this));
+        else if (tempRay.volumes.size() > 1)
+        {
+            float entrance = glm::min(tempRay.volumes[0].entrance, tempRay.volumes[1].entrance);
+            float exit = glm::max(tempRay.volumes[0].exit, tempRay.volumes[1].exit);
+            ray->volumes.push_back(Volume(entrance, exit, this));
+        }
+    }
+    glm::vec3 getNormal(glm::vec3 intersection)
+    {
+        if (distance(intersection, object1->center) <= distance(intersection, object2->center))
+            return object1->getNormal(intersection);
+        else
+            return object2->getNormal(intersection);
+    }
+    void breakBoolean(std::vector<Object*> *objectVec)
+    {
+        objectVec->push_back(object1);
+        objectVec->push_back(object2);
+    }
+};
+
+struct Difference : Object
+{
+    Difference(Object *obj1, Object *obj2) : object1(obj1), object2(obj2)
+    {
+        phong = (obj1->phong + obj2->phong) / 2.f;
+        colour = (obj1->colour + obj2->colour) / 2.f;
+        center = (obj1->center + obj2->center) / 2.f;
+        selected = false;
+    }
+    Object *object1, *object2;
+
+    void getVolume(Ray *ray)
+    {
+        Ray tempRay(ray->origin, ray->direction);
+        
+
+
+        object1->getVolume(&tempRay);
+        // if there is no collision with A in A - B then there is no collision with the difference
+        if (tempRay.volumes.size() == 0) return;
+
+
+        object2->getVolume(&tempRay);
+
+
+        // if there is only 1 volume here, then the ray only collided with A in A - B.
+        // lazy evaluation so if the size is < 2, it will not check the other conditoins, 
+        // avoiding a seg fault
+        if (tempRay.volumes.size() < 2 ||
+            tempRay.volumes[0].exit <= tempRay.volumes[1].entrance ||
+            tempRay.volumes[1].exit <= tempRay.volumes[0].entrance)
+            ray->volumes.push_back(Volume(tempRay.volumes[0].entrance, tempRay.volumes[0].exit, this));
+        else if (tempRay.volumes.size() == 2)
+        {
+
+            if (tempRay.volumes[0].exit <= tempRay.volumes[1].entrance ||
+                tempRay.volumes[1].exit <= tempRay.volumes[0].entrance)
+                return;
+
+
+
+            Volume vol1 = tempRay.volumes[0], vol2 = tempRay.volumes[1];
+            float entrance, exit;
+            if (vol1.entrance < vol2.entrance)
+            {
+                entrance = vol1.entrance;
+                exit = vol2.entrance;
+                ray->volumes.push_back(Volume(entrance, exit, this));
+            }
+            else if (vol2.exit <= vol1.exit)
+            {
+                entrance = vol2.exit;
+                exit = vol1.exit;
+                ray->volumes.push_back(Volume(entrance, exit, this));
+            }
+
+
+        }
+    }
+    glm::vec3 getNormal(glm::vec3 intersection)
+    {
+        if (abs(distance(intersection, object1->center) - object1->radius) <= FLOAT_ERROR)
+            return object1->getNormal(intersection);
+        else
+            return -object2->getNormal(intersection);
+    }
+    void breakBoolean(std::vector<Object*> *objectVec)
+    {
+        objectVec->push_back(object1);
+        objectVec->push_back(object2);
     }
 };
