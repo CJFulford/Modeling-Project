@@ -11,6 +11,9 @@
 #define FLOAT_ERROR 1e-4
 #define radToDeg    (PI / 180)
 
+#define SCALE_CHANGE .01f
+#define MIN_SCALE .1f
+
 struct Object;
 
 
@@ -69,7 +72,7 @@ struct Object
     virtual void breakBoolean(std::vector<Object*> *objectVec, int index) = 0;
     virtual void select() = 0;
     virtual void deselect() = 0;
-    //virtual void scale(bool enlarge) = 0;
+    virtual void scale(bool enlarge) = 0;
 	glm::vec3 center, colour;
 	float phong, radius;
     bool selected = false, selectable = true;
@@ -100,6 +103,7 @@ struct Plane : Object
     {
         return normal;
     }
+    void scale(bool enlarge) {}
     void select() { selected = true; }
     void deselect() { selected = false; }
     void breakBoolean(std::vector<Object*> *objectVec, int index){}
@@ -165,6 +169,7 @@ struct Triangle : Object
     {
         return normal;
     }
+    void scale(bool enlarge){}
     void select() {}
     void deselect() {}
     void breakBoolean(std::vector<Object*> *objectVec, int index){}
@@ -210,6 +215,13 @@ struct Sphere : Object
 		    return glm::normalize(intersection - center);
         return glm::vec3(0.f);
 	}
+    void scale(bool enlarge) 
+    {
+        if (enlarge)
+            radius += SCALE_CHANGE;
+        else
+            glm::max(MIN_SCALE, radius -= SCALE_CHANGE);
+    }
     void select() { selected = true; }
     void deselect() { selected = false; }
     void breakBoolean(std::vector<Object*> *objectVec, int index){}
@@ -223,27 +235,28 @@ struct Cube : Object
 
     // variables
     Plane* planes[6];
-    glm::vec3 center, top, side, front;
-    float radius, xRot, yRot;
+    glm::vec3 top, side, front;
+    float xRot, yRot, radi;
 
     // constructors
-    Cube(glm::vec3 c, float r, glm::vec3 col, float ph) :
-        center(c), radius(r)
+    Cube(glm::vec3 c, float r, glm::vec3 col, float ph) : radi(r)
     {
         xRot = 0.f;
         yRot = 0.f;
+        radius = r;
+        center = c;
         top = normalize(glm::rotateY(glm::rotateX(YAXIS, xRot), yRot));
         side = normalize(glm::rotateY(glm::rotateX(XAXIS, xRot), yRot));
         front = normalize(cross(side, top));
         colour = col;
         phong = ph;
 
-        planes[0] = new Plane(center + (radius * side), side, col, ph);
-        planes[1] = new Plane(center + (radius * -side), -side, col, ph);
-        planes[2] = new Plane(center + (radius * top), top, col, ph);
-        planes[3] = new Plane(center + (radius * -top), -top, col, ph);
-        planes[4] = new Plane(center + (radius * front), front, col, ph);
-        planes[5] = new Plane(center + (radius * -front), -front, col, ph);
+        planes[0] = new Plane(center + (r * side), side, col, ph);
+        planes[1] = new Plane(center + (r * -side), -side, col, ph);
+        planes[2] = new Plane(center + (r * top), top, col, ph);
+        planes[3] = new Plane(center + (r * -top), -top, col, ph);
+        planes[4] = new Plane(center + (r * front), front, col, ph);
+        planes[5] = new Plane(center + (r * -front), -front, col, ph);
     }
     ~Cube() 
     {
@@ -315,6 +328,21 @@ struct Cube : Object
         }
         return glm::vec3(0.f);
     }
+    void scale(bool enlarge)
+    {
+        if (enlarge)
+        {
+            radius += SCALE_CHANGE;
+            for (Plane *plane : planes)
+                plane->center = center + (radius * plane->normal);
+        }
+        else
+        {
+            glm::max(MIN_SCALE, radius -= SCALE_CHANGE);
+            for (Plane *plane : planes)
+                plane->center = center + (radius * plane->normal);
+        }
+    }
     void select()
     {
         selected = true;
@@ -356,6 +384,7 @@ struct Torus : Object
     {
         return glm::vec3(0);
     }
+    void scale(bool enlarge){}
     void select() { selected = true; }
     void deselect() { selected = false; }
     void breakBoolean(std::vector<Object*> *objectVec, int index){}
@@ -395,6 +424,11 @@ struct Intersection : Object
             return object1->getNormal(intersection);
         else
             return object2->getNormal(intersection);
+    }
+    void scale(bool enlarge)
+    {
+        object1->scale(enlarge);
+        object2->scale(enlarge);
     }
     void select() { selected = true; }
     void deselect() { selected = false; }
@@ -440,6 +474,11 @@ struct Union : Object
             return object1->getNormal(intersection);
         else
             return object2->getNormal(intersection);
+    }
+    void scale(bool enlarge)
+    {
+        object1->scale(enlarge);
+        object2->scale(enlarge);
     }
     void select() { selected = true; }
     void deselect() { selected = false; }
@@ -507,8 +546,6 @@ struct Difference : Object
                 exit = vol1.exit;
                 ray->volumes.push_back(Volume(entrance, exit, this));
             }
-
-
         }
     }
     glm::vec3 getNormal(glm::vec3 intersection)
@@ -517,6 +554,11 @@ struct Difference : Object
             return object1->getNormal(intersection);
         else
             return -object2->getNormal(intersection);
+    }
+    void scale(bool enlarge)
+    {
+        object1->scale(enlarge);
+        object2->scale(enlarge);
     }
     void select() { selected = true; }
     void deselect() { selected = false; }

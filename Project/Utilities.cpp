@@ -9,7 +9,7 @@ float   rotate_x = 0.0,
         rotate_y = 0.0,
         zoom = DEF_ZOOM,
         aspectRatio = (float)WINDOW_WIDTH / (float)WINDOW_HEIGHT;
-bool select1 = true;
+bool select1 = true, scale = false;
 int selected1 = -1, selected2 = -1;
 
 glm::vec3 rotation = DEF_ROTATION;
@@ -64,7 +64,20 @@ void printOpenGLVersion(GLenum majorVer, GLenum minorVer, GLenum langVer)
 // controls
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
-	if (action == GLFW_PRESS)
+    if (action == GLFW_RELEASE)
+    {
+        switch (key)
+        {
+        // scale
+        case (GLFW_KEY_S):
+            if (selected1 != -1 && selected2 == -1)
+            {
+                scale = false;
+            }
+            break;
+        }
+    }
+	else if (action == GLFW_PRESS)
 	{
 		switch (key)
 		{
@@ -74,16 +87,27 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
 
         // sphere
         case (GLFW_KEY_DELETE):
-            if (selected1 != 0 && selected2 == -1)
+            if (selected1 != -1 && selected2 == -1)
             {
                 delete objectVec[selected1];
                 objectVec.erase(objectVec.begin() + selected1);
                 selected1 = -1;
             }
             break;
+
+
+        // scale
+        case (GLFW_KEY_S):
+            if (selected1 != -1 && selected2 == -1)
+            {
+                scale = true;
+            }
+            break;
+
+
         
         // sphere
-        case (GLFW_KEY_S):
+        case (GLFW_KEY_Z):
             objectVec.push_back(new Sphere(
                 glm::vec3(0.f, 0.f, 0.f),        // center
                 0.5f,							    // radius
@@ -91,7 +115,7 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
                 50));                               // phong
             break;
         // cube
-        case (GLFW_KEY_C):
+        case (GLFW_KEY_X):
             objectVec.push_back(new Cube(
                 glm::vec3(0.f, 0.f, 0.f),           // center
                 .5f,                                // radius
@@ -188,11 +212,23 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
 
 void mouseMotion(GLFWwindow* window, double x, double y)
 {
-    if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_1))
+    if (scale)
+    {
+        if (y - mouse_old_y > 0)
+            objectVec[selected1]->scale(true);
+        else
+            objectVec[selected1]->scale(false);
+    }
+    else if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_1))
     {
         rotate_x += (float)((y - mouse_old_y)) * radToDeg;
         rotate_y += (float)((x - mouse_old_x)) * radToDeg;
     }
+
+
+
+
+
     mouse_old_x = x;
     mouse_old_y = y;
 
