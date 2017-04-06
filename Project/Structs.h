@@ -99,7 +99,6 @@ struct Plane : Object
         if (denominator == 0) return NULL;
         return dot((center - ray->origin), normal) / denominator;
     }
-
     void getVolume(Ray *ray) {}
     glm::vec3 getNormal(glm::vec3 intersection)
     {

@@ -80,22 +80,16 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
         switch (key)
         {
         case(GLFW_KEY_X):
-            if (movement)
-                movementX = false;
-            else if (rotation)
-                rotationX = false;
+            if (movement)      movementX = false;
+            else if (rotation) rotationX = false;
             break;
         case(GLFW_KEY_Y):
-            if (movement)
-                movementY = false;
-            else if (rotation)
-                rotationY = false;
+            if (movement)      movementY = false;
+            else if (rotation) rotationY = false;
             break;
         case(GLFW_KEY_Z):
-            if (movement)
-                movementZ = false;
-            else if (rotation)
-                rotationZ = false;
+            if (movement)      movementZ = false;
+            else if (rotation) rotationZ = false;
             break;
         }
     }
@@ -107,7 +101,7 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
 			glfwSetWindowShouldClose(window, GL_TRUE);
 			break;
 
-        // sphere
+        // object deletion
         case (GLFW_KEY_DELETE):
             if (selected1 != -1 && selected2 == -1)
             {
@@ -152,22 +146,16 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
 
         // movement and rotation axis selections
         case(GLFW_KEY_X):
-            if (movement)
-                movementX = true;
-            else if (rotation)
-                rotationX = true;
+            if (movement)      movementX = true;
+            else if (rotation) rotationX = true;
             break;
         case(GLFW_KEY_Y):
-            if (movement)
-                movementY = true;
-            else if (rotation)
-                rotationY = true;
+            if (movement)      movementY = true;
+            else if (rotation) rotationY = true;
             break;
         case(GLFW_KEY_Z):
-            if (movement)
-                movementZ = true;
-            else if (rotation)
-                rotationZ = true;
+            if (movement)      movementZ = true;
+            else if (rotation) rotationZ = true;
             break;
 
 
@@ -279,6 +267,8 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
 void mouseMotion(GLFWwindow* window, double x, double y)
 {
     #define SCREEN_CONTROL_SCALE (2.f / WINDOW_HEIGHT)
+
+    // scale, rotation, movement applications
     if (scale)
     {
         if (y - mouse_old_y < 0)
@@ -286,8 +276,6 @@ void mouseMotion(GLFWwindow* window, double x, double y)
         else
             objectVec[selected1]->scale(false);
     }
-
-
     else if (movementX || rotationX)
     {
         if (movement)
@@ -310,7 +298,7 @@ void mouseMotion(GLFWwindow* window, double x, double y)
             objectVec[selected1]->rotate(glm::vec3(0.f, 0.f, (float)(y - mouse_old_y) * SCREEN_CONTROL_SCALE));
     }
 
-
+    // screen rotation
     else if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_1))
     {
         rotate_x += (float)((y - mouse_old_y)) * radToDeg;
@@ -318,7 +306,6 @@ void mouseMotion(GLFWwindow* window, double x, double y)
     }
     mouse_old_x = x;
     mouse_old_y = y;
-
 }
 
 void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
