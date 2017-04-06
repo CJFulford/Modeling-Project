@@ -73,7 +73,7 @@ struct Object
     virtual void select() = 0;
     virtual void deselect() = 0;
     virtual void scale(bool enlarge) = 0;
-    //virtual void move(glm::vec3) = 0;
+    virtual void move(glm::vec3 move) = 0;
     virtual void rotate(glm::vec3 rotate) = 0;
 	glm::vec3 center, colour;
 	float phong, radius;
@@ -83,7 +83,7 @@ struct Object
 // the actual objects
 struct Plane : Object
 {
-    Plane(glm::vec3 point, glm::vec3 normal, glm::vec3 col, float ph) : 
+    Plane(glm::vec3 point, glm::vec3 cubeCent, glm::vec3 normal, glm::vec3 col, float ph) : 
         normal(normalize(normal)) 
     {
         center = point;
@@ -106,6 +106,10 @@ struct Plane : Object
         return normal;
     }
     void scale(bool enlarge) {}
+    void move(glm::vec3 move)
+    {
+        center += move;
+    }
     void rotate(glm::vec3 rotate) 
     {
         center = glm::rotateZ(glm::rotateY(glm::rotateX(center, rotate.x), rotate.y), rotate.z);
@@ -177,6 +181,7 @@ struct Triangle : Object
         return normal;
     }
     void scale(bool enlarge){}
+    void move(glm::vec3 move){}
     void rotate(glm::vec3 rotate){}
     void select() {}
     void deselect() {}
@@ -230,6 +235,10 @@ struct Sphere : Object
         else
             radius = glm::max(MIN_SCALE, radius - SCALE_CHANGE);
     }
+    void move(glm::vec3 move)
+    {
+        center += move;
+    }
     void rotate(glm::vec3 rotate){}
     void select() { selected = true; }
     void deselect() { selected = false; }
@@ -238,9 +247,9 @@ struct Sphere : Object
 
 struct Cube : Object
 {
-#define XAXIS glm::vec3(1.f, 0.f, 0.f)
-#define YAXIS glm::vec3(0.f, 1.f, 0.f)
-#define ZAXIS glm::vec3(0.f, 0.f, 1.f)
+    #define XAXIS glm::vec3(1.f, 0.f, 0.f)
+    #define YAXIS glm::vec3(0.f, 1.f, 0.f)
+    #define ZAXIS glm::vec3(0.f, 0.f, 1.f)
 
     // variables
     Plane* planes[6];
@@ -258,12 +267,12 @@ struct Cube : Object
         colour = col;
         phong = ph;
 
-        planes[0] = new Plane(center + (r * side), side, col, ph);
-        planes[1] = new Plane(center + (r * -side), -side, col, ph);
-        planes[2] = new Plane(center + (r * top), top, col, ph);
-        planes[3] = new Plane(center + (r * -top), -top, col, ph);
-        planes[4] = new Plane(center + (r * front), front, col, ph);
-        planes[5] = new Plane(center + (r * -front), -front, col, ph);
+        planes[0] = new Plane(center + (r * side), c, side, col, ph);
+        planes[1] = new Plane(center + (r * -side), c, -side, col, ph);
+        planes[2] = new Plane(center + (r * top), c, top, col, ph);
+        planes[3] = new Plane(center + (r * -top), c, -top, col, ph);
+        planes[4] = new Plane(center + (r * front), c, front, col, ph);
+        planes[5] = new Plane(center + (r * -front), c, -front, col, ph);
     }
     ~Cube() 
     {
@@ -292,12 +301,11 @@ struct Cube : Object
                     break;
                 }
             }
-
-            if (!contained) continue;
-
-            points.push_back(scalar);
+            // if point is contained in the cube, add to point vec
+            if (contained) points.push_back(scalar);
         }
 
+        // ignore single point result
         if (points.size() < 1) return;
 
         // add intersections to ray
@@ -330,6 +338,12 @@ struct Cube : Object
             for (Plane *plane : planes)
                 plane->center = center + (radius * plane->normal);
         }
+    }
+    void move(glm::vec3 move)
+    {
+        center += move;
+        for (Plane *plane : planes)
+            plane->move(move);
     }
     void rotate(glm::vec3 rotate)
     {
@@ -381,6 +395,7 @@ struct Torus : Object
         return glm::vec3(0);
     }
     void scale(bool enlarge){}
+    void move(glm::vec3 move) {}
     void rotate(glm::vec3 rotate){}
     void select() { selected = true; }
     void deselect() { selected = false; }
@@ -427,6 +442,11 @@ struct Intersection : Object
     {
         object1->scale(enlarge);
         object2->scale(enlarge);
+    }
+    void move(glm::vec3 move)
+    {
+        object1->move(move);
+        object2->move(move);
     }
     void rotate(glm::vec3 rotate) 
     {
@@ -482,6 +502,11 @@ struct Union : Object
     {
         object1->scale(enlarge);
         object2->scale(enlarge);
+    }
+    void move(glm::vec3 move)
+    {
+        object1->move(move);
+        object2->move(move);
     }
     void rotate(glm::vec3 rotate)
     {
@@ -567,6 +592,11 @@ struct Difference : Object
     {
         object1->scale(enlarge);
         object2->scale(enlarge);
+    }
+    void move(glm::vec3 move)
+    {
+        object1->move(move);
+        object2->move(move);
     }
     void rotate(glm::vec3 rotate)
     {

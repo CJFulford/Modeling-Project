@@ -286,27 +286,31 @@ void mouseMotion(GLFWwindow* window, double x, double y)
         else
             objectVec[selected1]->scale(false);
     }
+
+
     else if (movementX || rotationX)
     {
         if (movement)
-            objectVec[selected1]->center.x += (float)(x - mouse_old_x) * SCREEN_CONTROL_SCALE;
+            objectVec[selected1]->move(glm::vec3((float)(x - mouse_old_x) * SCREEN_CONTROL_SCALE, 0.f, 0.f));
         else if (rotation)
             objectVec[selected1]->rotate(glm::vec3((float)(x - mouse_old_x) * SCREEN_CONTROL_SCALE, 0.f, 0.f));
     }
     else if (movementY || rotationY)
     {
         if (movement)
-            objectVec[selected1]->center.y -= (float)(y - mouse_old_y) * SCREEN_CONTROL_SCALE;
+            objectVec[selected1]->move(glm::vec3(0.f, (float)(y - mouse_old_y) * SCREEN_CONTROL_SCALE, 0.f));
         else if (rotation)
             objectVec[selected1]->rotate(glm::vec3(0.f, (float)(y - mouse_old_y) * SCREEN_CONTROL_SCALE, 0.f));
     }
     else if (movementZ || rotationZ)
     {
         if (movement)
-            objectVec[selected1]->center.z += (float)(y - mouse_old_y) * SCREEN_CONTROL_SCALE;
+            objectVec[selected1]->move(glm::vec3(0.f, 0.f, (float)(y - mouse_old_y) * SCREEN_CONTROL_SCALE));
         else if (rotation)
             objectVec[selected1]->rotate(glm::vec3(0.f, 0.f, (float)(y - mouse_old_y) * SCREEN_CONTROL_SCALE));
     }
+
+
     else if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_1))
     {
         rotate_x += (float)((y - mouse_old_y)) * radToDeg;
