@@ -13,42 +13,8 @@ glm::vec3 camOrigin = DEF_CAM_POS;
 std::vector<Object*> objectVec;
 
 // default scene consists of 2 spheres and a pyramid
-void defaultScene(std::vector<Object*> *objectVec)
+void addFloor(std::vector<Object*> *objectVec)
 {
-    objectVec->push_back(new Sphere(
-        glm::vec3(-0.25f, 0.f, -3.f),       // center
-        0.5f,                               // radius
-        glm::vec3(1.f, 0.f, 0.f),           // colour
-        30));                               // phong
-
-    objectVec->push_back(new Sphere(
-        glm::vec3(0.25f, 0.f, -3.f),        // center
-		0.5f,							    // radius
-		glm::vec3(0.f, 0.f, 1.f),           // colour
-		50));                               // phong
-
-    /*objectVec->push_back(new Torus(
-        glm::vec3(1.f, 0.f, 2.f),           // center
-        1.f,                                // mainRadius
-        .2f,                                // subRadius
-        glm::vec3(0.f, 1.f, 0.f),           // colour
-        50));                               // phong
-        */
-
-    objectVec->push_back(new Cube(
-        glm::vec3(0.f, 0.f, 0.f),           // center
-        30.f,                               // rotation about local x axis in degrees
-        30.f,                                // rotation about local y axis in degrees
-        .5f,                                // radius
-        glm::vec3(0.f, 1.f, 0.f),           // colour
-        30.f));                             // phong
-
-    objectVec->push_back(new Sphere(
-        glm::vec3(0.f, 0.f, 0.f),         // center
-        0.6f,							    // radius
-        glm::vec3(0.f, 0.f, 1.f),           // colour
-        50));                               // phong
-    
     objectVec->push_back(new Triangle(
         glm::vec3(-2.f, -2.f, -2.f),   //p1
         glm::vec3(-2.f, -2.f, 2.f),   //p2
@@ -98,7 +64,7 @@ int main(int argc, char *argv[])
 	ImageBuffer imageBuffer;
 	imageBuffer.Initialize();
 
-    defaultScene(&objectVec);
+    addFloor(&objectVec);
 	
 
 	// variable initialization

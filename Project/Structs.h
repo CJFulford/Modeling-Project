@@ -69,6 +69,7 @@ struct Object
     virtual void breakBoolean(std::vector<Object*> *objectVec, int index) = 0;
     virtual void select() = 0;
     virtual void deselect() = 0;
+    //virtual void scale(bool enlarge) = 0;
 	glm::vec3 center, colour;
 	float phong, radius;
     bool selected = false, selectable = true;
@@ -205,7 +206,9 @@ struct Sphere : Object
 	}
 	glm::vec3 getNormal(glm::vec3 intersection)
 	{
-		return glm::normalize(intersection - center);
+        if (abs(distance(intersection, center) - radius) < FLOAT_ERROR)
+		    return glm::normalize(intersection - center);
+        return glm::vec3(0.f);
 	}
     void select() { selected = true; }
     void deselect() { selected = false; }
@@ -224,11 +227,11 @@ struct Cube : Object
     float radius, xRot, yRot;
 
     // constructors
-    Cube(glm::vec3 c, float x, float y, float r, glm::vec3 col, float ph) :
+    Cube(glm::vec3 c, float r, glm::vec3 col, float ph) :
         center(c), radius(r)
     {
-        xRot = x * radToDeg;
-        yRot = y * radToDeg;
+        xRot = 0.f;
+        yRot = 0.f;
         top = normalize(glm::rotateY(glm::rotateX(YAXIS, xRot), yRot));
         side = normalize(glm::rotateY(glm::rotateX(XAXIS, xRot), yRot));
         front = normalize(cross(side, top));
@@ -310,7 +313,7 @@ struct Cube : Object
                 return plane->normal;
             }
         }
-        return glm::vec3(1.f);
+        return glm::vec3(0.f);
     }
     void select()
     {
@@ -433,7 +436,7 @@ struct Union : Object
     }
     glm::vec3 getNormal(glm::vec3 intersection)
     {
-        if (distance(intersection, object1->center) <= distance(intersection, object2->center))
+        if (object1->getNormal(intersection) != glm::vec3(0.f))
             return object1->getNormal(intersection);
         else
             return object2->getNormal(intersection);

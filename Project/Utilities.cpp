@@ -71,6 +71,35 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
 		case(GLFW_KEY_ESCAPE):
 			glfwSetWindowShouldClose(window, GL_TRUE);
 			break;
+
+        // sphere
+        case (GLFW_KEY_DELETE):
+            if (selected1 != 0 && selected2 == -1)
+            {
+                delete objectVec[selected1];
+                objectVec.erase(objectVec.begin() + selected1);
+                selected1 = -1;
+            }
+            break;
+        
+        // sphere
+        case (GLFW_KEY_S):
+            objectVec.push_back(new Sphere(
+                glm::vec3(0.f, 0.f, 0.f),        // center
+                0.5f,							    // radius
+                glm::vec3(0.f, 1.f, 0.f),           // colour
+                50));                               // phong
+            break;
+        // cube
+        case (GLFW_KEY_C):
+            objectVec.push_back(new Cube(
+                glm::vec3(0.f, 0.f, 0.f),           // center
+                .5f,                                // radius
+                glm::vec3(0.f, 1.f, 0.f),           // colour
+                50.f));                             // phong
+            break;
+        
+        
         case(GLFW_KEY_I): // intersection
             if (selected1 != -1 && selected2 != -1 && selected1 != selected2)
             {
@@ -148,7 +177,10 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
                 select1 = true;
             }
             break;
-		default:
+		
+        
+        
+        default:
 			break;
 		}
 	}
