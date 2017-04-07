@@ -311,7 +311,7 @@ void mouseMotion(GLFWwindow* window, double x, double y)
 void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
 {
     // selection
-    if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS && !scale && !movement)
+    if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS)
     {
         #define rayl	-1
         #define rayr	1
@@ -342,9 +342,12 @@ void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
 
         auto temp = std::find(objectVec.begin(), objectVec.end(), obj);
         int index = temp - objectVec.begin();
-        if (temp != objectVec.end() && objectVec[index]->selectable)
+        if (temp != objectVec.end() && 
+            objectVec[index]->selectable && 
+            selected1 != index && 
+            selected2 != index)
         {
-            if (select1 && selected1 != index && selected2 != index)
+            if (select1)
             {
                 if (selected1 != -1 && selected1 != index)
                     objectVec[selected1]->deselect();
@@ -352,7 +355,7 @@ void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
                 objectVec[selected1]->select();
                 select1 = false;
             }
-            else if (selected1 != index && selected2 != index)
+            else
             {
                 if (selected2 != -1 && selected2 != index)
                     objectVec[selected2]->deselect();
@@ -368,10 +371,10 @@ void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
             selected1 = -1;
             selected2 = -1;
             select1 = true;
-            scale = false;
-            movement = false;
-            rotation = false;
         }
+        scale = false;
+        movement = false;
+        rotation = false;
     }
 }
 
