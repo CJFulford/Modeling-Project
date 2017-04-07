@@ -1,4 +1,5 @@
 #include "Header.h"
+#include "Structs.h"
 #include <iostream>
 
 using namespace std;

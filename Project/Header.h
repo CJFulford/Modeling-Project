@@ -3,8 +3,6 @@
 #include <glad\glad.h>
 #include <GLFW\glfw3.h>
 
-
-
 // window info
 #define WINDOW_WIDTH	500
 #define WINDOW_HEIGHT	500
