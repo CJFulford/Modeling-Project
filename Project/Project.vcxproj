@@ -162,13 +162,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Cube.cpp" />
-    <ClCompile Include="Difference.cpp" />
-    <ClCompile Include="Intersection.cpp" />
-    <ClCompile Include="Sphere.cpp" />
-    <ClCompile Include="Torus.cpp" />
-    <ClCompile Include="Triangle.cpp" />
-    <ClCompile Include="Union.cpp" />
     <ClCompile Include="Utilities.cpp" />
     <ClCompile Include="glad.c" />
     <ClCompile Include="ImageBuffer.cpp" />
@@ -178,7 +171,7 @@
   <ItemGroup>
     <ClInclude Include="Header.h" />
     <ClInclude Include="ImageBuffer.h" />
-    <ClInclude Include="Structs.h" />
+    <ClInclude Include="Objects.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

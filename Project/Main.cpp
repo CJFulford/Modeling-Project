@@ -15,18 +15,24 @@ std::vector<Object*> objectVec;
 // default scene consists of 2 spheres and a pyramid
 void addFloor(std::vector<Object*> *objectVec)
 {
+    objectVec->push_back(new Torus(
+        glm::vec3(0.f, 0.f, 0.f),           // center
+        .5f,                                // major radius
+        .2f,                                // minor radius
+        glm::vec3(0.f, 1.f, 0.f),           // colour
+        50.f));                             // phong
     objectVec->push_back(new Triangle(
-        glm::vec3(-2.f, -2.f, -2.f),   //p1
-        glm::vec3(-2.f, -2.f, 2.f),   //p2
-        glm::vec3( 2.f, -2.f, -2.f),   //p3
+        glm::vec3(-2.f, -2.f, -2.f),        //p1
+        glm::vec3(-2.f, -2.f, 2.f),         //p2
+        glm::vec3( 2.f, -2.f, -2.f),        //p3
         glm::vec3(0.1f, 0.8f, 0.9f),        //colour
-        30.f));                             //phong
+        50.f));                             //phong
     objectVec->push_back(new Triangle(
         glm::vec3( 2.f, -2.f, -2.f),
         glm::vec3(-2.f, -2.f,  2.f),
         glm::vec3( 2.f, -2.f,  2.f),
         glm::vec3(0.1f, 0.8f, 0.9f),
-        30.f));
+        50.f));
 }
 
 int main(int argc, char *argv[])
