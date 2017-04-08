@@ -374,6 +374,7 @@ struct Torus : Object
         R(R), r(r)
     {
         center = cent;
+        radius = r;
         colour = col;
         phong = ph;
     }
@@ -571,11 +572,7 @@ struct Torus : Object
     // Below are helper methods that accept real-valued 
     // coefficients and return the subset of roots that are real-valued.
 
-    inline int SolveQuadraticEquation(
-        double a,
-        double b,
-        double c,
-        double roots[2])
+    inline int SolveQuadraticEquation(double a, double b, double c, double roots[2])
     {
         std::complex<double> croots[2];
 
@@ -588,12 +585,7 @@ struct Torus : Object
         return FilterRealNumbers(numComplexRoots, croots, roots);
     }
 
-    inline int SolveCubicEquation(
-        double a,
-        double b,
-        double c,
-        double d,
-        double roots[3])
+    inline int SolveCubicEquation(double a, double b, double c, double d, double roots[3])
     {
         std::complex<double> croots[3];
 
@@ -607,13 +599,7 @@ struct Torus : Object
         return FilterRealNumbers(numComplexRoots, croots, roots);
     }
 
-    inline int SolveQuarticEquation(
-        double a,
-        double b,
-        double c,
-        double d,
-        double e,
-        double roots[4])
+    inline int SolveQuarticEquation(double a, double b, double c, double d, double e, double roots[4])
     {
         std::complex<double> croots[4];
 
@@ -635,8 +621,7 @@ struct Torus : Object
     resources for intersection
     http://www.cosinekitty.com/raytrace/chapter13_torus.html
 
-    quartic equation solver:
-    https://en.wikipedia.org/wiki/Quartic_function
+    quartic equation solver has been copied then modified from the code provided on the same website
     */
     void getVolume(Ray *ray)
     {
@@ -727,21 +712,67 @@ struct Intersection : Object
     {
         Ray tempRay(ray->origin, ray->direction);
         object1->getVolume(&tempRay);
+
+        bool obj1Torus = false; // need to know order of objects if one i a torus
+        if (tempRay.volumes.size() == 2) obj1Torus = true;
+
         object2->getVolume(&tempRay);
 
         // if ray does not collide with both in the intersection
-        if (tempRay.volumes.size() != 2 ||
-            tempRay.volumes[0].exit <= tempRay.volumes[1].entrance ||
-            tempRay.volumes[1].exit <= tempRay.volumes[0].entrance)
+        if (tempRay.volumes.size() < 2)
             return;
 
-        float entrance = glm::max(tempRay.volumes[0].entrance, tempRay.volumes[1].entrance);
-        float exit = glm::min(tempRay.volumes[0].exit, tempRay.volumes[1].exit);
-        ray->volumes.push_back(Volume(entrance, exit, this));
+        float entrance = 0, exit = 0;
+        // special case for torus
+        if (tempRay.volumes.size() == 3)
+        {
+            // obj1 == torus
+            if (obj1Torus)
+            {
+                if (tempRay.volumes[0].exit <= tempRay.volumes[2].entrance ||
+                    tempRay.volumes[2].exit <= tempRay.volumes[0].entrance ||
+                    tempRay.volumes[1].exit <= tempRay.volumes[2].entrance ||
+                    tempRay.volumes[2].exit <= tempRay.volumes[1].entrance)
+                    return;
+
+                entrance = glm::max(tempRay.volumes[0].entrance, tempRay.volumes[2].entrance);
+                exit = glm::min(tempRay.volumes[0].exit, tempRay.volumes[2].exit);
+                ray->volumes.push_back(Volume(entrance, exit, this));
+
+                entrance = glm::max(tempRay.volumes[1].entrance, tempRay.volumes[2].entrance);
+                exit = glm::min(tempRay.volumes[1].exit, tempRay.volumes[2].exit);
+                ray->volumes.push_back(Volume(entrance, exit, this));
+            }
+            else
+            {
+                if (tempRay.volumes[0].exit <= tempRay.volumes[1].entrance ||
+                    tempRay.volumes[1].exit <= tempRay.volumes[0].entrance ||
+                    tempRay.volumes[0].exit <= tempRay.volumes[2].entrance ||
+                    tempRay.volumes[2].exit <= tempRay.volumes[0].entrance)
+                    return;
+
+                entrance = glm::max(tempRay.volumes[0].entrance, tempRay.volumes[1].entrance);
+                exit = glm::min(tempRay.volumes[0].exit, tempRay.volumes[1].exit);
+                ray->volumes.push_back(Volume(entrance, exit, this));
+
+                entrance = glm::max(tempRay.volumes[0].entrance, tempRay.volumes[2].entrance);
+                exit = glm::min(tempRay.volumes[0].exit, tempRay.volumes[2].exit);
+                ray->volumes.push_back(Volume(entrance, exit, this));
+            }
+        }
+        else 
+        {
+            if (tempRay.volumes[0].exit <= tempRay.volumes[1].entrance ||
+                tempRay.volumes[1].exit <= tempRay.volumes[0].entrance)
+                return;
+            entrance = glm::max(tempRay.volumes[0].entrance, tempRay.volumes[1].entrance);
+            exit = glm::min(tempRay.volumes[0].exit, tempRay.volumes[1].exit);
+            ray->volumes.push_back(Volume(entrance, exit, this));
+        }
     }
     glm::vec3 getNormal(glm::vec3 intersection)
     {
-        if (distance(intersection, object1->center) >= distance(intersection, object2->center))
+        if (distance(intersection, object1->center) - object1->radius <= FLOAT_ERROR)
             return object1->getNormal(intersection);
         else
             return object2->getNormal(intersection);
@@ -794,9 +825,17 @@ struct Union : Object
             ray->volumes.push_back(Volume(tempRay.volumes[0].entrance, tempRay.volumes[0].exit, this));
         else if (tempRay.volumes.size() > 1)
         {
-            float entrance = glm::min(tempRay.volumes[0].entrance, tempRay.volumes[1].entrance);
-            float exit = glm::max(tempRay.volumes[0].exit, tempRay.volumes[1].exit);
-            ray->volumes.push_back(Volume(entrance, exit, this));
+            std::vector<float> entrances;
+            std::vector<float> exits;
+            for (Volume volume : tempRay.volumes)
+            {
+                entrances.push_back(volume.entrance);
+                exits.push_back(volume.exit);
+            }
+            std::sort(entrances.begin(), entrances.end());
+            std::sort(exits.begin(), exits.end());
+
+            ray->volumes.push_back(Volume(entrances.front(), exits.back(), this));
         }
     }
     glm::vec3 getNormal(glm::vec3 intersection)
@@ -853,12 +892,16 @@ struct Difference : Object
         // if there is no collision with A in A - B then there is no collision with the difference
         if (tempRay.volumes.size() == 0) return;
 
+        // to toggle special conditions for torus
+        bool obj1Torus = false;
+        if (tempRay.volumes.size() == 2) obj1Torus = true;
+
 
         object2->getVolume(&tempRay);
 
 
         // if there is only 1 volume here, then the ray only collided with A in A - B.
-        // lazy evaluation so if the size is < 2, it will not check the other conditoins, 
+        // lazy evaluation so if the size is < 2, it will not check the other conditions, 
         // avoiding a seg fault
         if (tempRay.volumes.size() < 2 ||
             tempRay.volumes[0].exit <= tempRay.volumes[1].entrance ||
@@ -866,32 +909,71 @@ struct Difference : Object
             ray->volumes.push_back(Volume(tempRay.volumes[0].entrance, tempRay.volumes[0].exit, this));
         else if (tempRay.volumes.size() == 2)
         {
-
-            if (tempRay.volumes[0].exit <= tempRay.volumes[1].entrance ||
-                tempRay.volumes[1].exit <= tempRay.volumes[0].entrance)
+            Volume vol0 = tempRay.volumes[0], vol1 = tempRay.volumes[1];
+            if (vol0.exit < vol1.entrance ||
+                vol1.exit < vol0.entrance)
                 return;
 
-
-
-            Volume vol1 = tempRay.volumes[0], vol2 = tempRay.volumes[1];
-            float entrance, exit;
-            if (vol1.entrance < vol2.entrance)
+            if (vol0.entrance < vol1.entrance)
+                ray->volumes.push_back(Volume(vol0.entrance, vol1.entrance, this));
+            else if (vol1.exit < vol0.exit)
+                ray->volumes.push_back(Volume(vol1.exit, vol0.exit, this));
+        }
+        else if (tempRay.volumes.size() == 3)
+        {
+            if (obj1Torus)
             {
-                entrance = vol1.entrance;
-                exit = vol2.entrance;
-                ray->volumes.push_back(Volume(entrance, exit, this));
+                if (tempRay.volumes[0].exit <= tempRay.volumes[2].entrance ||
+                    tempRay.volumes[2].exit <= tempRay.volumes[0].entrance ||
+                    tempRay.volumes[1].exit <= tempRay.volumes[2].entrance ||
+                    tempRay.volumes[2].exit <= tempRay.volumes[1].entrance)
+                    return;
+
+                Volume  vol0 = tempRay.volumes[0], 
+                        vol1 = tempRay.volumes[1],
+                        vol2 = tempRay.volumes[2];
+
+                // compare first torus volume intersection to second object intersection
+                if (vol0.entrance < vol2.entrance)
+                    ray->volumes.push_back(Volume(vol0.entrance, vol2.entrance, this));
+                else if (vol2.exit <= vol0.exit)
+                    ray->volumes.push_back(Volume(vol2.exit, vol0.exit, this));
+
+                // compare second torus volume intersection to second object intersection
+                if (vol1.entrance < vol2.entrance)
+                    ray->volumes.push_back(Volume(vol1.entrance, vol2.entrance, this));
+                else if (vol2.exit <= vol1.exit)
+                    ray->volumes.push_back(Volume(vol2.exit, vol1.exit, this));
             }
-            else if (vol2.exit <= vol1.exit)
+            else
             {
-                entrance = vol2.exit;
-                exit = vol1.exit;
-                ray->volumes.push_back(Volume(entrance, exit, this));
+                if (tempRay.volumes[0].exit <= tempRay.volumes[1].entrance ||
+                    tempRay.volumes[1].exit <= tempRay.volumes[0].entrance ||
+                    tempRay.volumes[0].exit <= tempRay.volumes[2].entrance ||
+                    tempRay.volumes[2].exit <= tempRay.volumes[0].entrance)
+                    return;
+
+                Volume  vol0 = tempRay.volumes[0],
+                        vol1 = tempRay.volumes[1],
+                        vol2 = tempRay.volumes[2];
+
+                // compare first object intersection to first torus volume intersection
+                if (vol0.entrance < vol1.entrance)
+                    ray->volumes.push_back(Volume(vol0.entrance, vol1.entrance, this));
+                else if (vol1.exit <= vol0.exit)
+                    ray->volumes.push_back(Volume(vol1.exit, vol0.exit, this));
+
+                // compare second object intersection to second torus volume intersection
+                if (vol0.entrance < vol2.entrance)
+                    ray->volumes.push_back(Volume(vol0.entrance, vol2.entrance, this));
+                else if (vol2.exit <= vol0.exit)
+                    ray->volumes.push_back(Volume(vol2.exit, vol0.exit, this));
             }
         }
     }
     glm::vec3 getNormal(glm::vec3 intersection)
     {
-        if (object1->getNormal(intersection) != glm::vec3(0.f))
+        if (abs(distance(intersection, center) - object1->radius) <= FLOAT_ERROR)
             return object1->getNormal(intersection);
         else
             return -object2->getNormal(intersection);

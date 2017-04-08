@@ -28,7 +28,7 @@
 #define DEF_ROTATION    glm::vec3(0.f)
 #define DEF_MOVEMENT	glm::vec3(0.f)
 
-#define LIGHT_POS       glm::vec3(2.f, 2.f, 0.f)
+#define LIGHT_POS       glm::vec3(2.f, 2.f, 2.f)
 
 extern std::vector<Object*> objectVec;
 extern glm::vec3 camOrigin;
