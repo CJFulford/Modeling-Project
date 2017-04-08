@@ -374,50 +374,48 @@ struct Torus : Object
         R(R), r(r)
     {
         center = cent;
-        radius = r;
+        radius = R;
         colour = col;
         phong = ph;
     }
     float R, r;
 
 
-    const double TOLERANCE = 1.0e-8;
-    // Returns n=0..numComplexValues, and fills in outArray with the n values from
-    // inArray that are real-valued (i.e., whose imaginary parts are within TOLERANCE of 0.)
-    // outArray must be large enough to receive numComplexValues values.
+    #define TOLERANCE 1.0e-8
+    
+    // quartic helper functions
     int FilterRealNumbers(int numComplexValues, const std::complex<double> inArray[], double outArray[])
     {
         int numRealValues = 0;
         for (int i = 0; i < numComplexValues; ++i)
-        {
             if (fabs(inArray[i].imag()) < TOLERANCE)
-            {
                 outArray[numRealValues++] = inArray[i].real();
-            }
-        }
         return numRealValues;
     }
     bool IsZero(std::complex<double> x)
     {
         return (fabs(x.real()) < TOLERANCE) && (fabs(x.imag()) < TOLERANCE);
     }
+    std::complex<double> cbrt(std::complex<double> a, int n)
+    {
+        // this funcion always returns the first complex root
+        #define TWOPI (2.0 * 3.141592653589793238462643383279502884)
+
+        double rho = pow(abs(a), 1.0 / 3.0);
+        double theta = ((TWOPI * n) + arg(a)) / 3.0;
+        return std::complex<double>(rho * cos(theta), rho * sin(theta));
+    }
     // Returns n=0..2, the number of distinct real roots found for the equation
-    //
     //     ax^2 + bx + c = 0
-    //
     // Stores the roots in the first n slots of the array 'roots'.
     int SolveQuadraticEquation(std::complex<double> a, std::complex<double> b, std::complex<double> c, std::complex<double> roots[2])
     {
         if (IsZero(a))
         {
             if (IsZero(b))
-            {
-                // The equation devolves to: c = 0, where the variable x has vanished!
                 return 0;   // cannot divide by zero, so there is no solution.
-            }
             else
             {
-                // Simple linear equation: bx + c = 0, so x = -c/b.
                 roots[0] = -c / b;
                 return 1;   // there is a single solution.
             }
@@ -443,32 +441,13 @@ struct Torus : Object
             }
         }
     }
-
-    std::complex<double> cbrt(std::complex<double> a, int n)
-    {
-        /*
-        This function returns one of the 3 complex cube roots of the complex number 'a'.
-        The value of n=0..2 selects which root is returned.
-        */
-
-        const double TWOPI = 2.0 * 3.141592653589793238462643383279502884;
-
-        double rho = pow(abs(a), 1.0 / 3.0);
-        double theta = ((TWOPI * n) + arg(a)) / 3.0;
-        return std::complex<double>(rho * cos(theta), rho * sin(theta));
-    }
-
     // Returns n=0..3, the number of distinct real roots found for the equation
-    //
     //     ax^3 + bx^2 + cx + d = 0
-    //
     // Stores the roots in the first n slots of the array 'roots'.
     int SolveCubicEquation(std::complex<double> a, std::complex<double> b, std::complex<double> c, std::complex<double> d, std::complex<double> roots[3])
     {
         if (IsZero(a))
-        {
             return SolveQuadraticEquation(b, c, d, roots);
-        }
 
         b /= a;
         c /= a;
@@ -481,9 +460,7 @@ struct Torus : Object
         std::complex<double> F = -Froot - E;
 
         if (IsZero(F))
-        {
             F = Froot - E;
-        }
 
         for (int i = 0; i < 3; ++i)
         {
@@ -493,17 +470,17 @@ struct Torus : Object
 
         return 3;
     }
-
     // Returns n=0..4, the number of distinct real roots found for the equation
-    //
     //     ax^4 + bx^3 + cx^2 + dx + e = 0
-    //
     // Stores the roots in the first n slots of the array 'roots'.
-    int SolveQuarticEquation(std::complex<double> a, std::complex<double> b, std::complex<double> c, std::complex<double> d, std::complex<double> e, std::complex<double> roots[4])
+    int SolveQuarticEquation(std::complex<double> a, std::complex<double> b, std::complex<double> c, std::complex<double> d, std::complex<double> e, double roots[4])
     {
+        std::complex<double> croots[4];
+
         if (IsZero(a))
         {
-            return SolveCubicEquation(b, c, d, e, roots);
+            SolveCubicEquation(b, c, d, e, croots);
+            return FilterRealNumbers(3, croots, roots);
         }
 
         // See "Summary of Ferrari's Method" in http://en.wikipedia.org/wiki/Quartic_function
@@ -532,10 +509,10 @@ struct Torus : Object
             std::complex<double> r1 = sqrt((-alpha + rad) / 2.0);
             std::complex<double> r2 = sqrt((-alpha - rad) / 2.0);
 
-            roots[0] = t + r1;
-            roots[1] = t - r1;
-            roots[2] = t + r2;
-            roots[3] = t - r2;
+            croots[0] = t + r1;
+            croots[1] = t - r1;
+            croots[2] = t + r2;
+            croots[3] = t - r2;
         }
         else
         {
@@ -545,75 +522,22 @@ struct Torus : Object
             std::complex<double> R = -Q / 2.0 + sqrt(Q*Q / 4.0 + P*P*P / 27.0);
             std::complex<double> U = cbrt(R, 0);
             std::complex<double> y = (-5.0 / 6.0)*alpha + U;
-            if (IsZero(U))
-            {
-                y -= cbrt(Q, 0);
-            }
-            else
-            {
-                y -= P / (3.0 * U);
-            }
+
+            y -= (IsZero(U)) ? cbrt(Q, 0) : P / (3.0 * U);
+
             std::complex<double> W = sqrt(alpha + 2.0*y);
 
             std::complex<double> r1 = sqrt(-(3.0*alpha + 2.0*y + 2.0*beta / W));
             std::complex<double> r2 = sqrt(-(3.0*alpha + 2.0*y - 2.0*beta / W));
 
-            roots[0] = t + (W - r1) / 2.0;
-            roots[1] = t + (W + r1) / 2.0;
-            roots[2] = t + (-W - r2) / 2.0;
-            roots[3] = t + (-W + r2) / 2.0;
+            croots[0] = t + (W - r1) / 2.0;
+            croots[1] = t + (W + r1) / 2.0;
+            croots[2] = t + (-W - r2) / 2.0;
+            croots[3] = t + (-W + r2) / 2.0;
         }
 
-        return 4;
+        return FilterRealNumbers(4, croots, roots);
     }
-
-    // The above solvers are generalized for complex-valued 
-    // coefficients and roots.
-    // Below are helper methods that accept real-valued 
-    // coefficients and return the subset of roots that are real-valued.
-
-    inline int SolveQuadraticEquation(double a, double b, double c, double roots[2])
-    {
-        std::complex<double> croots[2];
-
-        const int numComplexRoots = SolveQuadraticEquation(
-            a,
-            b,
-            c,
-            croots);
-
-        return FilterRealNumbers(numComplexRoots, croots, roots);
-    }
-
-    inline int SolveCubicEquation(double a, double b, double c, double d, double roots[3])
-    {
-        std::complex<double> croots[3];
-
-        const int numComplexRoots = SolveCubicEquation(
-            a,
-            b,
-            c,
-            d,
-            croots);
-
-        return FilterRealNumbers(numComplexRoots, croots, roots);
-    }
-
-    inline int SolveQuarticEquation(double a, double b, double c, double d, double e, double roots[4])
-    {
-        std::complex<double> croots[4];
-
-        const int numComplexRoots = SolveQuarticEquation(
-            a,
-            b,
-            c,
-            d,
-            e,
-            croots);
-
-        return FilterRealNumbers(numComplexRoots, croots, roots);
-    }
-
 
 
     /*
@@ -687,8 +611,14 @@ struct Torus : Object
         float a = 1.f - (R / sqrt(point.x*point.x + point.y*point.y));
         return normalize(glm::vec3(a*point.x, a*point.y, point.z));
     }
-    void scale(bool enlarge) {}
-    void move(glm::vec3 move) {}
+    void scale(bool enlarge) 
+    {
+        R += (enlarge) ? SCALE_CHANGE : -SCALE_CHANGE;
+    }
+    void move(glm::vec3 move) 
+    {
+        center += move;
+    }
     void rotate(glm::vec3 rotate) {}
     void select() { selected = true; }
     void deselect() { selected = false; }
@@ -977,6 +907,7 @@ struct Difference : Object
             return object1->getNormal(intersection);
         else
             return -object2->getNormal(intersection);
+
     }
     void scale(bool enlarge)
     {
