@@ -4,6 +4,7 @@
 #include <vector>
 #include <utility>
 #include <glm/gtx/rotate_vector.hpp>
+#include <complex>
 
 // Mathematical values
 #define PI				3.14159265359f
@@ -378,6 +379,257 @@ struct Torus : Object
     }
     float R, r;
 
+
+    const double TOLERANCE = 1.0e-8;
+    // Returns n=0..numComplexValues, and fills in outArray with the n values from
+    // inArray that are real-valued (i.e., whose imaginary parts are within TOLERANCE of 0.)
+    // outArray must be large enough to receive numComplexValues values.
+    int FilterRealNumbers(int numComplexValues, const std::complex<double> inArray[], double outArray[])
+    {
+        int numRealValues = 0;
+        for (int i = 0; i < numComplexValues; ++i)
+        {
+            if (fabs(inArray[i].imag()) < TOLERANCE)
+            {
+                outArray[numRealValues++] = inArray[i].real();
+            }
+        }
+        return numRealValues;
+    }
+    bool IsZero(std::complex<double> x)
+    {
+        return (fabs(x.real()) < TOLERANCE) && (fabs(x.imag()) < TOLERANCE);
+    }
+    // Returns n=0..2, the number of distinct real roots found for the equation
+    //
+    //     ax^2 + bx + c = 0
+    //
+    // Stores the roots in the first n slots of the array 'roots'.
+    int SolveQuadraticEquation(std::complex<double> a, std::complex<double> b, std::complex<double> c, std::complex<double> roots[2])
+    {
+        if (IsZero(a))
+        {
+            if (IsZero(b))
+            {
+                // The equation devolves to: c = 0, where the variable x has vanished!
+                return 0;   // cannot divide by zero, so there is no solution.
+            }
+            else
+            {
+                // Simple linear equation: bx + c = 0, so x = -c/b.
+                roots[0] = -c / b;
+                return 1;   // there is a single solution.
+            }
+        }
+        else
+        {
+            const std::complex<double> radicand = b*b - 4.0*a*c;
+            if (IsZero(radicand))
+            {
+                // Both roots have the same value: -b / 2a.
+                roots[0] = -b / (2.0 * a);
+                return 1;
+            }
+            else
+            {
+                // There are two distinct real roots.
+                const std::complex<double> r = sqrt(radicand);
+                const std::complex<double> d = 2.0 * a;
+
+                roots[0] = (-b + r) / d;
+                roots[1] = (-b - r) / d;
+                return 2;
+            }
+        }
+    }
+
+    std::complex<double> cbrt(std::complex<double> a, int n)
+    {
+        /*
+        This function returns one of the 3 complex cube roots of the complex number 'a'.
+        The value of n=0..2 selects which root is returned.
+        */
+
+        const double TWOPI = 2.0 * 3.141592653589793238462643383279502884;
+
+        double rho = pow(abs(a), 1.0 / 3.0);
+        double theta = ((TWOPI * n) + arg(a)) / 3.0;
+        return std::complex<double>(rho * cos(theta), rho * sin(theta));
+    }
+
+    // Returns n=0..3, the number of distinct real roots found for the equation
+    //
+    //     ax^3 + bx^2 + cx + d = 0
+    //
+    // Stores the roots in the first n slots of the array 'roots'.
+    int SolveCubicEquation(std::complex<double> a, std::complex<double> b, std::complex<double> c, std::complex<double> d, std::complex<double> roots[3])
+    {
+        if (IsZero(a))
+        {
+            return SolveQuadraticEquation(b, c, d, roots);
+        }
+
+        b /= a;
+        c /= a;
+        d /= a;
+
+        std::complex<double> S = b / 3.0;
+        std::complex<double> D = c / 3.0 - S*S;
+        std::complex<double> E = S*S*S + (d - S*c) / 2.0;
+        std::complex<double> Froot = sqrt(E*E + D*D*D);
+        std::complex<double> F = -Froot - E;
+
+        if (IsZero(F))
+        {
+            F = Froot - E;
+        }
+
+        for (int i = 0; i < 3; ++i)
+        {
+            const std::complex<double> G = cbrt(F, i);
+            roots[i] = G - D / G - S;
+        }
+
+        return 3;
+    }
+
+    // Returns n=0..4, the number of distinct real roots found for the equation
+    //
+    //     ax^4 + bx^3 + cx^2 + dx + e = 0
+    //
+    // Stores the roots in the first n slots of the array 'roots'.
+    int SolveQuarticEquation(std::complex<double> a, std::complex<double> b, std::complex<double> c, std::complex<double> d, std::complex<double> e, std::complex<double> roots[4])
+    {
+        if (IsZero(a))
+        {
+            return SolveCubicEquation(b, c, d, e, roots);
+        }
+
+        // See "Summary of Ferrari's Method" in http://en.wikipedia.org/wiki/Quartic_function
+
+        // Without loss of generality, we can divide through by 'a'.
+        // Anywhere 'a' appears in the equations, we can assume a = 1.
+        b /= a;
+        c /= a;
+        d /= a;
+        e /= a;
+
+        std::complex<double> b2 = b * b;
+        std::complex<double> b3 = b * b2;
+        std::complex<double> b4 = b2 * b2;
+
+        std::complex<double> alpha = (-3.0 / 8.0)*b2 + c;
+        std::complex<double> beta = b3 / 8.0 - b*c / 2.0 + d;
+        std::complex<double> gamma = (-3.0 / 256.0)*b4 + b2*c / 16.0 - b*d / 4.0 + e;
+
+        std::complex<double> alpha2 = alpha * alpha;
+        std::complex<double> t = -b / 4.0;
+
+        if (IsZero(beta))
+        {
+            std::complex<double> rad = sqrt(alpha2 - 4.0*gamma);
+            std::complex<double> r1 = sqrt((-alpha + rad) / 2.0);
+            std::complex<double> r2 = sqrt((-alpha - rad) / 2.0);
+
+            roots[0] = t + r1;
+            roots[1] = t - r1;
+            roots[2] = t + r2;
+            roots[3] = t - r2;
+        }
+        else
+        {
+            std::complex<double> alpha3 = alpha * alpha2;
+            std::complex<double> P = -(alpha2 / 12.0 + gamma);
+            std::complex<double> Q = -alpha3 / 108.0 + alpha*gamma / 3.0 - beta*beta / 8.0;
+            std::complex<double> R = -Q / 2.0 + sqrt(Q*Q / 4.0 + P*P*P / 27.0);
+            std::complex<double> U = cbrt(R, 0);
+            std::complex<double> y = (-5.0 / 6.0)*alpha + U;
+            if (IsZero(U))
+            {
+                y -= cbrt(Q, 0);
+            }
+            else
+            {
+                y -= P / (3.0 * U);
+            }
+            std::complex<double> W = sqrt(alpha + 2.0*y);
+
+            std::complex<double> r1 = sqrt(-(3.0*alpha + 2.0*y + 2.0*beta / W));
+            std::complex<double> r2 = sqrt(-(3.0*alpha + 2.0*y - 2.0*beta / W));
+
+            roots[0] = t + (W - r1) / 2.0;
+            roots[1] = t + (W + r1) / 2.0;
+            roots[2] = t + (-W - r2) / 2.0;
+            roots[3] = t + (-W + r2) / 2.0;
+        }
+
+        return 4;
+    }
+
+    // The above solvers are generalized for complex-valued 
+    // coefficients and roots.
+    // Below are helper methods that accept real-valued 
+    // coefficients and return the subset of roots that are real-valued.
+
+    inline int SolveQuadraticEquation(
+        double a,
+        double b,
+        double c,
+        double roots[2])
+    {
+        std::complex<double> croots[2];
+
+        const int numComplexRoots = SolveQuadraticEquation(
+            a,
+            b,
+            c,
+            croots);
+
+        return FilterRealNumbers(numComplexRoots, croots, roots);
+    }
+
+    inline int SolveCubicEquation(
+        double a,
+        double b,
+        double c,
+        double d,
+        double roots[3])
+    {
+        std::complex<double> croots[3];
+
+        const int numComplexRoots = SolveCubicEquation(
+            a,
+            b,
+            c,
+            d,
+            croots);
+
+        return FilterRealNumbers(numComplexRoots, croots, roots);
+    }
+
+    inline int SolveQuarticEquation(
+        double a,
+        double b,
+        double c,
+        double d,
+        double e,
+        double roots[4])
+    {
+        std::complex<double> croots[4];
+
+        const int numComplexRoots = SolveQuarticEquation(
+            a,
+            b,
+            c,
+            d,
+            e,
+            croots);
+
+        return FilterRealNumbers(numComplexRoots, croots, roots);
+    }
+
+
+
     /*
     Finds where the ray interset the trus and adds all volumes to the ray's volume array
     resources for intersection
@@ -388,43 +640,67 @@ struct Torus : Object
     */
     void getVolume(Ray *ray)
     {
-        float G = 4.f * (R * R) * ((ray->origin.x * ray->origin.x) + (ray->origin.y * ray->origin.y));
-        float H = 8.f * (R * R) * ((ray->direction.x * ray->origin.x) + (ray->direction.x * ray->origin.y));
-        float I = 4.f * (R * R) * ((ray->direction.x * ray->direction.x) + (ray->direction.y * ray->direction.y));
-        float J = (ray->origin.x + ray->origin.y + ray->origin.z) * (ray->origin.x + ray->origin.y + ray->origin.z);
-        float K = 2.f * dot(ray->direction, ray->origin);
-        float L = ((ray->direction.x * ray->direction.x) + (ray->direction.y + ray->direction.y) + (ray->direction.z + ray->direction.z) + (R * R) - (r * r));
+        double T = 4.f * R * R;
+        double G = T * ((ray->direction.x * ray->direction.x) + (ray->direction.y * ray->direction.y));
+        double H = 2.f * T * ((ray->origin.x * ray->direction.x) + (ray->origin.y * ray->direction.y));
+        double I = T * ((ray->origin.x * ray->origin.x) + (ray->origin.y * ray->origin.y));
+        double J = (ray->direction.x * ray->direction.x) + (ray->direction.y * ray->direction.y) + (ray->direction.z * ray->direction.z);
+        double K = 2.f * dot(ray->origin, ray->direction);
+        double L = (ray->origin.x * ray->origin.x) + (ray->origin.y * ray->origin.y) + (ray->origin.z * ray->origin.z) + (R * R) - (r * r);
 
-        // coefficients
-        float a = J * J;
-        float b = 2.f * J * K;
-        float c = (2.f * J * L) + (K * K) - G;
-        float d = (2 * K * L) - H;
-        float e = (L * L) - I;
+        std::vector<float> scalars;
+        double roots[4];
+        const int numRealRoots = SolveQuarticEquation(
+            J*J,                    // coefficient of u^4
+            2.0*J*K,                // coefficient of u^3
+            2.0*J*L + K*K - G,      // coefficient of u^2
+            2.0*K*L - H,            // coefficient of u^1 = u
+            L*L - I,                // coefficient of u^0 = constant term
+            roots                  // receives 0..4 real solutions
+        );
 
-        float p = ((8.f * a * c) - (3.f * b * b)) / (8.f * a * a);
-        float q = ((b * b * b) - (4.f * a * b * c) + (8.f * a * a * d)) / (8.f * a * a * a);
-
-        float delta0 = (c * c) - (3.f * b * d) + (12.f * a * e);
-        float delta1 = (2.f * c * c * c) - (9.f * b * c * d) + (27.f * b * b * e) + (27.f * a * d * d) - (72.f * a * c * e);
-
-        float Q = cbrt((delta1 + sqrt((delta1 * delta1) - (4.f * delta0 * delta0 * delta0))) / 2.f);
-        float S = .5f * sqrt((-(2.f / 3.f) * p) + ((1.f / (3.f * a)) * (Q + (delta0 / Q))));
-
-
-        float x1 = -(b / (4.f * a)) - S + (.5f * sqrt((-4.f * S * S) - (2.f * p) + (q / S)));
-        float x2 = -(b / (4.f * a)) - S - (.5f * sqrt((-4.f * S * S) - (2.f * p) + (q / S)));
-        float x3 = -(b / (4.f * a)) + S + (.5f * sqrt((-4.f * S * S) - (2.f * p) + (q / S)));
-        float x4 = -(b / (4.f * a)) + S - (.5f * sqrt((-4.f * S * S) - (2.f * p) + (q / S)));
-
-        ray->volumes.push_back(Volume(x1, x2, this));
-        ray->volumes.push_back(Volume(x3, x4, this));
+        // We need to keep only the real roots.
+        // There can be significant roundoff error in quartic solver, 
+        // so we have to tolerate more slop than usual.
+        const double SURFACE_TOLERANCE = 1.0e-4;
+        int numPositiveRoots = 0;
+        for (int i = 0; i < numRealRoots; ++i)
+        {
+            // Compact the array...
+            if (roots[i] > SURFACE_TOLERANCE)
+            {
+               scalars.push_back(roots[i]);
+            }
+        }
 
 
+
+
+        std::sort(scalars.begin(), scalars.end());
+        switch (scalars.size())
+        {
+        case(1):
+            //ray->volumes.push_back(Volume(scalars[0], scalars[0], this));
+            break;
+        case(2):
+            ray->volumes.push_back(Volume(scalars[0], scalars[1], this));
+            break;
+        case(3):
+            //ray->volumes.push_back(Volume(scalars[0], scalars[2], this));
+            break;
+        case(4):
+            ray->volumes.push_back(Volume(scalars[0], scalars[1], this));
+            ray->volumes.push_back(Volume(scalars[2], scalars[3], this));
+            break;
+        default:
+            break;
+        }
     }
     glm::vec3 getNormal(glm::vec3 intersection)
     {
-        return glm::vec3(1.f);
+        glm::vec3 point = intersection - center;
+        float a = 1.f - (R / sqrt(point.x*point.x + point.y*point.y));
+        return normalize(glm::vec3(a*point.x, a*point.y, point.z));
     }
     void scale(bool enlarge) {}
     void move(glm::vec3 move) {}

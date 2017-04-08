@@ -3,27 +3,26 @@
 
 using namespace std;
 
+int selected1 = -1, selected2 = -1;
 double mouse_old_x, mouse_old_y;
 
 float   rotate_x = 0.0,
         rotate_y = 0.0,
         zoom = DEF_ZOOM,
         aspectRatio = (float)WINDOW_WIDTH / (float)WINDOW_HEIGHT;
-bool    select1 = true, 
-        scale = false, 
 
-        movement = false,
+bool    select1   = true, 
+        scale     = false, 
+
+        movement  = false,
         movementX = false,
         movementY = false,
         movementZ = false,
 
-        rotation = false,
+        rotation  = false,
         rotationX = false,
         rotationY = false,
         rotationZ = false;
-int selected1 = -1, selected2 = -1;
-
-//glm::vec3 rotation = DEF_ROTATION;
 
 
 // Error Checking
@@ -161,7 +160,7 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
 
         
         // sphere
-        case (GLFW_KEY_Q):
+        case (GLFW_KEY_1):
             objectVec.push_back(new Sphere(
                 glm::vec3(0.f, 0.f, 0.f),           // center
                 0.5f,							    // radius
@@ -169,10 +168,18 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
                 50));                               // phong
             break;
         // cube
-        case (GLFW_KEY_W):
+        case (GLFW_KEY_2):
             objectVec.push_back(new Cube(
                 glm::vec3(0.f, 0.f, 0.f),           // center
                 .5f,                                // radius
+                glm::vec3(0.f, 1.f, 0.f),           // colour
+                50.f));                             // phong
+            break;
+        case(GLFW_KEY_3):
+            objectVec.push_back(new Torus(
+                glm::vec3(0.f, 0.f, 0.f),           // center
+                .5f,                                // major radius
+                .2f,                                // minor radius
                 glm::vec3(0.f, 1.f, 0.f),           // colour
                 50.f));                             // phong
             break;
