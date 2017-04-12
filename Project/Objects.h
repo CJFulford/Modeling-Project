@@ -659,7 +659,7 @@ struct Cylinder : Object
         length = BASE_LENGTH;
 
         topPlane = new Plane(center + (length * YAXIS), YAXIS);
-        bottomPlane = new Plane(center - (length * YAXIS), YAXIS);
+        bottomPlane = new Plane(center - (length * YAXIS), -YAXIS);
     }
     ~Cylinder() { delete topPlane; delete bottomPlane; }
 
@@ -669,6 +669,7 @@ struct Cylinder : Object
 
         std::vector<float> scalars;
 
+        // get and check intersections with planes
         float tempScalar = topPlane->getIntersection(&tempRay);
         if (tempScalar != NULL)
         {
@@ -676,7 +677,6 @@ struct Cylinder : Object
             if (abs(distance(intersection, glm::vec3(center.x, intersection.y, center.z)) <= radius))
                 scalars.push_back(tempScalar);
         }
-
         tempScalar = bottomPlane->getIntersection(&tempRay);
         if (tempScalar != NULL)
         {
@@ -685,6 +685,7 @@ struct Cylinder : Object
                 scalars.push_back(tempScalar);
         }
 
+        // if the ray collides perfectly with both planes then it is inside the cylinder, and we dont need to check the cylinder
         if (scalars.size() == 2)
         {
             ray->volumes.push_back(Volume(glm::min(scalars[0], scalars[1]), glm::max(scalars[0], scalars[1]), this));
@@ -692,16 +693,16 @@ struct Cylinder : Object
         }
 
 
-
+        // at most 1 plane intersection. Need to check the cylinder now
         float A = (tempRay.direction.x * tempRay.direction.x) + (tempRay.direction.z * tempRay.direction.z);
         float B = 2.f * ((tempRay.origin.x * tempRay.direction.x) + (tempRay.origin.z * tempRay.direction.z));
         float C = (tempRay.origin.x * tempRay.origin.x) + (tempRay.origin.z * tempRay.origin.z) - (radius * radius);
 
         // now we solve the quadratic equation
         float rootTerm = (B * B) - (4.f * A * C);
-        if (rootTerm < 0) return;
+        if (rootTerm < 0) return;   // no solutions, misses the cylinder
 
-        float root = sqrt(rootTerm);
+        rootTerm = sqrt(rootTerm);
 
         float scalar1 = (-B - rootTerm) / (2.f * A);
         float scalar2 = (-B + rootTerm) / (2.f * A);
@@ -730,14 +731,13 @@ struct Cylinder : Object
 		else if (abs(dot(normalize(intersection - bottomPlane->center), bottomPlane->normal)) <= FLOAT_ERROR)
             norm = bottomPlane->normal;
            
-		else if (distance(inter, glm::vec2(center.x, center.z)) <= FLOAT_ERROR)
+		else if (distance(inter, glm::vec2(center.x, center.z)) - radius <= FLOAT_ERROR)
 			norm = normalize(intersection - glm::vec3(center.x, intersection.y, center.z));
 			
 		else 
 			return glm::vec3(0.f);
 			
         return norm;
-		//return glm::rotateZ(glm::rotateY(glm::rotateX(norm, rotation.x), rotation.y), rotation.z);
 
     }
     void scale(bool enlarge)
@@ -753,8 +753,8 @@ struct Cylinder : Object
         {
             radius = glm::max(MIN_SCALE, radius - SCALE_CHANGE);
             length = glm::max(MIN_SCALE, length - SCALE_CHANGE);
-            topPlane->center.y -= SCALE_CHANGE;
-            bottomPlane->center.y -= -SCALE_CHANGE;
+            topPlane->center.y = ((topPlane->center.y <= .1f) ? topPlane->center.y : topPlane->center.y - SCALE_CHANGE);
+            bottomPlane->center.y = ((bottomPlane->center.y >= -.1f) ? bottomPlane->center.y : bottomPlane->center.y + SCALE_CHANGE);
         }
     }
     void move(glm::vec3 move) { center += move; }
@@ -768,24 +768,24 @@ struct Cylinder : Object
 // the combinations
 struct Intersection : Object
 {
-    Intersection(Object *obj1, Object *obj2) : object1(obj1), object2(obj2)
+    Object *leftObject, *rightObject;
+    Intersection(Object *obj1, Object *obj2) : leftObject(obj1), rightObject(obj2)
     {
         phong = (obj1->phong + obj2->phong) / 2.f;
         colour = (obj1->colour + obj2->colour) / 2.f;
         center = (obj1->center + obj2->center) / 2.f;
         selected = false;
     }
-    Object *object1, *object2;
 
     void getVolume(Ray *ray)
     {
         Ray tempRay(ray->origin, ray->direction);
-        object1->getVolume(&tempRay);
+        leftObject->getVolume(&tempRay);
 
         bool obj1Torus = false; // need to know order of objects if one i a torus
         if (tempRay.volumes.size() == 2) obj1Torus = true;
 
-        object2->getVolume(&tempRay);
+        rightObject->getVolume(&tempRay);
 
         // if ray does not collide with both in the intersection
         if (tempRay.volumes.size() < 2)
@@ -841,53 +841,53 @@ struct Intersection : Object
     }
     glm::vec3 getNormal(glm::vec3 intersection)
     {
-        if (distance(intersection, object1->center) - object1->radius <= FLOAT_ERROR)
-            return object1->getNormal(intersection);
+        if (distance(intersection, leftObject->center) - leftObject->radius <= FLOAT_ERROR)
+            return leftObject->getNormal(intersection);
         else
-            return object2->getNormal(intersection);
+            return rightObject->getNormal(intersection);
     }
     void scale(bool enlarge)
     {
-        object1->scale(enlarge);
-        object2->scale(enlarge);
+        leftObject->scale(enlarge);
+        rightObject->scale(enlarge);
     }
     void move(glm::vec3 move)
     {
-        object1->move(move);
-        object2->move(move);
+        leftObject->move(move);
+        rightObject->move(move);
     }
     void rotate(glm::vec3 rotate)
     {
-        object1->rotate(rotate);
-        object2->rotate(rotate);
+        leftObject->rotate(rotate);
+        rightObject->rotate(rotate);
     }
     void select() { selected = true; }
     void deselect() { selected = false; }
     void breakBoolean(std::vector<Object*> *objectVec, int index)
     {
         objectVec->erase(objectVec->begin() + index);
-        objectVec->push_back(object1);
-        objectVec->push_back(object2);
+        objectVec->push_back(leftObject);
+        objectVec->push_back(rightObject);
         delete this;
     }
 };
 
 struct Union : Object
 {
-    Union(Object *obj1, Object *obj2) : object1(obj1), object2(obj2)
+    Object *leftChild, *rightChild;
+    Union(Object *obj1, Object *obj2) : leftChild(obj1), rightChild(obj2)
     {
         phong = (obj1->phong + obj2->phong) / 2.f;
         colour = (obj1->colour + obj2->colour) / 2.f;
         center = (obj1->center + obj2->center) / 2.f;
         selected = false;
     }
-    Object *object1, *object2;
 
     void getVolume(Ray *ray)
     {
         Ray tempRay(ray->origin, ray->direction);
-        object1->getVolume(&tempRay);
-        object2->getVolume(&tempRay);
+        leftChild->getVolume(&tempRay);
+        rightChild->getVolume(&tempRay);
 
         // ray needs to intersect both to collide with the intersection
         if (tempRay.volumes.size() == 1)
@@ -909,47 +909,47 @@ struct Union : Object
     }
     glm::vec3 getNormal(glm::vec3 intersection)
     {
-        if (object1->getNormal(intersection) != glm::vec3(0.f))
-            return object1->getNormal(intersection);
+        if (leftChild->getNormal(intersection) != glm::vec3(0.f))
+            return leftChild->getNormal(intersection);
         else
-            return object2->getNormal(intersection);
+            return rightChild->getNormal(intersection);
     }
     void scale(bool enlarge)
     {
-        object1->scale(enlarge);
-        object2->scale(enlarge);
+        leftChild->scale(enlarge);
+        rightChild->scale(enlarge);
     }
     void move(glm::vec3 move)
     {
-        object1->move(move);
-        object2->move(move);
+        leftChild->move(move);
+        rightChild->move(move);
     }
     void rotate(glm::vec3 rotate)
     {
-        object1->rotate(rotate);
-        object2->rotate(rotate);
+        leftChild->rotate(rotate);
+        rightChild->rotate(rotate);
     }
     void select() { selected = true; }
     void deselect() { selected = false; }
     void breakBoolean(std::vector<Object*> *objectVec, int index)
     {
         objectVec->erase(objectVec->begin() + index);
-        objectVec->push_back(object1);
-        objectVec->push_back(object2);
+        objectVec->push_back(leftChild);
+        objectVec->push_back(rightChild);
         delete this;
     }
 };
 
 struct Difference : Object
 {
-    Difference(Object *obj1, Object *obj2) : object1(obj1), object2(obj2)
+    Object *leftChild, *rightChild;
+    Difference(Object *obj1, Object *obj2) : leftChild(obj1), rightChild(obj2)
     {
         phong = (obj1->phong + obj2->phong) / 2.f;
         colour = (obj1->colour + obj2->colour) / 2.f;
         center = (obj1->center + obj2->center) / 2.f;
         selected = false;
     }
-    Object *object1, *object2;
 
     void getVolume(Ray *ray)
     {
@@ -957,7 +957,7 @@ struct Difference : Object
 
 
 
-        object1->getVolume(&tempRay);
+        leftChild->getVolume(&tempRay);
         // if there is no collision with A in A - B then there is no collision with the difference
         if (tempRay.volumes.size() == 0) return;
 
@@ -966,7 +966,7 @@ struct Difference : Object
         if (tempRay.volumes.size() == 2) obj1Torus = true;
 
 
-        object2->getVolume(&tempRay);
+        rightChild->getVolume(&tempRay);
 
 
         // if there is only 1 volume here, then the ray only collided with A in A - B.
@@ -1042,34 +1042,33 @@ struct Difference : Object
     }
     glm::vec3 getNormal(glm::vec3 intersection)
     {
-        if (abs(distance(intersection, center) - object1->radius) <= FLOAT_ERROR)
-            return object1->getNormal(intersection);
+        if (abs(distance(intersection, center) - leftChild->radius) <= FLOAT_ERROR)
+            return leftChild->getNormal(intersection);
         else
-            return -object2->getNormal(intersection);
-
+            return -rightChild->getNormal(intersection);
     }
     void scale(bool enlarge)
     {
-        object1->scale(enlarge);
-        object2->scale(enlarge);
+        leftChild->scale(enlarge);
+        rightChild->scale(enlarge);
     }
     void move(glm::vec3 move)
     {
-        object1->move(move);
-        object2->move(move);
+        leftChild->move(move);
+        rightChild->move(move);
     }
     void rotate(glm::vec3 rotate)
     {
-        object1->rotate(rotate);
-        object2->rotate(rotate);
+        leftChild->rotate(rotate);
+        rightChild->rotate(rotate);
     }
     void select() { selected = true; }
     void deselect() { selected = false; }
     void breakBoolean(std::vector<Object*> *objectVec, int index)
     {
         objectVec->erase(objectVec->begin() + index);
-        objectVec->push_back(object1);
-        objectVec->push_back(object2);
+        objectVec->push_back(leftChild);
+        objectVec->push_back(rightChild);
         delete this;
     }
 };

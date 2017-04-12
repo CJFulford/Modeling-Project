@@ -310,7 +310,13 @@ void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
 {
     scale = false;
     movement = false;
+    movementX = false;
+    movementY = false;
+    movementZ = false;
     rotation = false;
+    rotationX = false;
+    rotationY = false;
+    rotationZ = false;
     // selection
     if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS)
     {
