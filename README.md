@@ -7,32 +7,32 @@ The purpose behind the project is to assist modeling instructors teach their stu
 Currently, Much of the code has been taken from Cody Fulford's Ray Tracer assignment from CPSC 453 - Graphics W16 from the University of Calgary but has been heavily modified
 
 ## Controls:
-Scroll-Up   Zoom Camera in
-Scroll-Down Zoom Camera out
-Click&Move  to rotate the camera
+    Scroll-Up   Zoom Camera in
+    Scroll-Down Zoom Camera out
+    Click&Move  to rotate the camera
 
-Right Click Select an object
-Right click a second time to select a second object
-Right click on no objects to deselect all objects
+    Right Click Select an object
+    Right click a second time to select a second object
+    Right click on no objects to deselect all objects
 
-when a single ob ject is selected:
-    press g to enter object-move mode
-        hold x and drag the mouse across the screens x axis to move the object along the worlds x axis
-        hold y and drag the mouse across the screens y axis to move the object along the worlds y axis
-        hold z and drag the mouse across the screens y axis to move the object along the worlds y axis
-        press g to exit object-move mode
-    press r to enter object-rotate mode
-        hold x and drag the mouse across the screens x axis to rotate the object about the worlds x axis
-        hold y and drag the mouse across the screens y axis to rotate the object about the worlds y axis
-        hold z and drag the mouse across the screens y axis to rotate the object about the worlds y axis
-        press r to exit object-move mode
-    press s to enter object-scale mode
-        move the mouse along the screens y axis the scale the object
-    press b to break a boolean operation on 2 objects into its 2 individual objects
-when multiple objects are selected
-    press U to perform the union operation on the 2 objects
-    press I to perform the intersection operation on the 2 objects
-    press D to perform the subtraction operation on the 2 objects in the order A-B where A was the first object selected
+    when a single ob ject is selected:
+        press g to enter object-move mode
+            hold x and drag the mouse across the screens x axis to move the object along the worlds x axis
+            hold y and drag the mouse across the screens y axis to move the object along the worlds y axis
+            hold z and drag the mouse across the screens y axis to move the object along the worlds y axis
+            press g to exit object-move mode
+        press r to enter object-rotate mode
+            hold x and drag the mouse across the screens x axis to rotate the object about the worlds x axis
+            hold y and drag the mouse across the screens y axis to rotate the object about the worlds y axis
+            hold z and drag the mouse across the screens y axis to rotate the object about the worlds y axis
+            press r to exit object-move mode
+        press s to enter object-scale mode
+            move the mouse along the screens y axis the scale the object
+        press b to break a boolean operation on 2 objects into its 2 individual objects
+    when multiple objects are selected
+        press U to perform the union operation on the 2 objects
+        press I to perform the intersection operation on the 2 objects
+        press D to perform the subtraction operation on the 2 objects in the order A-B where A was the first object selected
 
 
 ## The Program   
