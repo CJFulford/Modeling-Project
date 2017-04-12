@@ -15,7 +15,7 @@
 #define RED             glm::vec3(1.f, 0.f, 0.f)
 #define GREEN           glm::vec3(0.f, 1.f, 0.f)
 #define BLUE            glm::vec3(0.f, 0.f, 1.f)
-#define AMBIENT         glm::vec3(0.5f)
+#define AMBIENT         glm::vec3(0.3f)
 
 // camera info
 #define FOV_DEGREE  	45

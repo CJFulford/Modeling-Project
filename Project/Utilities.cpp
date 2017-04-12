@@ -107,6 +107,7 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
                 delete objectVec[selected1];
                 objectVec.erase(objectVec.begin() + selected1);
                 selected1 = -1;
+                select1 = true;
                 scale = false;
                 movement = false;
                 rotation = false;
@@ -169,6 +170,9 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
             break;
         case(GLFW_KEY_3):
             objectVec.push_back(new Torus());
+            break;
+        case(GLFW_KEY_4):
+            objectVec.push_back(new Cylinder());
             break;
         
         
@@ -304,6 +308,9 @@ void mouseMotion(GLFWwindow* window, double x, double y)
 
 void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
 {
+    scale = false;
+    movement = false;
+    rotation = false;
     // selection
     if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS)
     {
@@ -366,9 +373,6 @@ void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
             selected2 = -1;
             select1 = true;
         }
-        scale = false;
-        movement = false;
-        rotation = false;
     }
 }
 

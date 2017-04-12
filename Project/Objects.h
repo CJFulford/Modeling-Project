@@ -562,6 +562,7 @@ struct Torus : Object
         glm::vec3 originRotated = glm::rotateX(glm::rotateY(glm::rotateZ(ray->origin, -rotation.z), -rotation.y), -rotation.x);
         glm::vec3 dirRotated = glm::rotateX(glm::rotateY(glm::rotateZ(ray->direction, -rotation.z), -rotation.y), -rotation.x);
         Ray tempRay(originRotated - center, dirRotated);
+
         double T = 4.f * R * R;
         double G = T * ((tempRay.direction.x * tempRay.direction.x) + (tempRay.direction.y * tempRay.direction.y));
         double H = 2.f * T * ((tempRay.origin.x * tempRay.direction.x) + (tempRay.origin.y * tempRay.direction.y));
@@ -627,15 +628,10 @@ struct Torus : Object
     void scale(bool enlarge) 
     {
         R += (enlarge) ? SCALE_CHANGE : -SCALE_CHANGE;
+        r = R * .25f;
     }
-    void move(glm::vec3 move) 
-    {
-        center += move;
-    }
-    void rotate(glm::vec3 rotate) 
-    {
-        rotation += rotate;
-    }
+    void move(glm::vec3 move) { center += move; }
+    void rotate(glm::vec3 rotate) { rotation += rotate; }
     void select() { selected = true; }
     void deselect() { selected = false; }
     void breakBoolean(std::vector<Object*> *objectVec, int index) {}
@@ -643,23 +639,98 @@ struct Torus : Object
 
 struct Cylinder : Object
 {
+    #define BASE_LENGTH .5f
     float length;
-    glm::vec3 centerAxis;
-    Cylinder() : radi(radi)
+    glm::vec3 rotation = glm::vec3(0.f);
+    Plane *topPlane, *bottomPlane;
+
+    Cylinder()
     {
         radius = BASE_RADIUS;
         center = BASE_CENTER;
         colour = BASE_COLOUR;
         phong = BASE_PHONG;
+        length = BASE_LENGTH;
+
+        topPlane = new Plane(center + (length * YAXIS), YAXIS);
+        bottomPlane = new Plane(center - (length * YAXIS), YAXIS);
     }
-    float radi;
+    ~Cylinder() { delete topPlane; delete bottomPlane; }
 
     void getVolume(Ray *ray)
     {
+        glm::vec3 originRotated = glm::rotateX(glm::rotateY(glm::rotateZ(ray->origin, -rotation.z), -rotation.y), -rotation.x);
+        glm::vec3 dirRotated = glm::rotateX(glm::rotateY(glm::rotateZ(ray->direction, -rotation.z), -rotation.y), -rotation.x);
+        Ray tempRay(originRotated - center, dirRotated);
+
+        float A = (tempRay.direction.x * tempRay.direction.x) + (tempRay.direction.z * tempRay.direction.z);
+        float B = 2.f * ((tempRay.origin.x * tempRay.direction.x) + (tempRay.origin.z * tempRay.direction.z));
+        float C = (tempRay.origin.x * tempRay.origin.x) + (tempRay.origin.z * tempRay.origin.z) - (radius * radius);
+
+        // now we solve the quadratic equation
+        float rootTerm = (B * B) - (4.f * A * C);
+        if (rootTerm < 0) return;
+
+        float root = sqrt(rootTerm);
+
+        // root term is guaranteed to be positive so the - option will always be the intersection closer to the camera
+        float scalar1 = (-B - rootTerm) / (2.f * A);
+        float scalar2 = (-B + rootTerm) / (2.f * A);
+
+
+
+        glm::vec3 intersection1 = tempRay.applyScalar(scalar1);
+        glm::vec3 intersection2 = tempRay.applyScalar(scalar2);
+        if (abs(intersection1.y) <= length && abs(intersection2.y) <= length)
+        {
+            ray->volumes.push_back(Volume(glm::min(scalar1, scalar2), glm::max(scalar1, scalar2), this));
+            return;
+        }
+
+        // one or both of the intersections is not inside the cylinder
+
+        float scalars[2] =
+        {
+            topPlane->getIntersection(&tempRay),
+            bottomPlane->getIntersection(&tempRay)
+        };
+
+        // if the ray is parllel, it is either intersecting the circular part or nothing and by now we have checked the circular part
+        if (scalars[0] == NULL || scalars[1] == NULL) return;
+
+        bool bad1 = false, bad2 = false;
+        glm::vec3 inter1 = tempRay.applyScalar(scalars[0]);
+        glm::vec3 inter2 = tempRay.applyScalar(scalars[1]);
+        if (distance(inter1, topPlane->center) < radius)
+            scalar1 = scalars[0];
+        else if (distance(inter1, bottomPlane->center) < radius)
+            scalar1 = scalars[1];
+        else
+            bad1 = true;
+
+        if (distance(inter2, topPlane->center) < radius)
+            scalar2 = scalars[0];
+        else if (distance(inter2, bottomPlane->center) < radius)
+            scalar2 = scalars[1];
+        else
+            bad2 = true;
+
+        if (bad1 && bad2) return;
+
+        ray->volumes.push_back(Volume(glm::min(scalar1, scalar2), glm::max(scalar1, scalar2), this));
+        
+
+
     }
     glm::vec3 getNormal(glm::vec3 intersection)
     {
-        
+        glm::vec2 inter = glm::vec2(intersection.x, intersection.z);
+        if (distance(inter, glm::vec2(center.x, center.z)) <= FLOAT_ERROR)
+            return normalize(glm::vec3(intersection.x, 0.f, intersection.z));
+        else if (distance(intersection, topPlane->center) <= length)
+            return topPlane->normal;
+        else
+            return bottomPlane->normal;
     }
     void scale(bool enlarge)
     {
@@ -667,22 +738,19 @@ struct Cylinder : Object
         {
             radius += SCALE_CHANGE;
             length += SCALE_CHANGE;
+            topPlane->center.y += SCALE_CHANGE;
+            bottomPlane->center.y += -SCALE_CHANGE;
         } 
         else
         {
             radius = glm::max(MIN_SCALE, radius - SCALE_CHANGE);
             length = glm::max(MIN_SCALE, length - SCALE_CHANGE);
+            topPlane->center.y -= SCALE_CHANGE;
+            bottomPlane->center.y -= -SCALE_CHANGE;
         }
     }
-    void move(glm::vec3 move)
-    {
-        center += move;
-    }
-    void rotate(glm::vec3 rotate) 
-    {
-        center = glm::rotateZ(glm::rotateY(glm::rotateX(center, rotate.x), rotate.y), rotate.z);
-        centerAxis = normalize(glm::rotateZ(glm::rotateY(glm::rotateX(centerAxis, rotate.x), rotate.y), rotate.z));
-    }
+    void move(glm::vec3 move) { center += move; }
+    void rotate(glm::vec3 rotate) { rotation += rotate; }
     void select() { selected = true; }
     void deselect() { selected = false; }
     void breakBoolean(std::vector<Object*> *objectVec, int index) {}
