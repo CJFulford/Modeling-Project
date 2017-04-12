@@ -6,15 +6,15 @@ The purpose behind the project is to assist modeling instructors teach their stu
 
 Currently, Much of the code has been taken from Cody Fulford's Ray Tracer assignment from CPSC 453 - Graphics W16 from the University of Calgary but has been heavily modified
 
-##Controls:
+## Controls:
     Scroll-Up   Zoom Camera in
     Scroll-Down Zoom Camera out
     Click&Move  to rotate the camera
-    
+
     Right Click Select an object
     Right click a second time to select a second object
     Right click on no objects to deselect all objects
-    
+
     when a single ob ject is selected:
         press g to enter object-move mode
             hold x and drag the mouse across the screens x axis to move the object along the worlds x axis
