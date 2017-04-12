@@ -1,6 +1,6 @@
 #pragma once
 #include <algorithm>
-#include <glm\glm.hpp>
+#include <glm/glm.hpp>
 #include <vector>
 #include <utility>
 #include <glm/gtx/rotate_vector.hpp>
@@ -88,6 +88,12 @@ struct Object
     glm::vec3 center, colour;
     float phong, radius;
     bool selected = false, selectable = true;
+    Ray generateTempRay(Ray *ray, glm::vec3 rotation)
+    {
+		glm::vec3 originRotated = glm::rotateX(glm::rotateY(glm::rotateZ(ray->origin, -rotation.z), -rotation.y), -rotation.x);
+        glm::vec3 dirRotated = glm::rotateX(glm::rotateY(glm::rotateZ(ray->direction, -rotation.z), -rotation.y), -rotation.x);
+        return Ray(originRotated - center, dirRotated);
+	}
 };
 
 // uncreateable objects
@@ -659,9 +665,33 @@ struct Cylinder : Object
 
     void getVolume(Ray *ray)
     {
-        glm::vec3 originRotated = glm::rotateX(glm::rotateY(glm::rotateZ(ray->origin, -rotation.z), -rotation.y), -rotation.x);
-        glm::vec3 dirRotated = glm::rotateX(glm::rotateY(glm::rotateZ(ray->direction, -rotation.z), -rotation.y), -rotation.x);
-        Ray tempRay(originRotated - center, dirRotated);
+        Ray tempRay = generateTempRay(ray, rotation);
+
+        std::vector<float> scalars;
+
+        float tempScalar = topPlane->getIntersection(&tempRay);
+        if (tempScalar != NULL)
+        {
+            glm::vec3 intersection = tempRay.applyScalar(tempScalar);
+            if (abs(distance(intersection, glm::vec3(center.x, intersection.y, center.z)) <= radius))
+                scalars.push_back(tempScalar);
+        }
+
+        tempScalar = bottomPlane->getIntersection(&tempRay);
+        if (tempScalar != NULL)
+        {
+            glm::vec3 intersection = tempRay.applyScalar(tempScalar);
+            if (abs(distance(intersection, glm::vec3(center.x, intersection.y, center.z)) <= radius))
+                scalars.push_back(tempScalar);
+        }
+
+        if (scalars.size() == 2)
+        {
+            ray->volumes.push_back(Volume(glm::min(scalars[0], scalars[1]), glm::max(scalars[0], scalars[1]), this));
+            return;
+        }
+
+
 
         float A = (tempRay.direction.x * tempRay.direction.x) + (tempRay.direction.z * tempRay.direction.z);
         float B = 2.f * ((tempRay.origin.x * tempRay.direction.x) + (tempRay.origin.z * tempRay.direction.z));
@@ -673,64 +703,42 @@ struct Cylinder : Object
 
         float root = sqrt(rootTerm);
 
-        // root term is guaranteed to be positive so the - option will always be the intersection closer to the camera
         float scalar1 = (-B - rootTerm) / (2.f * A);
         float scalar2 = (-B + rootTerm) / (2.f * A);
 
-
-
         glm::vec3 intersection1 = tempRay.applyScalar(scalar1);
         glm::vec3 intersection2 = tempRay.applyScalar(scalar2);
-        if (abs(intersection1.y) <= length && abs(intersection2.y) <= length)
-        {
-            ray->volumes.push_back(Volume(glm::min(scalar1, scalar2), glm::max(scalar1, scalar2), this));
-            return;
-        }
 
-        // one or both of the intersections is not inside the cylinder
+        if (abs(intersection1.y) - length <= FLOAT_ERROR)
+            scalars.push_back(scalar1);
+        if (abs(intersection2.y) - length <= FLOAT_ERROR)
+            scalars.push_back(scalar2);
 
-        float scalars[2] =
-        {
-            topPlane->getIntersection(&tempRay),
-            bottomPlane->getIntersection(&tempRay)
-        };
+        if (scalars.size() < 2) return;
 
-        // if the ray is parllel, it is either intersecting the circular part or nothing and by now we have checked the circular part
-        if (scalars[0] == NULL || scalars[1] == NULL) return;
-
-        bool bad1 = false, bad2 = false;
-        glm::vec3 inter1 = tempRay.applyScalar(scalars[0]);
-        glm::vec3 inter2 = tempRay.applyScalar(scalars[1]);
-        if (distance(inter1, topPlane->center) < radius)
-            scalar1 = scalars[0];
-        else if (distance(inter1, bottomPlane->center) < radius)
-            scalar1 = scalars[1];
-        else
-            bad1 = true;
-
-        if (distance(inter2, topPlane->center) < radius)
-            scalar2 = scalars[0];
-        else if (distance(inter2, bottomPlane->center) < radius)
-            scalar2 = scalars[1];
-        else
-            bad2 = true;
-
-        if (bad1 && bad2) return;
-
-        ray->volumes.push_back(Volume(glm::min(scalar1, scalar2), glm::max(scalar1, scalar2), this));
-        
-
-
+        std::sort(scalars.begin(), scalars.end());
+        ray->volumes.push_back(Volume(scalars.front(), scalars.back(), this));
     }
     glm::vec3 getNormal(glm::vec3 intersection)
     {
-        glm::vec2 inter = glm::vec2(intersection.x, intersection.z);
-        if (distance(inter, glm::vec2(center.x, center.z)) <= FLOAT_ERROR)
-            return normalize(glm::vec3(intersection.x, 0.f, intersection.z));
-        else if (distance(intersection, topPlane->center) <= length)
-            return topPlane->normal;
-        else
-            return bottomPlane->normal;
+		glm::vec2 inter = glm::vec2(intersection.x, intersection.z);
+		glm::vec3 norm(0.f);
+			
+		if (abs(dot(normalize(intersection - topPlane->center), topPlane->normal)) <= FLOAT_ERROR)
+            norm = topPlane->normal;
+            
+		else if (abs(dot(normalize(intersection - bottomPlane->center), bottomPlane->normal)) <= FLOAT_ERROR)
+            norm = bottomPlane->normal;
+           
+		else if (distance(inter, glm::vec2(center.x, center.z)) <= FLOAT_ERROR)
+			norm = normalize(intersection - glm::vec3(center.x, intersection.y, center.z));
+			
+		else 
+			return glm::vec3(0.f);
+			
+        return norm;
+		//return glm::rotateZ(glm::rotateY(glm::rotateX(norm, rotation.x), rotation.y), rotation.z);
+
     }
     void scale(bool enlarge)
     {

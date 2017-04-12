@@ -14,9 +14,9 @@
 #define IMAGEBUFFER_H
 
 #include <string>
-#include <glm\glm.hpp>
+#include <glm/glm.hpp>
 #include <vector>
-#include <glad\glad.h> 
+#include <glad/glad.h> 
 #endif
 
 // --------------------------------------------------------------------------

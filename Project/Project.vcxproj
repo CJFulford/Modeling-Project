@@ -162,8 +162,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="libraries\GLAD_V4.5\src\glad.c" />
     <ClCompile Include="Utilities.cpp" />
-    <ClCompile Include="glad.c" />
     <ClCompile Include="ImageBuffer.cpp" />
     <ClCompile Include="Lighting.cpp" />
     <ClCompile Include="Main.cpp" />

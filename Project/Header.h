@@ -1,7 +1,7 @@
 #include "Objects.h"
 
-#include <glad\glad.h>
-#include <GLFW\glfw3.h>
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
 
 // window info
 #define WINDOW_WIDTH	500
@@ -38,18 +38,8 @@ extern float rotate_y;
  
 // ============================== Utilities.cpp
 // Error Checking
-void ErrorCallback(int error, const char* description);
-bool CheckGLErrors();
+GLFWwindow* generateWindow();
 
-// user info
-void printOpenGLVersion(GLenum majorVer, GLenum minorVer, GLenum langVer);
-
-// control Functions
-void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
-void scrollCallback (GLFWwindow* window, double xoffset, double yoffset);
-void mouseMotion(GLFWwindow* window, double x, double y);
-void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
-void printOpenGLVersion(GLenum majorVer, GLenum minorVer, GLenum langVer);
 
 // ============================== Lighting.cpp
 glm::vec3 getColour(Ray *ray, std::vector<Object*> *objectVec);

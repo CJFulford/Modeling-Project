@@ -18,7 +18,7 @@
 #include "ImageBuffer.h"
 
 #include <iostream>
-#include <glm\common.hpp>
+#include <glm/common.hpp>
 #include <algorithm>
 
 // --------------------------------------------------------------------------

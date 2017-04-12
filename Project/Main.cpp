@@ -6,6 +6,11 @@
 #include <omp.h>
 #include <glm/gtx/rotate_vector.hpp>
 
+#define rayl	-1
+#define rayr	1
+#define rayt	1
+#define rayb	-1
+
 // definitions of variables used in ray tracing
 
 
@@ -31,36 +36,8 @@ void addFloor(std::vector<Object*> *objectVec)
 
 int main(int argc, char *argv[])
 {
-	// initialize the GLFW windowing system
-	if (!glfwInit()) 
-    {
-		std::cout << "ERROR: GLFW failed to initilize, TERMINATING" << std::endl;
-		return -1;
-	}
-
-	// attempt to create a window with an OpenGL 4.4 core profile context
-	GLFWwindow *window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Implicit Surfaces", 0, 0);
-	if (!window) 
-    {
-		std::cout << "Program failed to create GLFW window, TERMINATING" << std::endl;
-		glfwTerminate();
-		return -1;
-	}
-
-	// set Callbacks
-    glfwSetErrorCallback(ErrorCallback);
-    glfwSetKeyCallback(window, keyCallback);
-    glfwSetCursorPosCallback(window, mouseMotion);
-    glfwSetScrollCallback(window, scrollCallback);
-    glfwSetMouseButtonCallback(window, mouseButtonCallback);
-    glfwMakeContextCurrent(window);
-
-	// load glad
-	gladLoadGL();
-
-	// query and print out information about our OpenGL environment
-    printOpenGLVersion(GL_MAJOR_VERSION, GL_MINOR_VERSION, GL_SHADING_LANGUAGE_VERSION);
-
+	GLFWwindow* window = generateWindow();
+	
 	ImageBuffer imageBuffer;
 	imageBuffer.Initialize();
 
@@ -68,16 +45,10 @@ int main(int argc, char *argv[])
 	
 
 	// variable initialization
-    #define rayl	-1
-    #define rayr	1
-    #define rayt	1
-    #define rayb	-1
-	time_t startTime = 0, endTime = 0;
-    glm::vec3 colourVec = BLACK;
+
+	time_t startTime = 0;
 	int frames = 0;
-	float	w = -(rayr / (float)tan(FOV / 2)),
-			u = 0,
-			v = 0;
+	float	w = -(rayr / (float)tan(FOV / 2));
 
 
 	while (!glfwWindowShouldClose(window))
@@ -96,9 +67,9 @@ int main(int argc, char *argv[])
 		{
 			for (int j = 0; j < WINDOW_HEIGHT; j++)
 			{
-
-				u = rayl + ((rayr - rayl)*(i + .5f)) / WINDOW_WIDTH;
-				v = rayb + ((rayt - rayb)*(j + .5f)) / WINDOW_HEIGHT;
+    			glm::vec3 colourVec = BLACK;
+				float u = rayl + ((rayr - rayl)*(i + .5f)) / WINDOW_WIDTH;
+				float v = rayb + ((rayt - rayb)*(j + .5f)) / WINDOW_HEIGHT;
 
                 // construct the ray
                 // rotate the direction along the x axis then the y axis
@@ -121,9 +92,8 @@ int main(int argc, char *argv[])
 
 
         // update and print frames per second
-		endTime = time(NULL);
 		frames++;
-		if (difftime(endTime, startTime) >= 1)
+		if (difftime(time(NULL), startTime) >= 1)
 		{
             printf("\rFPS: %i", frames);
 			frames = 0;

@@ -330,7 +330,8 @@ void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
         // construct the ray
         // rotate the direction along the x axis then the y axis
         Ray ray(rotateY(    rotateX(camOrigin, rotate_x),     rotate_y) * zoom,
-            glm::normalize(rotateY(    rotateX(glm::vec3(u, v, w), rotate_x),     rotate_y)));
+            
+                glm::normalize(rotateY(    rotateX(glm::vec3(u, v, w), rotate_x),     rotate_y)));
 
         for (unsigned int i = 0; i < objectVec.size(); i++)
         {
@@ -382,4 +383,39 @@ void scrollCallback(GLFWwindow* window, double xoffset, double yoffset)
         zoom += ZOOM_SENS;
     else if (yoffset > 0)
         zoom = max(zoom - ZOOM_SENS, MAX_ZOOM);
+}
+
+// %%%%%%%%%%%%%%% window creation
+GLFWwindow* generateWindow()
+{
+	if (!glfwInit()) 
+    {
+		std::cout << "ERROR: GLFW failed to initilize, TERMINATING" << std::endl;
+		return NULL;
+	}
+
+	// attempt to create a window with an OpenGL 4.4 core profile context
+	GLFWwindow *window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Implicit Surfaces", 0, 0);
+	if (!window) 
+    {
+		std::cout << "Program failed to create GLFW window, TERMINATING" << std::endl;
+		glfwTerminate();
+		return NULL;
+	}
+
+	// set Callbacks
+    glfwSetErrorCallback(ErrorCallback);
+    glfwSetKeyCallback(window, keyCallback);
+    glfwSetCursorPosCallback(window, mouseMotion);
+    glfwSetScrollCallback(window, scrollCallback);
+    glfwSetMouseButtonCallback(window, mouseButtonCallback);
+    glfwMakeContextCurrent(window);
+
+	// load glad
+	gladLoadGL();
+
+	// query and print out information about our OpenGL environment
+    printOpenGLVersion(GL_MAJOR_VERSION, GL_MINOR_VERSION, GL_SHADING_LANGUAGE_VERSION);
+    
+    return window;
 }
