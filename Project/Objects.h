@@ -376,6 +376,7 @@ struct Cube : Object
 
 struct Torus : Object
 {
+    glm::vec3 rotation;
     float R, r;
 
     Torus()
@@ -558,7 +559,9 @@ struct Torus : Object
     */
     void getVolume(Ray *ray)
     {
-        Ray tempRay(ray->origin - center, ray->direction);
+        glm::vec3 originRotated = glm::rotateX(glm::rotateY(glm::rotateZ(ray->origin, -rotation.z), -rotation.y), -rotation.x);
+        glm::vec3 dirRotated = glm::rotateX(glm::rotateY(glm::rotateZ(ray->direction, -rotation.z), -rotation.y), -rotation.x);
+        Ray tempRay(originRotated - center, dirRotated);
         double T = 4.f * R * R;
         double G = T * ((tempRay.direction.x * tempRay.direction.x) + (tempRay.direction.y * tempRay.direction.y));
         double H = 2.f * T * ((tempRay.origin.x * tempRay.direction.x) + (tempRay.origin.y * tempRay.direction.y));
@@ -629,7 +632,10 @@ struct Torus : Object
     {
         center += move;
     }
-    void rotate(glm::vec3 rotate) {}
+    void rotate(glm::vec3 rotate) 
+    {
+        rotation += rotate;
+    }
     void select() { selected = true; }
     void deselect() { selected = false; }
     void breakBoolean(std::vector<Object*> *objectVec, int index) {}
