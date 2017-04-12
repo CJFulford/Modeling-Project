@@ -7,13 +7,22 @@
 #include <complex>
 
 // Mathematical values
-#define PI				3.14159265359f
-#define identity		glm::mat4(1.f)
+#define PI			3.14159265359f
+#define identity	glm::mat4(1.f)
 #define FLOAT_ERROR 1e-4
 #define radToDeg    (PI / 180)
 
+#define BASE_CENTER glm::vec3(0.f);
+#define BASE_RADIUS .5f
+#define BASE_PHONG  50
+#define BASE_COLOUR glm::vec3(0.f, 1.f, 0.f)
+
 #define SCALE_CHANGE .01f
 #define MIN_SCALE .1f
+
+#define XAXIS glm::vec3(1.f, 0.f, 0.f)
+#define YAXIS glm::vec3(0.f, 1.f, 0.f)
+#define ZAXIS glm::vec3(0.f, 0.f, 1.f)
 
 struct Object;
 
@@ -81,45 +90,7 @@ struct Object
     bool selected = false, selectable = true;
 };
 
-// the actual objects
-struct Plane : Object
-{
-    Plane(glm::vec3 point, glm::vec3 cubeCent, glm::vec3 normal, glm::vec3 col, float ph) :
-        normal(normalize(normal))
-    {
-        center = point;
-        colour = col;
-        phong = ph;
-    }
-    glm::vec3 normal;
-
-    // returns scalar if it exists, returns null if ray and plane are parallel
-    float getIntersection(Ray *ray)
-    {
-        float denominator = dot(ray->direction, normal);
-        if (denominator == 0) return NULL;
-        return dot((center - ray->origin), normal) / denominator;
-    }
-    void getVolume(Ray *ray) {}
-    glm::vec3 getNormal(glm::vec3 intersection)
-    {
-        return normal;
-    }
-    void scale(bool enlarge) {}
-    void move(glm::vec3 move)
-    {
-        center += move;
-    }
-    void rotate(glm::vec3 rotate)
-    {
-        center = glm::rotateZ(glm::rotateY(glm::rotateX(center, rotate.x), rotate.y), rotate.z);
-        normal = normalize(glm::rotateZ(glm::rotateY(glm::rotateX(normal, rotate.x), rotate.y), rotate.z));
-    }
-    void select() { selected = true; }
-    void deselect() { selected = false; }
-    void breakBoolean(std::vector<Object*> *objectVec, int index) {}
-};
-
+// uncreateable objects
 struct Triangle : Object
 {
     Triangle(glm::vec3 p1, glm::vec3 p2, glm::vec3 p3, glm::vec3 col, float ph) :
@@ -188,16 +159,55 @@ struct Triangle : Object
     void breakBoolean(std::vector<Object*> *objectVec, int index) {}
 };
 
+// objects only used by other objects
+struct Plane : Object
+{
+    glm::vec3 normal;
+    Plane(glm::vec3 point, glm::vec3 normal) :
+        normal(normalize(normal))
+    {
+        center = point;
+        colour = BASE_COLOUR;
+        phong = BASE_PHONG;
+    }
+
+    // returns scalar if it exists, returns null if ray and plane are parallel
+    float getIntersection(Ray *ray)
+    {
+        float denominator = dot(ray->direction, normal);
+        if (denominator == 0) return NULL;
+        return dot((center - ray->origin), normal) / denominator;
+    }
+    void getVolume(Ray *ray) {}
+    glm::vec3 getNormal(glm::vec3 intersection)
+    {
+        return normal;
+    }
+    void scale(bool enlarge) {}
+    void move(glm::vec3 move)
+    {
+        center += move;
+    }
+    void rotate(glm::vec3 rotate)
+    {
+        center = glm::rotateZ(glm::rotateY(glm::rotateX(center, rotate.x), rotate.y), rotate.z);
+        normal = normalize(glm::rotateZ(glm::rotateY(glm::rotateX(normal, rotate.x), rotate.y), rotate.z));
+    }
+    void select() { selected = true; }
+    void deselect() { selected = false; }
+    void breakBoolean(std::vector<Object*> *objectVec, int index) {}
+};
+
+// the actual objects
 struct Sphere : Object
 {
-    Sphere(glm::vec3 cent, float radi, glm::vec3 col, float ph) : radi(radi)
+    Sphere()
     {
-        radius = radi;
-        center = cent;
-        colour = col;
-        phong = ph;
+        radius = BASE_RADIUS;
+        center = BASE_CENTER;
+        colour = BASE_COLOUR;
+        phong = BASE_PHONG;
     }
-    float radi;
 
     /*
     Finds where the ray enters and exits this sphere, if at all, and adds the points to the rays volume array
@@ -247,32 +257,28 @@ struct Sphere : Object
 
 struct Cube : Object
 {
-#define XAXIS glm::vec3(1.f, 0.f, 0.f)
-#define YAXIS glm::vec3(0.f, 1.f, 0.f)
-#define ZAXIS glm::vec3(0.f, 0.f, 1.f)
-
     // variables
     Plane* planes[6];
     glm::vec3 top, side, front;
     float radi;
 
     // constructors
-    Cube(glm::vec3 c, float r, glm::vec3 col, float ph) : radi(r)
+    Cube()
     {
-        radius = r;
-        center = c;
+        radius = BASE_RADIUS;
+        center = BASE_CENTER;
         top = YAXIS;
         side = XAXIS;
         front = ZAXIS;
-        colour = col;
-        phong = ph;
+        colour = BASE_COLOUR;
+        phong = BASE_PHONG;
 
-        planes[0] = new Plane(center + (r * side), c, side, col, ph);
-        planes[1] = new Plane(center + (r * -side), c, -side, col, ph);
-        planes[2] = new Plane(center + (r * top), c, top, col, ph);
-        planes[3] = new Plane(center + (r * -top), c, -top, col, ph);
-        planes[4] = new Plane(center + (r * front), c, front, col, ph);
-        planes[5] = new Plane(center + (r * -front), c, -front, col, ph);
+        planes[0] = new Plane(center + (radius * side), side);
+        planes[1] = new Plane(center + (radius * -side), -side);
+        planes[2] = new Plane(center + (radius * top), top);
+        planes[3] = new Plane(center + (radius * -top), -top);
+        planes[4] = new Plane(center + (radius * front), front);
+        planes[5] = new Plane(center + (radius * -front), -front);
     }
     ~Cube()
     {
@@ -370,20 +376,23 @@ struct Cube : Object
 
 struct Torus : Object
 {
-    Torus(glm::vec3 cent, float R, float r, glm::vec3 col, float ph) :
-        R(R), r(r)
-    {
-        center = cent;
-        radius = R;
-        colour = col;
-        phong = ph;
-    }
     float R, r;
 
+    Torus()
+    {
+        center = BASE_CENTER;
+        radius = BASE_RADIUS;
+        colour = BASE_COLOUR;
+        phong = BASE_PHONG;
+        R = BASE_RADIUS;
+        r = BASE_RADIUS * .25f;
+    }
 
-    #define TOLERANCE 1.0e-8
+
     
+    //  ALL QUARTIC FUNCTIONS, RAY-TORUS INTERSECTIONS, AND TORUS NORMALS, HAVE BEEN TAKEN FROM THE CODE BASE ON http://www.cosinekitty.com/raytrace/ AND MODIFIED TO FIT THE CODE STYLE USED
     // quartic helper functions
+    const double TOLERANCE = 1.0e-8;
     int FilterRealNumbers(int numComplexValues, const std::complex<double> inArray[], double outArray[])
     {
         int numRealValues = 0;
@@ -549,13 +558,14 @@ struct Torus : Object
     */
     void getVolume(Ray *ray)
     {
+        Ray tempRay(ray->origin - center, ray->direction);
         double T = 4.f * R * R;
-        double G = T * ((ray->direction.x * ray->direction.x) + (ray->direction.y * ray->direction.y));
-        double H = 2.f * T * ((ray->origin.x * ray->direction.x) + (ray->origin.y * ray->direction.y));
-        double I = T * ((ray->origin.x * ray->origin.x) + (ray->origin.y * ray->origin.y));
-        double J = (ray->direction.x * ray->direction.x) + (ray->direction.y * ray->direction.y) + (ray->direction.z * ray->direction.z);
-        double K = 2.f * dot(ray->origin, ray->direction);
-        double L = (ray->origin.x * ray->origin.x) + (ray->origin.y * ray->origin.y) + (ray->origin.z * ray->origin.z) + (R * R) - (r * r);
+        double G = T * ((tempRay.direction.x * tempRay.direction.x) + (tempRay.direction.y * tempRay.direction.y));
+        double H = 2.f * T * ((tempRay.origin.x * tempRay.direction.x) + (tempRay.origin.y * tempRay.direction.y));
+        double I = T * ((tempRay.origin.x * tempRay.origin.x) + (tempRay.origin.y * tempRay.origin.y));
+        double J = (tempRay.direction.x * tempRay.direction.x) + (tempRay.direction.y * tempRay.direction.y) + (tempRay.direction.z * tempRay.direction.z);
+        double K = 2.f * dot(tempRay.origin, tempRay.direction);
+        double L = (tempRay.origin.x * tempRay.origin.x) + (tempRay.origin.y * tempRay.origin.y) + (tempRay.origin.z * tempRay.origin.z) + (R * R) - (r * r);
 
         std::vector<float> scalars;
         double roots[4];
@@ -620,6 +630,53 @@ struct Torus : Object
         center += move;
     }
     void rotate(glm::vec3 rotate) {}
+    void select() { selected = true; }
+    void deselect() { selected = false; }
+    void breakBoolean(std::vector<Object*> *objectVec, int index) {}
+};
+
+struct Cylinder : Object
+{
+    float length;
+    glm::vec3 centerAxis;
+    Cylinder() : radi(radi)
+    {
+        radius = BASE_RADIUS;
+        center = BASE_CENTER;
+        colour = BASE_COLOUR;
+        phong = BASE_PHONG;
+    }
+    float radi;
+
+    void getVolume(Ray *ray)
+    {
+    }
+    glm::vec3 getNormal(glm::vec3 intersection)
+    {
+        
+    }
+    void scale(bool enlarge)
+    {
+        if (enlarge)
+        {
+            radius += SCALE_CHANGE;
+            length += SCALE_CHANGE;
+        } 
+        else
+        {
+            radius = glm::max(MIN_SCALE, radius - SCALE_CHANGE);
+            length = glm::max(MIN_SCALE, length - SCALE_CHANGE);
+        }
+    }
+    void move(glm::vec3 move)
+    {
+        center += move;
+    }
+    void rotate(glm::vec3 rotate) 
+    {
+        center = glm::rotateZ(glm::rotateY(glm::rotateX(center, rotate.x), rotate.y), rotate.z);
+        centerAxis = normalize(glm::rotateZ(glm::rotateY(glm::rotateX(centerAxis, rotate.x), rotate.y), rotate.z));
+    }
     void select() { selected = true; }
     void deselect() { selected = false; }
     void breakBoolean(std::vector<Object*> *objectVec, int index) {}

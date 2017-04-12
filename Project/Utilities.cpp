@@ -161,27 +161,14 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
         
         // sphere
         case (GLFW_KEY_1):
-            objectVec.push_back(new Sphere(
-                glm::vec3(0.f, 0.f, 0.f),           // center
-                0.5f,							    // radius
-                glm::vec3(0.f, 1.f, 0.f),           // colour
-                50));                               // phong
+            objectVec.push_back(new Sphere());
             break;
         // cube
         case (GLFW_KEY_2):
-            objectVec.push_back(new Cube(
-                glm::vec3(0.f, 0.f, 0.f),           // center
-                .5f,                                // radius
-                glm::vec3(0.f, 1.f, 0.f),           // colour
-                50.f));                             // phong
+            objectVec.push_back(new Cube());
             break;
         case(GLFW_KEY_3):
-            objectVec.push_back(new Torus(
-                glm::vec3(0.f, 0.f, 0.f),           // center
-                .5f,                                // major radius
-                .2f,                                // minor radius
-                glm::vec3(0.f, 1.f, 0.f),           // colour
-                50.f));                             // phong
+            objectVec.push_back(new Torus());
             break;
         
         
