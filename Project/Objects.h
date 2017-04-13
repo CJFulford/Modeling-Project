@@ -43,7 +43,7 @@ struct Object
     bool selected = false, selectable = true;
     void generateTempRay(glm::vec3 *origin, glm::vec3 *direction, glm::vec3 rotation, glm::vec3 cent)
     {
-        *origin = glm::rotateX(glm::rotateY(glm::rotateZ(*origin, -rotation.z), -rotation.y), -rotation.x);
+        *origin = glm::rotateX(glm::rotateY(glm::rotateZ(*origin, -rotation.z), -rotation.y), -rotation.x) - cent;
         *direction = glm::rotateX(glm::rotateY(glm::rotateZ(*direction, -rotation.z), -rotation.y), -rotation.x);
     }
 };
