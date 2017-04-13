@@ -32,6 +32,7 @@ struct Volume
     Volume(float entrance, float exit, Object *object) :
         entrance(entrance), exit(exit), object(object) {}
     float entrance, exit;
+    glm::vec3 entranceNormal, exitNormal;
     Object *object;
 };
 
@@ -1060,7 +1061,7 @@ struct Intersection : Object
     }
     glm::vec3 getNormal(glm::vec3 intersection)
     {
-        if (distance(intersection, leftChild->center) - leftChild->radius <= FLOAT_ERROR)
+        if (abs(distance(intersection, leftChild->center) - leftChild->radius) <= FLOAT_ERROR)
             return leftChild->getNormal(intersection);
         else
             return rightChild->getNormal(intersection);
