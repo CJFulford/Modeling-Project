@@ -106,6 +106,7 @@ int main(int argc, char *argv[])
 	}
 
 	// clean up allocated resources before exit
+
 	glfwDestroyWindow(window);
 	glfwTerminate();
     for (Object *object : objectVec)

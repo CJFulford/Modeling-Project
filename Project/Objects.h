@@ -5,6 +5,7 @@
 #include <utility>
 #include <glm/gtx/rotate_vector.hpp>
 #include <complex>
+#include <omp.h>
 
 // Mathematical values
 #define PI			3.14159265359f
@@ -40,7 +41,7 @@ struct Object
     virtual void rotate(glm::vec3 rotate) = 0;
     glm::vec3 center, colour;
     float phong, radius;
-    bool selected = false, selectable = true;
+    bool selected = false, selectable = true, differenceB = false;
     void generateTempRay(glm::vec3 *origin, glm::vec3 *direction, glm::vec3 rotation, glm::vec3 cent)
     {
         *origin = glm::rotateX(glm::rotateY(glm::rotateZ(*origin, -rotation.z), -rotation.y), -rotation.x) - cent;
@@ -202,7 +203,13 @@ struct Plane : Object
         return dot((center - ray->origin), normal) / denominator;
     }
     void getVolume(Ray *ray) {}
-    glm::vec3 getNormal(glm::vec3 intersection){return normal;}
+    glm::vec3 getNormal(glm::vec3 intersection)
+    {
+        if (differenceB)
+            return -normal;
+        else
+            return normal;
+    }
     void scale(bool enlarge) {}
     void move(glm::vec3 move)
     {
@@ -254,9 +261,18 @@ struct Sphere : Object
     }
     glm::vec3 getNormal(glm::vec3 intersection)
     {
-        if (abs(distance(intersection, center) - radius) < FLOAT_ERROR)
-            return glm::normalize(intersection - center);
-        return glm::vec3(0.f);
+        if (differenceB)
+        {
+            if (abs(distance(intersection, center) - radius) < FLOAT_ERROR)
+                return -glm::normalize(intersection - center);
+            return -glm::vec3(0.f);
+        }
+        else
+        {
+            if (abs(distance(intersection, center) - radius) < FLOAT_ERROR)
+                return glm::normalize(intersection - center);
+            return glm::vec3(0.f);
+        }
     }
     void scale(bool enlarge)
     {
@@ -340,15 +356,30 @@ struct Cube : Object
     }
     glm::vec3 getNormal(glm::vec3 intersection)
     {
-        for (Plane *plane : planes)
+        if (differenceB)
         {
-            glm::vec3 relativeIntersect = normalize(intersection - plane->center);
-            if (abs(dot(relativeIntersect, plane->normal)) <= FLOAT_ERROR)
+            for (Plane *plane : planes)
             {
-                return plane->normal;
+                glm::vec3 relativeIntersect = normalize(intersection - plane->center);
+                if (abs(dot(relativeIntersect, plane->normal)) <= FLOAT_ERROR)
+                {
+                    return -plane->normal;
+                }
             }
+            return -glm::vec3(0.f);
         }
-        return glm::vec3(0.f);
+        else
+        {
+            for (Plane *plane : planes)
+            {
+                glm::vec3 relativeIntersect = normalize(intersection - plane->center);
+                if (abs(dot(relativeIntersect, plane->normal)) <= FLOAT_ERROR)
+                {
+                    return plane->normal;
+                }
+            }
+            return glm::vec3(0.f);
+        }
     }
     void scale(bool enlarge)
     {
@@ -636,9 +667,18 @@ struct Torus : Object
     }
     glm::vec3 getNormal(glm::vec3 intersection)
     {
-        glm::vec3 point = intersection - center;
-        float a = 1.f - (R / sqrt(point.x*point.x + point.y*point.y));
-        return normalize(glm::vec3(a*point.x, a*point.y, point.z));
+        if (differenceB)
+        {
+            glm::vec3 point = intersection - center;
+            float a = 1.f - (R / sqrt(point.x*point.x + point.y*point.y));
+            return -normalize(glm::vec3(a*point.x, a*point.y, point.z));
+        }
+        else
+        {
+            glm::vec3 point = intersection - center;
+            float a = 1.f - (R / sqrt(point.x*point.x + point.y*point.y));
+            return -normalize(glm::vec3(a*point.x, a*point.y, point.z));
+        }
     }
     void scale(bool enlarge) 
     {
@@ -734,19 +774,36 @@ struct Cylinder : Object
     }
     glm::vec3 getNormal(glm::vec3 intersection)
     {
-        glm::vec3 vertMove(0.f, center.y, 0.f);
-		if (abs(dot(normalize(intersection - (topPlane->center + vertMove)), topPlane->normal)) <= FLOAT_ERROR)
-            return topPlane->normal;
-            
-		else if (abs(dot(normalize(intersection - (bottomPlane->center + vertMove)), bottomPlane->normal)) <= FLOAT_ERROR)
-            return bottomPlane->normal;
-           
-		else if (distance(glm::vec2(intersection.x, intersection.z), glm::vec2(center.x, center.z)) - radius <= FLOAT_ERROR)
-			return normalize(intersection - glm::vec3(center.x, intersection.y, center.z));
-			
-		else 
-			return glm::vec3(0.f);
+        if (differenceB)
+        {
+            glm::vec3 vertMove(0.f, center.y, 0.f);
+            if (abs(dot(normalize(intersection - (topPlane->center + vertMove)), topPlane->normal)) <= FLOAT_ERROR)
+                return -topPlane->normal;
 
+            else if (abs(dot(normalize(intersection - (bottomPlane->center + vertMove)), bottomPlane->normal)) <= FLOAT_ERROR)
+                return -bottomPlane->normal;
+
+            else if (distance(glm::vec2(intersection.x, intersection.z), glm::vec2(center.x, center.z)) - radius <= FLOAT_ERROR)
+                return -normalize(intersection - glm::vec3(center.x, intersection.y, center.z));
+
+            else
+                return -glm::vec3(0.f);
+        }
+        else
+        {
+            glm::vec3 vertMove(0.f, center.y, 0.f);
+            if (abs(dot(normalize(intersection - (topPlane->center + vertMove)), topPlane->normal)) <= FLOAT_ERROR)
+                return topPlane->normal;
+
+            else if (abs(dot(normalize(intersection - (bottomPlane->center + vertMove)), bottomPlane->normal)) <= FLOAT_ERROR)
+                return bottomPlane->normal;
+
+            else if (distance(glm::vec2(intersection.x, intersection.z), glm::vec2(center.x, center.z)) - radius <= FLOAT_ERROR)
+                return normalize(intersection - glm::vec3(center.x, intersection.y, center.z));
+
+            else
+                return glm::vec3(0.f);
+        }
     }
     void scale(bool enlarge)
     {
@@ -1157,6 +1214,8 @@ struct Difference : Object
         colour = (obj1->colour + obj2->colour) / 2.f;
         center = (obj1->center + obj2->center) / 2.f;
         selected = false;
+
+        rightChild->differenceB = true;
     }
 
     //%%%%%%%%%%%%%%%%%%%%%
@@ -1218,7 +1277,7 @@ struct Difference : Object
                         tempEntr = vol1.entrance;
                         tempExit = vol1.exit;
                         tempObjEntr = vol1.object;
-                        tempObjExit = vol1.object;;
+                        tempObjExit = vol1.object;
 
                         // done with vol1 so increment index
                         v1Index++;
@@ -1344,7 +1403,9 @@ struct Difference : Object
                             {
                                 ray->pushVolumeBoolean(tempEntr, vol2.entrance, tempObjEntr->getNormal(ray->applyScalar(tempEntr)), vol2.entranceNormal, this);
                                 tempEntr = vol2.exit;
+                                tempObjEntr = vol2.object;
                                 tempExit = vol1.exit;
+                                tempObjExit = vol1.object;
 
                                 v1Index++;
                                 v2Index++;
@@ -1353,7 +1414,9 @@ struct Difference : Object
                             {
                                 ray->pushVolumeBoolean(tempEntr, vol2.entrance, tempObjEntr->getNormal(ray->applyScalar(tempEntr)), vol2.entranceNormal, this);
                                 tempEntr = vol2.exit;
+                                tempObjEntr = vol2.object;
                                 tempExit = vol1.exit;
+                                tempObjExit = vol1.object;
 
                                 v1Index++;
                                 v2Index++;
@@ -1362,7 +1425,9 @@ struct Difference : Object
                             {
                                 ray->pushVolumeBoolean(tempEntr, vol2.entrance, tempObjEntr->getNormal(ray->applyScalar(tempEntr)), vol2.entranceNormal, this);
                                 tempEntr = vol2.exit;
+                                tempObjEntr = vol2.object;
                                 tempExit = vol1.exit;
+                                tempObjExit = vol1.object;
 
                                 v1Index++;
                                 v2Index++;
@@ -1371,6 +1436,7 @@ struct Difference : Object
                             {
                                 ray->pushVolumeBoolean(tempEntr, vol2.entrance, tempObjEntr->getNormal(ray->applyScalar(tempEntr)), vol2.entranceNormal, this);
                                 tempEntr == vol2.exit;
+                                tempObjEntr = vol2.object;
 
                                 v1Index++;
                                 v2Index++;
@@ -1388,7 +1454,7 @@ struct Difference : Object
                 {
                     // so long as the temps are not their defaults, push the old volume
                     if (tempExit != -FLT_MAX)
-                        ray->pushVolumeBoolean(tempEntr, tempExit, tempObjEntr->getNormal(ray->applyScalar(tempEntr)), -tempObjExit->getNormal(ray->applyScalar(tempExit)), this);
+                        ray->pushVolumeBoolean(tempEntr, tempExit, tempObjEntr->getNormal(ray->applyScalar(tempEntr)), tempObjExit->getNormal(ray->applyScalar(tempExit)), this);
 
                     // vol2 does not obstruct vol1
                     if (vol2.exit < vol1.entrance)
@@ -1437,7 +1503,7 @@ struct Difference : Object
                     {
                         if (tempExit < vol2.exit)
                         {
-                            ray->pushVolumeBoolean(tempEntr, vol2.entrance, tempObjEntr->getNormal(ray->applyScalar(tempEntr)), -vol2.entranceNormal, this);
+                            ray->pushVolumeBoolean(tempEntr, vol2.entrance, tempObjEntr->getNormal(ray->applyScalar(tempEntr)), vol2.entranceNormal, this);
                             // push temp entrance
                             tempEntr = vol1.entrance;
                             tempExit = vol1.exit;
@@ -1449,7 +1515,7 @@ struct Difference : Object
                         }
                         else if (tempExit < vol1.entrance)
                         {
-                            ray->pushVolumeBoolean(tempEntr, vol2.entrance, tempObjEntr->getNormal(ray->applyScalar(tempEntr)), -vol2.entranceNormal, this);
+                            ray->pushVolumeBoolean(tempEntr, vol2.entrance, tempObjEntr->getNormal(ray->applyScalar(tempEntr)), vol2.entranceNormal, this);
 
                             tempEntr = vol2.exit;
                             tempObjEntr = vol2.object;
@@ -1458,7 +1524,7 @@ struct Difference : Object
                         }
                         else if (tempExit < vol1.exit)
                         {
-                            ray->pushVolumeBoolean(tempEntr, vol2.entrance, tempObjEntr->getNormal(ray->applyScalar(tempEntr)), -vol2.entranceNormal, this);
+                            ray->pushVolumeBoolean(tempEntr, vol2.entrance, tempObjEntr->getNormal(ray->applyScalar(tempEntr)), vol2.entranceNormal, this);
 
                             tempEntr = vol2.exit;
                             tempExit = vol1.exit;
@@ -1470,7 +1536,7 @@ struct Difference : Object
                         }
                         else
                         {
-                            ray->pushVolumeBoolean(tempEntr, vol2.entrance, tempObjEntr->getNormal(ray->applyScalar(tempEntr)), -vol2.entranceNormal, this);
+                            ray->pushVolumeBoolean(tempEntr, vol2.entrance, tempObjEntr->getNormal(ray->applyScalar(tempEntr)), vol2.entranceNormal, this);
 
                             tempEntr = vol2.exit;
                             tempObjEntr = vol2.object;
@@ -1487,7 +1553,7 @@ struct Difference : Object
                         {
                             if (tempExit < vol1.entrance)
                             {
-                                ray->pushVolumeBoolean(tempEntr, vol2.entrance, tempObjEntr->getNormal(ray->applyScalar(tempEntr)), -vol2.entranceNormal, this);
+                                ray->pushVolumeBoolean(tempEntr, vol2.entrance, tempObjEntr->getNormal(ray->applyScalar(tempEntr)), vol2.entranceNormal, this);
 
                                 tempEntr = vol2.exit;
                                 tempExit = vol1.exit;
@@ -1499,7 +1565,7 @@ struct Difference : Object
                             }
                             else if (tempExit < vol2.exit)
                             {
-                                ray->pushVolumeBoolean(tempEntr, vol2.entrance, tempObjEntr->getNormal(ray->applyScalar(tempEntr)), -vol2.entranceNormal, this);
+                                ray->pushVolumeBoolean(tempEntr, vol2.entrance, tempObjEntr->getNormal(ray->applyScalar(tempEntr)), vol2.entranceNormal, this);
 
                                 tempEntr = vol2.exit;
                                 tempExit = vol1.exit;
@@ -1511,7 +1577,7 @@ struct Difference : Object
                             }
                             else if (tempExit < vol1.exit)
                             {
-                                ray->pushVolumeBoolean(tempEntr, vol2.entrance, tempObjEntr->getNormal(ray->applyScalar(tempEntr)), -vol2.entranceNormal, this);
+                                ray->pushVolumeBoolean(tempEntr, vol2.entrance, tempObjEntr->getNormal(ray->applyScalar(tempEntr)), vol2.entranceNormal, this);
 
                                 tempEntr = vol2.exit;
                                 tempExit = vol1.exit;
@@ -1523,7 +1589,7 @@ struct Difference : Object
                             }
                             else
                             {
-                                ray->pushVolumeBoolean(tempEntr, vol2.entrance, tempObjEntr->getNormal(ray->applyScalar(tempEntr)), -vol2.entranceNormal, this);
+                                ray->pushVolumeBoolean(tempEntr, vol2.entrance, tempObjEntr->getNormal(ray->applyScalar(tempEntr)), vol2.entranceNormal, this);
 
                                 tempEntr = vol2.exit;
                                 tempObjEntr = vol2.object;
@@ -1537,7 +1603,7 @@ struct Difference : Object
                         {
                             if (tempExit < vol1.entrance)
                             {
-                                ray->pushVolumeBoolean(tempEntr, vol2.entrance, tempObjEntr->getNormal(ray->applyScalar(tempEntr)), -vol2.entranceNormal, this);
+                                ray->pushVolumeBoolean(tempEntr, vol2.entrance, tempObjEntr->getNormal(ray->applyScalar(tempEntr)), vol2.entranceNormal, this);
 
                                 // reset temp
                                 tempEntr = -FLT_MAX;
@@ -1549,7 +1615,7 @@ struct Difference : Object
                             }
                             else if (tempExit < vol1.exit)
                             {
-                                ray->pushVolumeBoolean(tempEntr, vol2.entrance, tempObjEntr->getNormal(ray->applyScalar(tempEntr)), -vol2.entranceNormal, this);
+                                ray->pushVolumeBoolean(tempEntr, vol2.entrance, tempObjEntr->getNormal(ray->applyScalar(tempEntr)), vol2.entranceNormal, this);
 
                                 // reset temp
                                 tempEntr = -FLT_MAX;
@@ -1561,7 +1627,7 @@ struct Difference : Object
                             }
                             else if (tempExit < vol2.exit)
                             {
-                                ray->pushVolumeBoolean(tempEntr, vol2.entrance, tempObjEntr->getNormal(ray->applyScalar(tempEntr)), -vol2.entranceNormal, this);
+                                ray->pushVolumeBoolean(tempEntr, vol2.entrance, tempObjEntr->getNormal(ray->applyScalar(tempEntr)), vol2.entranceNormal, this);
 
                                 // reset temp
                                 tempEntr = -FLT_MAX;
@@ -1573,7 +1639,7 @@ struct Difference : Object
                             }
                             else
                             {
-                                ray->pushVolumeBoolean(tempEntr, vol2.entrance, tempObjEntr->getNormal(ray->applyScalar(tempEntr)), -vol2.entranceNormal, this);
+                                ray->pushVolumeBoolean(tempEntr, vol2.entrance, tempObjEntr->getNormal(ray->applyScalar(tempEntr)), vol2.entranceNormal, this);
 
                                 tempEntr = vol2.exit;
                                 tempObjEntr = vol2.object;
@@ -1618,6 +1684,7 @@ struct Difference : Object
         objectVec->erase(objectVec->begin() + index);
         objectVec->push_back(leftChild);
         objectVec->push_back(rightChild);
+        rightChild->differenceB = false;
         delete this;
     }
 };
