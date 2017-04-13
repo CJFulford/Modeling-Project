@@ -71,6 +71,7 @@ struct Ray
     {
         return origin + (scalar * direction);
     }
+    std::vector<Volume> getVolume() { return volumes; }
 };
 
 
@@ -608,14 +609,8 @@ struct Torus : Object
         std::sort(scalars.begin(), scalars.end());
         switch (scalars.size())
         {
-        case(1):
-            //ray->volumes.push_back(Volume(scalars[0], scalars[0], this));
-            break;
         case(2):
             ray->volumes.push_back(Volume(scalars[0], scalars[1], this));
-            break;
-        case(3):
-            //ray->volumes.push_back(Volume(scalars[0], scalars[2], this));
             break;
         case(4):
             ray->volumes.push_back(Volume(scalars[0], scalars[1], this));
@@ -759,8 +754,18 @@ struct Cylinder : Object
     }
     void move(glm::vec3 move) { center += move; }
     void rotate(glm::vec3 rotate) { rotation += rotate; }
-    void select() { selected = true; }
-    void deselect() { selected = false; }
+    void select() 
+    { 
+        selected = true; 
+        topPlane->select();
+        bottomPlane->select();
+    }
+    void deselect() 
+    { 
+        selected = false; 
+        topPlane->deselect();
+        bottomPlane->deselect();
+    }
     void breakBoolean(std::vector<Object*> *objectVec, int index) {}
 };
 
@@ -885,27 +890,77 @@ struct Union : Object
 
     void getVolume(Ray *ray)
     {
-        Ray tempRay(ray->origin, ray->direction);
-        leftChild->getVolume(&tempRay);
-        rightChild->getVolume(&tempRay);
+        Ray tempRay1(ray->origin, ray->direction);
+        Ray tempRay2(ray->origin, ray->direction);
 
-        // ray needs to intersect both to collide with the intersection
-        if (tempRay.volumes.size() == 1)
-            ray->volumes.push_back(Volume(tempRay.volumes[0].entrance, tempRay.volumes[0].exit, this));
-        else if (tempRay.volumes.size() > 1)
+        std::vector<Volume> v1 = tempRay1.getVolume();
+        std::vector<Volume> v2 = tempRay2.getVolume();
+        unsigned int i = 0;
+        unsigned int j = 0;
+        float tempEntr;
+        float tempExit;
+
+        while (i != v1.size() && j != v2.size())
         {
-            std::vector<float> entrances;
-            std::vector<float> exits;
-            for (Volume volume : tempRay.volumes)
+            // first round
+            if (i == 0 && j == 0)
             {
-                entrances.push_back(volume.entrance);
-                exits.push_back(volume.exit);
+                if (v1[i].entrance < v2[j].entrance)
+                {
+                    tempEntr = v1[i].entrance;
+                    tempExit = v1[i].exit;
+                }
+                else
+                {
+                    tempEntr = v2[j].entrance;
+                    tempExit = v2[j].exit;
+                }
             }
-            std::sort(entrances.begin(), entrances.end());
-            std::sort(exits.begin(), exits.end());
 
-            ray->volumes.push_back(Volume(entrances.front(), exits.back(), this));
+            if (v1[i].exit < v2[j].entrance)        // case 1
+            {
+                if (tempExit < v1[i].entrance)
+                {
+                    ray->volumes.push_back(Volume(tempEntr, tempExit, this));
+                    ray->volumes.push_back(Volume(v1[i].entrance, v1[i].entrance, this));
+                    tempEntr = v2[j].entrance;
+                    tempExit = v2[j].exit;
+                }
+                else if (tempExit < v1[i].exit)
+                {
+                    tempExit = v1[i].exit;
+                    ray->volumes.push_back(Volume(tempEntr, tempExit, this));
+                    tempEntr = v2[j].entrance;
+                    tempExit = v2[j].exit;
+                }
+                else if (v1[i].exit < tempExit && tempExit < v2[j].entrance)
+                {
+                    ray->volumes.push_back(Volume(tempEntr, tempExit, this));
+                    tempEntr = v2[j].entrance;
+                    tempExit = v2[j].exit;
+                }
+                else if (v2[j].entrance < tempExit && tempExit < v2[j].exit)
+                {
+                    tempExit = v2[j].exit;
+                }
+                else if (v2[j].exit < tempExit)
+                {
+
+                }
+
+
+
+
+            }
+            else if (v2[j].exit < v1[i].entrance)   // case 2
+            {
+
+            }
         }
+
+
+
+
     }
     glm::vec3 getNormal(glm::vec3 intersection)
     {
