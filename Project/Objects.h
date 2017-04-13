@@ -72,6 +72,10 @@ struct Ray
         return origin + (scalar * direction);
     }
     std::vector<Volume> getVolume() { return volumes; }
+    void pushVolume(float s1, float s2, Object *obj)
+    {
+        volumes.push_back(Volume(s1, s2, obj));
+    }
 };
 
 
@@ -893,6 +897,128 @@ struct Union : Object
         Ray tempRay1(ray->origin, ray->direction);
         Ray tempRay2(ray->origin, ray->direction);
 
+        // get all the volumes
+        leftChild->getVolume(&tempRay1);
+        rightChild->getVolume(&tempRay2);
+
+        // create seperate lists of volumes for easier access
+        std::vector<Volume> v1 = tempRay1.getVolume();
+        std::vector<Volume> v2 = tempRay2.getVolume();
+
+        // ray hits neither object
+        if (v1.size() == 0 && v2.size() == 0) return;
+
+        // handle the cases where one of the lists are empty
+        if (v1.size() == 0)
+        {
+            for (Volume vol : v2)
+                ray->pushVolume(vol.entrance, vol.exit, this);
+            return;
+        }
+        if (v2.size() == 0)
+        {
+            for (Volume vol : v1)
+                ray->pushVolume(vol.entrance, vol.exit, this);
+            return;
+        }
+
+
+        // intex trackers for each list
+        float v1Index = 0;
+        float v2Index = 0;
+
+        // temporary storge for enterences and exits
+        // initialize the floats to smallest possible
+        float tempEntr = -FLT_MAX;
+        float tempExit = -FLT_MAX;
+
+        while (v1Index != v1.size() && v2Index != v2.size())
+        {
+            // define as new volume for easier access
+            Volume vol1 = v1[v1Index], vol2 = v2[v2Index];
+
+            // volume 1 is closer than volume 2
+            if (vol1.entrance < vol2.entrance)
+            { 
+                // current volume ends before new volume starts
+                if (tempExit < vol1.entrance)
+                {
+                    ray->pushVolume(tempEntr, tempExit, this);
+                    tempEntr = vol1.entrance;
+                    tempExit = vol1.exit;
+                }
+                // old volume starts before vol1 start and ends before vol1 ends. Union so add on vol 2
+                else if (tempExit < vol1.exit)
+                {
+                    tempExit = vol1.exit;
+                }
+
+
+
+                // old volume ends before volume 2 starts
+                if (tempExit < vol2.entrance)
+                {
+                    ray->pushVolume(tempEntr, tempExit, this);
+                    tempEntr = vol2.entrance;
+                    tempExit = vol2.exit;
+                }
+                // old volume starts before vol2 start and ends before vol2 ends. Union so add on vol 2
+                else if (tempExit < vol2.exit)
+                {
+                    tempExit = vol2.exit;
+                }
+            }
+            // volume 2 is closer than volume 1
+            else
+            {
+                // current volume ends before new volume starts
+                if (tempExit < vol2.entrance)
+                {
+                    ray->pushVolume(tempEntr, tempExit, this);
+                    tempEntr = vol2.entrance;
+                    tempExit = vol2.exit;
+                }
+                // old volume starts before vol1 start and ends before vol1 ends. Union so add on vol 2
+                else if (tempExit < vol2.exit)
+                {
+                    tempExit = vol2.exit;
+                }
+
+
+
+                // old volume ends before volume 2 starts
+                if (tempExit < vol1.entrance)
+                {
+                    ray->pushVolume(tempEntr, tempExit, this);
+                    tempEntr = vol1.entrance;
+                    tempExit = vol1.exit;
+                }
+                // old volume starts before vol2 start and ends before vol2 ends. Union so add on vol 2
+                else if (tempExit < vol1.exit)
+                {
+                    tempExit = vol1.exit;
+                }
+            }
+            v1Index++;
+            v2Index++;
+        }
+
+        ray->pushVolume(tempEntr, tempExit, this);
+
+        // if at the end of the while loop, either list has volumes remaining, since this is union, add these volumes to the ray
+        for (v1Index; v1Index < v1.size(); v1Index++)
+            ray->pushVolume(v1[v1Index].entrance, v1[v1Index].exit, this);
+        for (v2Index; v2Index < v2.size(); v2Index++)
+            ray->pushVolume(v2[v2Index].entrance, v2[v2Index].exit, this);
+
+
+
+
+
+        /*
+        Ray tempRay1(ray->origin, ray->direction);
+        Ray tempRay2(ray->origin, ray->direction);
+
         std::vector<Volume> v1 = tempRay1.getVolume();
         std::vector<Volume> v2 = tempRay2.getVolume();
         unsigned int i = 0;
@@ -956,11 +1082,7 @@ struct Union : Object
             {
 
             }
-        }
-
-
-
-
+        }*/
     }
     glm::vec3 getNormal(glm::vec3 intersection)
     {
