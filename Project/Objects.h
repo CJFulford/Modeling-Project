@@ -1138,7 +1138,7 @@ struct Difference : Object
         }
 
 
-        // intex trackers for each list
+        // index trackers for each list
         float v1Index = 0;
         float v2Index = 0;
 
@@ -1152,12 +1152,13 @@ struct Difference : Object
             // define as new volume for easier access
             Volume vol1 = v1[v1Index], vol2 = v2[v2Index];
 
-            // volume 1 is closer than volume 2
+            // vol1 is closer than vol2
             if (vol1.entrance < vol2.entrance)
             {
-                // volume ends before vol1 begins
+                // old volume ends before vol1 begins
                 if (tempExit < vol1.entrance)
                 {
+                    // so long as the temps are not their defaults, push the old volume
                     if (tempExit != -FLT_MAX)
                         ray->pushVolume(tempEntr, tempExit, this);
 
@@ -1174,38 +1175,72 @@ struct Difference : Object
                         // done with vol1 so increment index
                         v1Index++;
                     }
+                    // vol2 obstructs vol1
                     else
                     {
-                        // add next volume to volume list
+                        // the front of vol1 gets pushed
                         ray->pushVolume(vol1.entrance, vol2.entrance, this);
 
-                        // end part of volume 1 is blocked by volume 2
+                        // vol2 cuts the back of vol1
                         if (vol1.exit < vol2.exit)
                         {
+                            // reset the volume
                             tempEntr = -FLT_MAX;
                             tempExit = -FLT_MAX;
+
+                            // volume 1 done
                             v1Index++;
                         }
-                        // volume 1 contains volume 2
+                        // vol2 is contained by vol1
                         else
                         {
+                            // assign the new volume
                             tempEntr = vol2.exit;
                             tempExit = vol1.exit;
+
+                            // vol2 done
                             v2Index++;
                         }
-
                     }
                 }
-                // vol1 starts inside the volume
+                // vol1 starts inside the old volume
                 else
                 {
                     // volume 1 is unobstructed by vol2
-                    if (vol1.exit < vol2.exit)
+                    if (vol1.exit < vol2.entrance)
                     {
-                        // edtend volume
+                        // extend volume
                         tempExit = glm::max(tempExit, vol1.exit);
                         // volume 1 is not needed, increment
                         v1Index++;
+
+                        // old volume ends before vol2 can cut it, do nothing
+                        if (tempExit < vol2.entrance){}
+                        // vol2 cuts volume
+                        else
+                        {
+                            // vol2 cuts the end off of the volume
+                            if (tempExit < vol2.exit)
+                            {
+                                // push the cut volume
+                                ray->pushVolume(tempEntr, vol2.entrance, this);
+                                
+                                // reset the temps
+                                tempEntr = -FLT_MAX;
+                                tempExit = -FLT_MAX;
+                            }
+                            // vol2 is contined in the volume
+                            else
+                            {
+                                // push the front of the cut volume
+                                ray->pushVolume(tempEntr, vol2.entrance, this);
+                                // move the front of the volume up
+                                tempEntr = vol2.exit;
+
+                                // vol2 done
+                                v2Index++;
+                            }
+                        }
                     }
                     // vol2 obstructs vol1
                     else
@@ -1213,20 +1248,37 @@ struct Difference : Object
                         // vol2 cuts back of vol1
                         if (vol1.exit < vol2.exit)
                         {
-                            // push the volume after cut
-                            ray->pushVolume(tempEntr, vol2.entrance, this);
-                            // vol1 no longer needed
-                            v1Index++;  
+                            // vol2 extends farther than volume
+                            if (tempExit < vol2.exit)
+                            {
 
-                            //reset temps
-                            tempEntr = -FLT_MAX;
-                            tempExit = -FLT_MAX;
+                                //reset temps
+                                tempEntr = -FLT_MAX;
+                                tempExit = -FLT_MAX;
+
+                                // vol1 no longer needed
+                                v1Index++;
+                            }
+                            // the volume extends past vol2
+                            else
+                            {
+                                // push the first part of the volume after cut
+                                ray->pushVolume(tempEntr, vol2.entrance, this);
+
+                                // move the front of the volume up
+                                tempEntr = vol2.exit;
+
+                                // neither vol1 nor vol2 are needed
+                                v1Index++;
+                                v2Index++;
+                            }
+
                         }
                         // vol2 is contained inside vol1
                         else
                         {
                             // push first volume after cut
-                            ray->pushVolume(tempEntr, vol2.exit, this);
+                            ray->pushVolume(tempEntr, vol2.entrance, this);
 
                             // begin the new volume
                             tempEntr = vol2.exit;
@@ -1248,7 +1300,7 @@ struct Difference : Object
                     if (tempExit != -FLT_MAX)
                         ray->pushVolume(tempEntr, tempExit, this);
                     
-                    // volume 2 has no effect. set new volume to vol1 and move on form vol2
+                    // volume 2 has no effect. set new volume to vol1 and move on from vol2
                     if (vol2.exit < vol1.entrance)
                     {
                         tempEntr = vol1.entrance;
@@ -1271,7 +1323,7 @@ struct Difference : Object
                             // reset volume
                             tempEntr = -FLT_MAX;
                             tempExit = -FLT_MAX;
-                            // move on from vol
+                            // move on from vol1
                             v1Index++;
                         }
                     }
@@ -1279,27 +1331,63 @@ struct Difference : Object
                 // vol2 cuts the old volume
                 else
                 {
-                    // add the old volume, cut by vol2
+
+                    // push the old volume, cut by vol2
                     ray->pushVolume(tempEntr, vol2.entrance, this);
 
-                    // vol2 cuts the front from vol1
-                    if (vol1.entrance < vol2.exit)
+                    // vol2 does not obstruct vol1
+                    if (vol2.exit < vol1.entrance)
                     {
-                        // start the new volume
-                        tempEntr = vol2.exit;
-                        tempExit = vol1.exit;
-                        // vol2 is done
-                        v2Index++;
+                        // the end of volume was within vol2, vol2 not needed
+                        if (tempExit < vol2.exit)
+                        {
+                            // reset temps
+                            tempEntr = -FLT_MAX;
+                            tempExit = -FLT_MAX;
+                            v2Index++;
+                        }
+                        // volume ends after vol2 and before vol1. push new volume, vol2 no longer needed
+                        else if (tempExit < vol1.entrance)
+                        {
+                            ray->pushVolume(vol2.exit, tempExit, this);
+                            // reset temps
+                            tempEntr = -FLT_MAX;
+                            tempExit = -FLT_MAX;
+                            v2Index++;
+                        }
+                        // the old volume extends into the new volume, but not beyond it, vol2 no longer needed
+                        else if (tempExit < vol1.exit)
+                        {
+                            tempEntr = vol2.entrance;
+                            tempExit = glm::max(tempExit, vol1.exit);
+                            v2Index++;
+                        }
+                        // old volume extends beyond new volume, ajust volume beginning, vol1 and vol2 not needed
+                        else
+                        {
+                            tempEntr = vol2.exit;
+                            v1Index++;
+                            v2Index++;
+                        }
                     }
-                    // vol2 completely obstructs vol1
+                    // vol2 obstructs vol1
                     else
                     {
-                        //reset temps
-                        tempEntr = -FLT_MAX;
-                        tempExit = -FLT_MAX;
+                        // vol2 cuts front off of vol1. begin new volume. vol2 not needed
+                        if (vol1.entrance < vol2.exit)
+                        {
+                            tempEntr = vol2.exit;
+                            tempExit = glm::max(tempExit, vol1.exit);
 
-                        // vol1 done
-                        v1Index++;
+                        }
+                        // vol2 completely obstructs vol1. reset temps. vol1 not needed
+                        else
+                        {
+                            // reset temps
+                            tempEntr = -FLT_MAX;
+                            tempExit = -FLT_MAX;
+                            v1Index++;
+                        }
                     }
                 }
             }
@@ -1312,95 +1400,6 @@ struct Difference : Object
         // if any A remains, add it to the volume list
         for (v1Index; v1Index < v1.size(); v1Index++)
             ray->pushVolume(v1[v1Index].entrance, v1[v1Index].exit, this);
-        
-        
-        
-        /*Ray tempRay(ray->origin, ray->direction);
-
-
-
-        leftChild->getVolume(&tempRay);
-        // if there is no collision with A in A - B then there is no collision with the difference
-        if (tempRay.volumes.size() == 0) return;
-
-        // to toggle special conditions for torus
-        bool obj1Torus = false;
-        if (tempRay.volumes.size() == 2) obj1Torus = true;
-
-
-        rightChild->getVolume(&tempRay);
-
-
-        // if there is only 1 volume here, then the ray only collided with A in A - B.
-        // lazy evaluation so if the size is < 2, it will not check the other conditions, 
-        // avoiding a seg fault
-        if (tempRay.volumes.size() < 2 ||
-            tempRay.volumes[0].exit <= tempRay.volumes[1].entrance ||
-            tempRay.volumes[1].exit <= tempRay.volumes[0].entrance)
-            ray->volumes.push_back(Volume(tempRay.volumes[0].entrance, tempRay.volumes[0].exit, this));
-        else if (tempRay.volumes.size() == 2)
-        {
-            Volume vol0 = tempRay.volumes[0], vol1 = tempRay.volumes[1];
-            if (vol0.exit < vol1.entrance ||
-                vol1.exit < vol0.entrance)
-                return;
-
-            if (vol0.entrance < vol1.entrance)
-                ray->volumes.push_back(Volume(vol0.entrance, vol1.entrance, this));
-            else if (vol1.exit < vol0.exit)
-                ray->volumes.push_back(Volume(vol1.exit, vol0.exit, this));
-        }
-        else if (tempRay.volumes.size() == 3)
-        {
-            if (obj1Torus)
-            {
-                if (tempRay.volumes[0].exit <= tempRay.volumes[2].entrance ||
-                    tempRay.volumes[2].exit <= tempRay.volumes[0].entrance ||
-                    tempRay.volumes[1].exit <= tempRay.volumes[2].entrance ||
-                    tempRay.volumes[2].exit <= tempRay.volumes[1].entrance)
-                    return;
-
-                Volume  vol0 = tempRay.volumes[0], 
-                        vol1 = tempRay.volumes[1],
-                        vol2 = tempRay.volumes[2];
-
-                // compare first torus volume intersection to second object intersection
-                if (vol0.entrance < vol2.entrance)
-                    ray->volumes.push_back(Volume(vol0.entrance, vol2.entrance, this));
-                else if (vol2.exit <= vol0.exit)
-                    ray->volumes.push_back(Volume(vol2.exit, vol0.exit, this));
-
-                // compare second torus volume intersection to second object intersection
-                if (vol1.entrance < vol2.entrance)
-                    ray->volumes.push_back(Volume(vol1.entrance, vol2.entrance, this));
-                else if (vol2.exit <= vol1.exit)
-                    ray->volumes.push_back(Volume(vol2.exit, vol1.exit, this));
-            }
-            else
-            {
-                if (tempRay.volumes[0].exit <= tempRay.volumes[1].entrance ||
-                    tempRay.volumes[1].exit <= tempRay.volumes[0].entrance ||
-                    tempRay.volumes[0].exit <= tempRay.volumes[2].entrance ||
-                    tempRay.volumes[2].exit <= tempRay.volumes[0].entrance)
-                    return;
-
-                Volume  vol0 = tempRay.volumes[0],
-                        vol1 = tempRay.volumes[1],
-                        vol2 = tempRay.volumes[2];
-
-                // compare first object intersection to first torus volume intersection
-                if (vol0.entrance < vol1.entrance)
-                    ray->volumes.push_back(Volume(vol0.entrance, vol1.entrance, this));
-                else if (vol1.exit <= vol0.exit)
-                    ray->volumes.push_back(Volume(vol1.exit, vol0.exit, this));
-
-                // compare second object intersection to second torus volume intersection
-                if (vol0.entrance < vol2.entrance)
-                    ray->volumes.push_back(Volume(vol0.entrance, vol2.entrance, this));
-                else if (vol2.exit <= vol0.exit)
-                    ray->volumes.push_back(Volume(vol2.exit, vol0.exit, this));
-            }
-        }*/
     }
     glm::vec3 getNormal(glm::vec3 intersection)
     {
