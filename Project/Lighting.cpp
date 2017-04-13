@@ -5,14 +5,13 @@
 using namespace glm;
 
 // assuming that the incoming normal is normalized
-vec3 Blinn_Phong(Ray *ray, float scalar, Object *object)
+vec3 Blinn_Phong(Ray *ray, float scalar, glm::vec3 normal, Object *object)
 {
     #define SELECTED_BRIGHTEN_AMOUNT 1.5f
     vec3 intersect = ray->applyScalar(scalar),
         viewRay = normalize(ray->origin - intersect),
         lightRay = normalize(LIGHT_POS - intersect),
         halfRay = normalize((viewRay + lightRay)),
-        normal = object->getNormal(intersect),
         col = object->colour * ((object->selected) ? SELECTED_BRIGHTEN_AMOUNT : 1.f);
 
     // specular colour is always white, add ambient for no black sides
@@ -30,10 +29,11 @@ vec3 getColour(Ray *ray, std::vector<Object*> *objectVec)
 	}
 
 	float scalar = 0;
-	Object *obj= ray->getClosestScalar(&scalar);
+    glm::vec3 normal(0.f);
+	Object *obj= ray->getClosestScalar(&scalar, &normal);
 
 	if (scalar != 0)
-		return Blinn_Phong(ray, scalar, obj);
+		return Blinn_Phong(ray, scalar, normal, obj);
 	else 
 		return BLUE * .1f; // navy blue background
 }

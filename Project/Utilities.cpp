@@ -346,7 +346,8 @@ void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
         }
 
         float scalar = 0;
-        Object *obj = ray.getClosestScalar(&scalar);
+        glm::vec3 garbageNorm(0.f);
+        Object *obj = ray.getClosestScalar(&scalar, &garbageNorm);
 
         auto temp = std::find(objectVec.begin(), objectVec.end(), obj);
         int index = temp - objectVec.begin();
