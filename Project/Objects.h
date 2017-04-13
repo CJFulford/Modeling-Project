@@ -1408,7 +1408,6 @@ struct Difference : Object
                         // vol2 cuts the front of vol1
                         if (vol2.exit < vol1.exit)
                         {
-                            // reset the volume
                             tempEntr = vol2.exit;
                             tempExit = vol1.exit;
                             tempObjEntr = vol2.object;
@@ -1420,7 +1419,6 @@ struct Difference : Object
                         // vol1 is contained by vol2
                         else
                         {
-                            // rest temp
                             tempEntr = -FLT_MAX;
                             tempExit = -FLT_MAX;
                             tempObjEntr = NULL;
