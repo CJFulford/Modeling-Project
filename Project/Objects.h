@@ -93,11 +93,11 @@ struct Object
     glm::vec3 center, colour;
     float phong, radius;
     bool selected = false, selectable = true;
-    Ray generateTempRay(Ray *ray, glm::vec3 rotation)
+    Ray generateTempRay(Ray *ray, glm::vec3 rotation, glm::vec3 cent)
     {
 		glm::vec3 originRotated = glm::rotateX(glm::rotateY(glm::rotateZ(ray->origin, -rotation.z), -rotation.y), -rotation.x);
         glm::vec3 dirRotated = glm::rotateX(glm::rotateY(glm::rotateZ(ray->direction, -rotation.z), -rotation.y), -rotation.x);
-        return Ray(originRotated - center, dirRotated);
+        return Ray(originRotated - cent, dirRotated);
 	}
 };
 
@@ -190,10 +190,7 @@ struct Plane : Object
         return dot((center - ray->origin), normal) / denominator;
     }
     void getVolume(Ray *ray) {}
-    glm::vec3 getNormal(glm::vec3 intersection)
-    {
-        return normal;
-    }
+    glm::vec3 getNormal(glm::vec3 intersection){return normal;}
     void scale(bool enlarge) {}
     void move(glm::vec3 move)
     {
@@ -570,9 +567,7 @@ struct Torus : Object
     */
     void getVolume(Ray *ray)
     {
-        glm::vec3 originRotated = glm::rotateX(glm::rotateY(glm::rotateZ(ray->origin, -rotation.z), -rotation.y), -rotation.x);
-        glm::vec3 dirRotated = glm::rotateX(glm::rotateY(glm::rotateZ(ray->direction, -rotation.z), -rotation.y), -rotation.x);
-        Ray tempRay(originRotated - center, dirRotated);
+        Ray tempRay = generateTempRay(ray, rotation, center);
 
         double T = 4.f * R * R;
         double G = T * ((tempRay.direction.x * tempRay.direction.x) + (tempRay.direction.y * tempRay.direction.y));
@@ -664,23 +659,23 @@ struct Cylinder : Object
 
     void getVolume(Ray *ray)
     {
-        Ray tempRay = generateTempRay(ray, rotation);
+        Ray tempRay = generateTempRay(ray, rotation, center);
 
         std::vector<float> scalars;
 
-        // get and check intersections with planes
+        // get and check intersections with planes, if the ray collides with the plane within the bounds of the sphere, add the scalar to the scalar list
         float tempScalar = topPlane->getIntersection(&tempRay);
         if (tempScalar != NULL)
         {
             glm::vec3 intersection = tempRay.applyScalar(tempScalar);
-            if (abs(distance(intersection, glm::vec3(center.x, intersection.y, center.z)) <= radius))
+            if (distance(intersection, topPlane->center) - radius <= FLOAT_ERROR)
                 scalars.push_back(tempScalar);
         }
         tempScalar = bottomPlane->getIntersection(&tempRay);
         if (tempScalar != NULL)
         {
             glm::vec3 intersection = tempRay.applyScalar(tempScalar);
-            if (abs(distance(intersection, glm::vec3(center.x, intersection.y, center.z)) <= radius))
+            if (distance(intersection, bottomPlane->center) - radius <= FLOAT_ERROR)
                 scalars.push_back(tempScalar);
         }
 
@@ -721,22 +716,18 @@ struct Cylinder : Object
     }
     glm::vec3 getNormal(glm::vec3 intersection)
     {
-		glm::vec2 inter = glm::vec2(intersection.x, intersection.z);
-		glm::vec3 norm(0.f);
-			
-		if (abs(dot(normalize(intersection - topPlane->center), topPlane->normal)) <= FLOAT_ERROR)
-            norm = topPlane->normal;
+        glm::vec3 vertMove(0.f, center.y, 0.f);
+		if (abs(dot(normalize(intersection - (topPlane->center + vertMove)), topPlane->normal)) <= FLOAT_ERROR)
+            return topPlane->normal;
             
-		else if (abs(dot(normalize(intersection - bottomPlane->center), bottomPlane->normal)) <= FLOAT_ERROR)
-            norm = bottomPlane->normal;
+		else if (abs(dot(normalize(intersection - (bottomPlane->center + vertMove)), bottomPlane->normal)) <= FLOAT_ERROR)
+            return bottomPlane->normal;
            
-		else if (distance(inter, glm::vec2(center.x, center.z)) - radius <= FLOAT_ERROR)
-			norm = normalize(intersection - glm::vec3(center.x, intersection.y, center.z));
+		else if (distance(glm::vec2(intersection.x, intersection.z), glm::vec2(center.x, center.z)) - radius <= FLOAT_ERROR)
+			return normalize(intersection - glm::vec3(center.x, intersection.y, center.z));
 			
 		else 
 			return glm::vec3(0.f);
-			
-        return norm;
 
     }
     void scale(bool enlarge)
