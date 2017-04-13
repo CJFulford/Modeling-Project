@@ -106,7 +106,7 @@ struct Ray
         glm::vec3 norm2 = obj->getNormal(ray->applyScalar(s2));
         volumes.push_back(Volume(s1, s2, norm1, norm2, obj));
     }
-    void pushVolumeDifference(float s1, float s2, glm::vec3 normal1, glm::vec3 normal2, Object *obj)
+    void pushVolumeBoolean(float s1, float s2, glm::vec3 normal1, glm::vec3 normal2, Object *obj)
     {
         volumes.push_back(Volume(s1, s2, normal1, -normal2, obj));
     }
@@ -815,13 +815,13 @@ struct Union : Object
         if (v1.size() == 0)
         {
             for (Volume vol : v2)
-                ray->pushVolume(vol.entrance, vol.exit, ray, this);
+                ray->pushVolumeBoolean(vol.entrance, vol.exit, vol.entranceNormal, vol.exitNormal, this);
             return;
         }
         if (v2.size() == 0)
         {
             for (Volume vol : v1)
-                ray->pushVolume(vol.entrance, vol.exit, ray, this);
+                ray->pushVolumeBoolean(vol.entrance, vol.exit, vol.entranceNormal, vol.exitNormal, this);
             return;
         }
 
@@ -834,6 +834,8 @@ struct Union : Object
         // initialize the floats to smallest possible
         float tempEntr = -FLT_MAX;
         float tempExit = -FLT_MAX;
+        Object *tempObjEntr = NULL;
+        Object *tempObjExit = NULL;
 
         while (v1Index != v1.size() && v2Index != v2.size())
         {
@@ -847,9 +849,11 @@ struct Union : Object
                 if (tempExit < vol1.entrance)
                 {
                     if (tempExit != -FLT_MAX)
-                        ray->pushVolume(tempEntr, tempExit, ray, this);
+                        ray->pushVolumeBoolean(tempEntr, tempExit, tempObjEntr->getNormal(ray->applyScalar(tempEntr)), tempObjExit->getNormal(ray->applyScalar(tempExit)), this);
                     tempEntr = vol1.entrance;
                     tempExit = vol1.exit;
+                    tempObjEntr = vol1.object;
+                    tempObjExit = vol1.object;
                 }
                 // old volume starts before vol1 start and ends before vol1 ends. Union so add on vol 2
                 else if (tempExit < vol1.exit)
@@ -858,13 +862,18 @@ struct Union : Object
                 // old volume ends before volume 2 starts
                 if (tempExit < vol2.entrance)
                 {
-                    ray->pushVolume(tempEntr, tempExit, ray, this);
+                    ray->pushVolumeBoolean(tempEntr, tempExit, tempObjEntr->getNormal(ray->applyScalar(tempEntr)), tempObjExit->getNormal(ray->applyScalar(tempExit)), this);
                     tempEntr = vol2.entrance;
                     tempExit = vol2.exit;
+                    tempObjEntr = vol2.object;
+                    tempObjExit = vol2.object;
                 }
                 // old volume starts before vol2 start and ends before vol2 ends. Union so add on vol 2
                 else if (tempExit < vol2.exit)
+                {
                     tempExit = vol2.exit;
+                    tempObjExit = vol2.object;
+                }
             }
             // volume 2 is closer than volume 1
             else
@@ -873,24 +882,34 @@ struct Union : Object
                 if (tempExit < vol2.entrance)
                 {
                     if (tempExit != -FLT_MAX)
-                        ray->pushVolume(tempEntr, tempExit, ray, this);
+                        ray->pushVolumeBoolean(tempEntr, tempExit, tempObjEntr->getNormal(ray->applyScalar(tempEntr)), tempObjExit->getNormal(ray->applyScalar(tempExit)), this);
                     tempEntr = vol2.entrance;
                     tempExit = vol2.exit;
+                    tempObjEntr = vol2.object;
+                    tempObjExit = vol2.object;
                 }
                 // old volume starts before vol1 start and ends before vol1 ends. Union so add on vol 2
                 else if (tempExit < vol2.exit)
+                {
                     tempExit = vol2.exit;
+                    tempObjExit = vol2.object;
+                }
 
                 // old volume ends before volume 2 starts
                 if (tempExit < vol1.entrance)
                 {
-                    ray->pushVolume(tempEntr, tempExit, ray, this);
+                    ray->pushVolumeBoolean(tempEntr, tempExit, tempObjEntr->getNormal(ray->applyScalar(tempEntr)), tempObjExit->getNormal(ray->applyScalar(tempExit)), this);
                     tempEntr = vol1.entrance;
                     tempExit = vol1.exit;
+                    tempObjEntr = vol1.object;
+                    tempObjExit = vol1.object;
                 }
                 // old volume starts before vol2 start and ends before vol2 ends. Union so add on vol 2
                 else if (tempExit < vol1.exit)
+                {
                     tempExit = vol1.exit;
+                    tempObjExit = vol1.object;
+                }
             }
 
             // we havce checked both v1Index and v2Index. increment both
@@ -900,13 +919,13 @@ struct Union : Object
 
         // push the remaining volume
         if (tempExit != -FLT_MAX)
-            ray->pushVolume(tempEntr, tempExit, ray, this);
+            ray->pushVolumeBoolean(tempEntr, tempExit, tempObjEntr->getNormal(ray->applyScalar(tempEntr)), tempObjExit->getNormal(ray->applyScalar(tempExit)), this);
 
         // if at the end of the while loop, either list has volumes remaining, since this is union, add these volumes to the ray
         for (v1Index; v1Index < v1.size(); v1Index++)
-            ray->pushVolume(v1[v1Index].entrance, v1[v1Index].exit, ray, this);
+            ray->pushVolumeBoolean(v1[v1Index].entrance, v1[v1Index].exit, v1[v1Index].entranceNormal, v1[v1Index].exitNormal, this);
         for (v2Index; v2Index < v2.size(); v2Index++)
-            ray->pushVolume(v2[v2Index].entrance, v2[v2Index].exit, ray, this);
+            ray->pushVolumeBoolean(v2[v2Index].entrance, v2[v2Index].exit, v2[v2Index].entranceNormal, v2[v2Index].exitNormal, this);
     }
     glm::vec3 getNormal(glm::vec3 intersection) { return glm::vec3(0.f); }
     void scale(bool enlarge)
@@ -970,6 +989,8 @@ struct Intersection : Object
         // initialize the floats to smallest possible
         float tempEntr = -FLT_MAX;
         float tempExit = -FLT_MAX;
+        Object *tempObjEntr = NULL;
+        Object *tempObjExit = NULL;
 
         while (v1Index != v1.size() && v2Index != v2.size())
         {
@@ -983,7 +1004,7 @@ struct Intersection : Object
                 {
                     // old volume is not involved. push it to the ray
                     if (tempExit != -FLT_MAX)
-                        ray->pushVolume(tempEntr, tempExit, ray, this);
+                        ray->pushVolumeBoolean(tempEntr, tempExit, tempObjEntr->getNormal(ray->applyScalar(tempEntr)), tempObjExit->getNormal(ray->applyScalar(tempExit)), this);
 
                     // volume 1 is not involved in the intersection
                     if (vol1.exit < vol2.entrance)
@@ -991,6 +1012,8 @@ struct Intersection : Object
                         // reset tempEntr and tempExit to defaults
                         tempEntr = -FLT_MAX;
                         tempExit = -FLT_MAX;
+                        tempObjEntr = NULL;
+                        tempObjExit = NULL;
                         // toss v1, and restart volume search
                         v1Index++;
                         continue;
@@ -999,7 +1022,18 @@ struct Intersection : Object
                     else
                     {
                         tempEntr = vol2.entrance;
-                        tempExit = glm::min(vol1.exit, vol2.exit);
+                        tempObjEntr = vol2.object;
+                        if (vol1.exit < vol2.exit)
+                        {
+                            tempExit = vol1.exit;
+                            tempObjExit = vol1.object;
+                        }
+                        else
+                        {
+                            tempExit = vol2.exit;
+                            tempObjExit = vol2.object;
+                        }
+
                         v1Index++;
                         v2Index++;
                     }
@@ -1012,11 +1046,13 @@ struct Intersection : Object
                     if (tempExit < vol2.entrance)
                     {
                         if (tempExit != -FLT_MAX)
-                            ray->pushVolume(tempEntr, tempExit, ray, this);
+                            ray->pushVolumeBoolean(tempEntr, tempExit, tempObjEntr->getNormal(ray->applyScalar(tempEntr)), tempObjExit->getNormal(ray->applyScalar(tempExit)), this);
 
                         // reset volume to defaults
                         tempEntr = -FLT_MAX;
                         tempExit = -FLT_MAX;
+                        tempObjEntr = NULL;
+                        tempObjExit = NULL;
                     }
                 }
             }
@@ -1027,7 +1063,7 @@ struct Intersection : Object
                 {
                     // old volume is not involved. push it to the ray
                     if (tempExit != -FLT_MAX)
-                        ray->pushVolume(tempEntr, tempExit, ray, this);
+                        ray->pushVolumeBoolean(tempEntr, tempExit, tempObjEntr->getNormal(ray->applyScalar(tempEntr)), tempObjExit->getNormal(ray->applyScalar(tempExit)), this);
 
                     // volume 1 is not involved in the intersection
                     if (vol2.exit < vol1.entrance)
@@ -1035,6 +1071,8 @@ struct Intersection : Object
                         // reset tempEntr and tempExit to defaults
                         tempEntr = -FLT_MAX;
                         tempExit = -FLT_MAX;
+                        tempObjEntr = NULL;
+                        tempObjExit = NULL;
                         // toss v1, and restart volume search
                         v2Index++;
                         continue;
@@ -1043,7 +1081,18 @@ struct Intersection : Object
                     else
                     {
                         tempEntr = vol1.entrance;
-                        tempExit = glm::min(vol2.exit, vol1.exit);
+                        tempObjEntr = vol1.object;
+                        if (vol2.exit < vol1.exit)
+                        {
+                            tempExit = vol2.exit;
+                            tempObjExit = vol2.object;
+                        }
+                        else
+                        {
+                            tempExit = vol1.exit;
+                            tempObjExit = vol1.object;
+                        }
+
                         v1Index++;
                         v2Index++;
                     }
@@ -1056,11 +1105,13 @@ struct Intersection : Object
                     if (tempExit < vol1.entrance)
                     {
                         if (tempExit != -FLT_MAX)
-                            ray->pushVolume(tempEntr, tempExit, ray, this);
+                            ray->pushVolumeBoolean(tempEntr, tempExit, tempObjEntr->getNormal(ray->applyScalar(tempEntr)), tempObjExit->getNormal(ray->applyScalar(tempExit)), this);
 
                         // reset volume to defaults
                         tempEntr = -FLT_MAX;
                         tempExit = -FLT_MAX;
+                        tempObjEntr = NULL;
+                        tempObjExit = NULL;
                     }
                 }
             }
@@ -1068,7 +1119,7 @@ struct Intersection : Object
 
         // push the remaining volume
         if (tempExit != -FLT_MAX)
-            ray->pushVolume(tempEntr, tempExit, ray, this);
+            ray->pushVolumeBoolean(tempEntr, tempExit, tempObjEntr->getNormal(ray->applyScalar(tempEntr)), tempObjExit->getNormal(ray->applyScalar(tempExit)), this);
     }
     glm::vec3 getNormal(glm::vec3 intersection) { return glm::vec3(0.f); }
     void scale(bool enlarge)
@@ -1130,7 +1181,7 @@ struct Difference : Object
         if (v2.size() == 0)
         {
             for (Volume vol : v1)
-                ray->pushVolumeDifference(vol.entrance, vol.exit, vol.entranceNormal, vol.exitNormal, this);
+                ray->pushVolumeBoolean(vol.entrance, vol.exit, vol.entranceNormal, vol.exitNormal, this);
             return;
         }
 
@@ -1159,13 +1210,13 @@ struct Difference : Object
                 {
                     // so long as the temps are not their defaults, push the old volume
                     if (tempExit != -FLT_MAX)
-                        ray->pushVolumeDifference(tempEntr, tempExit, tempObjEntr->getNormal(ray->applyScalar(tempEntr)), tempObjExit->getNormal(ray->applyScalar(tempExit)),this);
+                        ray->pushVolumeBoolean(tempEntr, tempExit, tempObjEntr->getNormal(ray->applyScalar(tempEntr)), tempObjExit->getNormal(ray->applyScalar(tempExit)),this);
 
                     // vol2 does not obstruct vol1
                     if (vol1.exit < vol2.entrance)
                     {
                         //push vol1
-                        ray->pushVolumeDifference(vol1.entrance, vol1.exit, vol1.entranceNormal, vol1.exitNormal, this);
+                        ray->pushVolumeBoolean(vol1.entrance, vol1.exit, vol1.entranceNormal, vol1.exitNormal, this);
 
                         // reset the temps
                         tempEntr = -FLT_MAX;
@@ -1180,7 +1231,7 @@ struct Difference : Object
                     else
                     {
                         // the front of vol1 gets pushed
-                        ray->pushVolumeDifference(vol1.entrance, vol2.entrance, vol1.entranceNormal, vol2.entranceNormal, this);
+                        ray->pushVolumeBoolean(vol1.entrance, vol2.entrance, vol1.entranceNormal, vol2.entranceNormal, this);
 
                         // vol2 cuts the back of vol1
                         if (vol1.exit < vol2.exit)
@@ -1232,7 +1283,7 @@ struct Difference : Object
                             if (tempExit < vol2.exit)
                             {
                                 // push the cut volume
-                                ray->pushVolumeDifference(tempEntr, vol2.entrance, tempObjEntr->getNormal(ray->applyScalar(tempEntr)), vol2.entranceNormal, this);
+                                ray->pushVolumeBoolean(tempEntr, vol2.entrance, tempObjEntr->getNormal(ray->applyScalar(tempEntr)), vol2.entranceNormal, this);
                                 
                                 // reset the temps
                                 tempEntr = -FLT_MAX;
@@ -1244,7 +1295,7 @@ struct Difference : Object
                             else
                             {
                                 // push the front of the cut volume
-                                ray->pushVolumeDifference(tempEntr, vol2.entrance, tempObjEntr->getNormal(ray->applyScalar(tempEntr)), vol2.entranceNormal, this);
+                                ray->pushVolumeBoolean(tempEntr, vol2.entrance, tempObjEntr->getNormal(ray->applyScalar(tempEntr)), vol2.entranceNormal, this);
 
                                 // move the front of the volume up
                                 tempEntr = vol2.exit;
@@ -1278,7 +1329,7 @@ struct Difference : Object
                             else
                             {
                                 // push the first part of the volume after cut
-                                ray->pushVolumeDifference(tempEntr, vol2.entrance, tempObjEntr->getNormal(ray->applyScalar(tempEntr)), vol2.entranceNormal, this);
+                                ray->pushVolumeBoolean(tempEntr, vol2.entrance, tempObjEntr->getNormal(ray->applyScalar(tempEntr)), vol2.entranceNormal, this);
 
                                 // move the front of the volume up
                                 tempEntr = vol2.exit;
@@ -1294,7 +1345,7 @@ struct Difference : Object
                         else
                         {
                             // push first volume after cut
-                            ray->pushVolumeDifference(tempEntr, vol2.entrance, tempObjEntr->getNormal(ray->applyScalar(tempEntr)), vol2.entranceNormal, this);
+                            ray->pushVolumeBoolean(tempEntr, vol2.entrance, tempObjEntr->getNormal(ray->applyScalar(tempEntr)), vol2.entranceNormal, this);
 
                             // begin the new volume
                             tempEntr = vol2.exit;
@@ -1316,7 +1367,7 @@ struct Difference : Object
                 {
                     // push the old volume
                     if (tempExit != -FLT_MAX)
-                        ray->pushVolumeDifference(tempEntr, tempExit, tempObjEntr->getNormal(ray->applyScalar(tempEntr)), tempObjExit->getNormal(ray->applyScalar(tempExit)), this);
+                        ray->pushVolumeBoolean(tempEntr, tempExit, tempObjEntr->getNormal(ray->applyScalar(tempEntr)), tempObjExit->getNormal(ray->applyScalar(tempExit)), this);
                     
                     // volume 2 has no effect. set new volume to vol1 and move on from vol2
                     if (vol2.exit < vol1.entrance)
@@ -1358,7 +1409,7 @@ struct Difference : Object
                 {
 
                     // push the old volume, cut by vol2
-                    ray->pushVolumeDifference(tempEntr, vol2.entrance, tempObjEntr->getNormal(ray->applyScalar(tempEntr)), vol2.entranceNormal, this);
+                    ray->pushVolumeBoolean(tempEntr, vol2.entrance, tempObjEntr->getNormal(ray->applyScalar(tempEntr)), vol2.entranceNormal, this);
 
                     // vol2 does not obstruct vol1
                     if (vol2.exit < vol1.entrance)
@@ -1376,7 +1427,7 @@ struct Difference : Object
                         // volume ends after vol2 and before vol1. push new volume, vol2 no longer needed
                         else if (tempExit < vol1.entrance)
                         {
-                            ray->pushVolumeDifference(vol2.exit, tempExit, vol2.exitNormal, tempObjExit->getNormal(ray->applyScalar(tempExit)), this);
+                            ray->pushVolumeBoolean(vol2.exit, tempExit, vol2.exitNormal, tempObjExit->getNormal(ray->applyScalar(tempExit)), this);
                             // reset temps
                             tempEntr = -FLT_MAX;
                             tempExit = -FLT_MAX;
@@ -1437,11 +1488,11 @@ struct Difference : Object
 
         // push the remaining volume
         if (tempExit != -FLT_MAX)
-            ray->pushVolumeDifference(tempEntr, tempExit, tempObjEntr->getNormal(ray->applyScalar(tempEntr)), tempObjExit->getNormal(ray->applyScalar(tempExit)), this);
+            ray->pushVolumeBoolean(tempEntr, tempExit, tempObjEntr->getNormal(ray->applyScalar(tempEntr)), tempObjExit->getNormal(ray->applyScalar(tempExit)), this);
 
         // if any A remains, add it to the volume list
         for (v1Index; v1Index < v1.size(); v1Index++)
-            ray->pushVolumeDifference(v1[v1Index].entrance, v1[v1Index].exit, v1[v1Index].entranceNormal, v1[v1Index].exitNormal, this);
+            ray->pushVolumeBoolean(v1[v1Index].entrance, v1[v1Index].exit, v1[v1Index].entranceNormal, v1[v1Index].exitNormal, this);
     }
     glm::vec3 getNormal(glm::vec3 intersection) { return glm::vec3(0.f); }
     void scale(bool enlarge)
