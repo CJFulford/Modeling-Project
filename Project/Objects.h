@@ -16,7 +16,7 @@
 #define BASE_CENTER glm::vec3(0.f);
 #define BASE_RADIUS .5f
 #define BASE_PHONG  50
-#define BASE_COLOUR glm::vec3(0.f, 1.f, 0.f)
+#define BASE_COLOUR glm::vec3(0.f, .7f, 0.f)
 
 #define SCALE_CHANGE .01f
 #define MIN_SCALE .1f
@@ -811,7 +811,7 @@ struct Union : Object
         // ray hits neither object
         if (v1.size() == 0 && v2.size() == 0) return;
 
-        // handle the cases where one of the lists are empty
+        // handle the cases where one of the lists is empty
         if (v1.size() == 0)
         {
             for (Volume vol : v2)
@@ -826,7 +826,7 @@ struct Union : Object
         }
 
 
-        // intex trackers for each list
+        // index trackers for each list
         float v1Index = 0;
         float v2Index = 0;
 
@@ -837,15 +837,16 @@ struct Union : Object
         Object *tempObjEntr = NULL;
         Object *tempObjExit = NULL;
 
+        // while both lists still have unvisited elements
         while (v1Index != v1.size() && v2Index != v2.size())
         {
-            // define as new volume for easier access
+            // variables for easier access of volumes
             Volume vol1 = v1[v1Index], vol2 = v2[v2Index];
 
             // volume 1 is closer than volume 2
             if (vol1.entrance < vol2.entrance)
             {
-                // current volume ends before new volume starts
+                // old volume ends before vol1 starts
                 if (tempExit < vol1.entrance)
                 {
                     if (tempExit != -FLT_MAX)
@@ -857,7 +858,10 @@ struct Union : Object
                 }
                 // old volume starts before vol1 start and ends before vol1 ends. Union so add on vol 2
                 else if (tempExit < vol1.exit)
+                {
                     tempExit = vol1.exit;
+                    tempObjExit = vol1.object;
+                }
 
                 // old volume ends before volume 2 starts
                 if (tempExit < vol2.entrance)
@@ -922,6 +926,7 @@ struct Union : Object
             ray->pushVolumeBoolean(tempEntr, tempExit, tempObjEntr->getNormal(ray->applyScalar(tempEntr)), tempObjExit->getNormal(ray->applyScalar(tempExit)), this);
 
         // if at the end of the while loop, either list has volumes remaining, since this is union, add these volumes to the ray
+        // dont need +1 here as both v1Index and v2Index are incremented at the end of every iteration of the whilke loop
         for (int i = v1Index; i < v1.size(); i++)
             ray->pushVolumeBoolean(v1[v1Index].entrance, v1[v1Index].exit, v1[v1Index].entranceNormal, v1[v1Index].exitNormal, this);
         for (int i = v2Index; i < v2.size(); i++)
@@ -1024,9 +1029,8 @@ struct Intersection : Object
                         tempObjExit = NULL;
                         // toss v1, and restart volume search
                         v1Index++;
-                        continue;
                     }
-                    // volume 2 entrance is contained within volume 1. reassign th volume
+                    // volume 2 entrance is contained within volume 1. reassign the volume
                     else
                     {
                         tempEntr = vol2.entrance;
@@ -1049,7 +1053,8 @@ struct Intersection : Object
                 // volume1s entrance is contained in the volume
                 else
                 {
-                    v1Index++;// v1Index is done
+                    // v1Index is done
+                    v1Index++;
 
                     if (tempExit < vol2.entrance)
                     {
@@ -1083,7 +1088,6 @@ struct Intersection : Object
                         tempObjExit = NULL;
                         // toss v1, and restart volume search
                         v2Index++;
-                        continue;
                     }
                     // volume 2 entrance is contained within volume 1. reassign th volume
                     else
@@ -1358,29 +1362,7 @@ struct Difference : Object
                         // vol2 is contained inside vol1
                         else
                         {
-                            if (tempExit < vol2.entrance)
-                            {
-                                ray->pushVolumeBoolean(tempEntr, vol2.entrance, tempObjEntr->getNormal(ray->applyScalar(tempEntr)), vol2.entranceNormal, this);
-                                tempEntr = vol2.exit;
-                                tempObjEntr = vol2.object;
-                                tempExit = vol1.exit;
-                                tempObjExit = vol1.object;
-
-                                v1Index++;
-                                v2Index++;
-                            }
-                            else if (tempExit < vol2.exit)
-                            {
-                                ray->pushVolumeBoolean(tempEntr, vol2.entrance, tempObjEntr->getNormal(ray->applyScalar(tempEntr)), vol2.entranceNormal, this);
-                                tempEntr = vol2.exit;
-                                tempObjEntr = vol2.object;
-                                tempExit = vol1.exit;
-                                tempObjExit = vol1.object;
-
-                                v1Index++;
-                                v2Index++;
-                            }
-                            else if (tempExit < vol1.exit)
+                            if (tempExit < vol1.exit)
                             {
                                 ray->pushVolumeBoolean(tempEntr, vol2.entrance, tempObjEntr->getNormal(ray->applyScalar(tempEntr)), vol2.entranceNormal, this);
                                 tempEntr = vol2.exit;
@@ -1510,31 +1492,7 @@ struct Difference : Object
                         // vol2 cuts the front of vol1
                         if (vol2.exit < vol1.exit)
                         {
-                            if (tempExit < vol1.entrance)
-                            {
-                                ray->pushVolumeBoolean(tempEntr, vol2.entrance, tempObjEntr->getNormal(ray->applyScalar(tempEntr)), vol2.entranceNormal, this);
-
-                                tempEntr = vol2.exit;
-                                tempExit = vol1.exit;
-                                tempObjEntr = vol2.object;
-                                tempObjExit = vol1.object;
-
-                                v1Index++;
-                                v2Index++;
-                            }
-                            else if (tempExit < vol2.exit)
-                            {
-                                ray->pushVolumeBoolean(tempEntr, vol2.entrance, tempObjEntr->getNormal(ray->applyScalar(tempEntr)), vol2.entranceNormal, this);
-
-                                tempEntr = vol2.exit;
-                                tempExit = vol1.exit;
-                                tempObjEntr = vol2.object;
-                                tempObjExit = vol1.object;
-
-                                v1Index++;
-                                v2Index++;
-                            }
-                            else if (tempExit < vol1.exit)
+                            if (tempExit < vol1.exit)
                             {
                                 ray->pushVolumeBoolean(tempEntr, vol2.entrance, tempObjEntr->getNormal(ray->applyScalar(tempEntr)), vol2.entranceNormal, this);
 
@@ -1560,31 +1518,7 @@ struct Difference : Object
                         // vol2 contains vol1
                         else
                         {
-                            if (tempExit < vol1.entrance)
-                            {
-                                ray->pushVolumeBoolean(tempEntr, vol2.entrance, tempObjEntr->getNormal(ray->applyScalar(tempEntr)), vol2.entranceNormal, this);
-
-                                // reset temp
-                                tempEntr = -FLT_MAX;
-                                tempExit = -FLT_MAX;
-                                tempObjEntr = NULL;
-                                tempObjExit = NULL;
-
-                                v1Index++;
-                            }
-                            else if (tempExit < vol1.exit)
-                            {
-                                ray->pushVolumeBoolean(tempEntr, vol2.entrance, tempObjEntr->getNormal(ray->applyScalar(tempEntr)), vol2.entranceNormal, this);
-
-                                // reset temp
-                                tempEntr = -FLT_MAX;
-                                tempExit = -FLT_MAX;
-                                tempObjEntr = NULL;
-                                tempObjExit = NULL;
-
-                                v1Index++;
-                            }
-                            else if (tempExit < vol2.exit)
+                            if (tempExit < vol2.exit)
                             {
                                 ray->pushVolumeBoolean(tempEntr, vol2.entrance, tempObjEntr->getNormal(ray->applyScalar(tempEntr)), vol2.entranceNormal, this);
 
