@@ -203,13 +203,7 @@ struct Plane : Object
         return dot((center - ray->origin), normal) / denominator;
     }
     void getVolume(Ray *ray) {}
-    glm::vec3 getNormal(glm::vec3 intersection)
-    {
-        if (differenceB)
-            return -normal;
-        else
-            return normal;
-    }
+    glm::vec3 getNormal(glm::vec3 intersection) { return (differenceB) ? -normal : normal; }
     void scale(bool enlarge) {}
     void move(glm::vec3 move)
     {
@@ -261,18 +255,9 @@ struct Sphere : Object
     }
     glm::vec3 getNormal(glm::vec3 intersection)
     {
-        if (differenceB)
-        {
-            if (abs(distance(intersection, center) - radius) < FLOAT_ERROR)
-                return -glm::normalize(intersection - center);
-            return -glm::vec3(0.f);
-        }
-        else
-        {
-            if (abs(distance(intersection, center) - radius) < FLOAT_ERROR)
-                return glm::normalize(intersection - center);
-            return glm::vec3(0.f);
-        }
+        if (abs(distance(intersection, center) - radius) < FLOAT_ERROR)
+            return (differenceB) ? -glm::normalize(intersection - center) : glm::normalize(intersection - center);
+        return glm::vec3(0.f);
     }
     void scale(bool enlarge)
     {
@@ -356,30 +341,13 @@ struct Cube : Object
     }
     glm::vec3 getNormal(glm::vec3 intersection)
     {
-        if (differenceB)
+        for (Plane *plane : planes)
         {
-            for (Plane *plane : planes)
-            {
-                glm::vec3 relativeIntersect = normalize(intersection - plane->center);
-                if (abs(dot(relativeIntersect, plane->normal)) <= FLOAT_ERROR)
-                {
-                    return -plane->normal;
-                }
-            }
-            return -glm::vec3(0.f);
+            glm::vec3 relativeIntersect = normalize(intersection - plane->center);
+            if (abs(dot(normalize(intersection - plane->center), plane->normal)) <= FLOAT_ERROR)
+                return (differenceB) ? -plane->normal : plane->normal;
         }
-        else
-        {
-            for (Plane *plane : planes)
-            {
-                glm::vec3 relativeIntersect = normalize(intersection - plane->center);
-                if (abs(dot(relativeIntersect, plane->normal)) <= FLOAT_ERROR)
-                {
-                    return plane->normal;
-                }
-            }
-            return glm::vec3(0.f);
-        }
+        return glm::vec3(0.f);
     }
     void scale(bool enlarge)
     {
@@ -667,18 +635,9 @@ struct Torus : Object
     }
     glm::vec3 getNormal(glm::vec3 intersection)
     {
-        if (differenceB)
-        {
-            glm::vec3 point = intersection - center;
-            float a = 1.f - (R / sqrt(point.x*point.x + point.y*point.y));
-            return -normalize(glm::vec3(a*point.x, a*point.y, point.z));
-        }
-        else
-        {
-            glm::vec3 point = intersection - center;
-            float a = 1.f - (R / sqrt(point.x*point.x + point.y*point.y));
-            return normalize(glm::vec3(a*point.x, a*point.y, point.z));
-        }
+        glm::vec3 point = intersection - center;
+        float a = 1.f - (R / sqrt(point.x*point.x + point.y*point.y));
+        return (differenceB) ? -normalize(glm::vec3(a*point.x, a*point.y, point.z)) : normalize(glm::vec3(a*point.x, a*point.y, point.z));
     }
     void scale(bool enlarge) 
     {
@@ -774,36 +733,20 @@ struct Cylinder : Object
     }
     glm::vec3 getNormal(glm::vec3 intersection)
     {
-        if (differenceB)
-        {
-            glm::vec3 vertMove(0.f, center.y, 0.f);
-            if (abs(dot(normalize(intersection - (topPlane->center + vertMove)), topPlane->normal)) <= FLOAT_ERROR)
-                return -topPlane->normal;
-
-            else if (abs(dot(normalize(intersection - (bottomPlane->center + vertMove)), bottomPlane->normal)) <= FLOAT_ERROR)
-                return -bottomPlane->normal;
-
-            else if (distance(glm::vec2(intersection.x, intersection.z), glm::vec2(center.x, center.z)) - radius <= FLOAT_ERROR)
-                return -normalize(intersection - glm::vec3(center.x, intersection.y, center.z));
-
-            else
-                return -glm::vec3(0.f);
-        }
+        glm::vec3 vertMove(0.f, center.y, 0.f), norm(0.f);
+        // top plane
+        if (abs(dot(normalize(intersection - (topPlane->center + vertMove)), topPlane->normal)) <= FLOAT_ERROR)
+            norm = topPlane->normal;
+        // bottom plane
+        else if (abs(dot(normalize(intersection - (bottomPlane->center + vertMove)), bottomPlane->normal)) <= FLOAT_ERROR)
+            norm = bottomPlane->normal;
+        //cylinder
+        else if (distance(glm::vec2(intersection.x, intersection.z), glm::vec2(center.x, center.z)) - radius <= FLOAT_ERROR)
+            norm = normalize(intersection - glm::vec3(center.x, intersection.y, center.z));
         else
-        {
-            glm::vec3 vertMove(0.f, center.y, 0.f);
-            if (abs(dot(normalize(intersection - (topPlane->center + vertMove)), topPlane->normal)) <= FLOAT_ERROR)
-                return topPlane->normal;
+            return glm::vec3(0.f);
 
-            else if (abs(dot(normalize(intersection - (bottomPlane->center + vertMove)), bottomPlane->normal)) <= FLOAT_ERROR)
-                return bottomPlane->normal;
-
-            else if (distance(glm::vec2(intersection.x, intersection.z), glm::vec2(center.x, center.z)) - radius <= FLOAT_ERROR)
-                return normalize(intersection - glm::vec3(center.x, intersection.y, center.z));
-
-            else
-                return glm::vec3(0.f);
-        }
+        return (differenceB) ? -norm : norm;
     }
     void scale(bool enlarge)
     {
