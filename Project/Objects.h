@@ -655,11 +655,11 @@ struct Torus : Object
         switch (scalars.size())
         {
         case(2):
-            ray->pushVolume(scalars[0], scalars[1], &tempRay, this);
+            ray->pushVolume(scalars[0], scalars[1], ray, this);
             break;
         case(4):
-            ray->pushVolume(scalars[0], scalars[1], &tempRay, this);
-            ray->pushVolume(scalars[2], scalars[3], &tempRay, this);
+            ray->pushVolume(scalars[0], scalars[1], ray, this);
+            ray->pushVolume(scalars[2], scalars[3], ray, this);
             break;
         default:
             break;
@@ -740,7 +740,7 @@ struct Cylinder : Object
         // if the ray collides perfectly with both planes then it is inside the cylinder, and we dont need to check the cylinder
         if (scalars.size() == 2)
         {
-            ray->pushVolume(glm::min(scalars[0], scalars[1]), glm::max(scalars[0], scalars[1]), &tempRay, this);
+            ray->pushVolume(glm::min(scalars[0], scalars[1]), glm::max(scalars[0], scalars[1]), ray, this);
             return;
         }
 
@@ -770,7 +770,7 @@ struct Cylinder : Object
         if (scalars.size() < 2) return;
 
         std::sort(scalars.begin(), scalars.end());
-        ray->pushVolume(scalars.front(), scalars.back(), &tempRay, this);
+        ray->pushVolume(scalars.front(), scalars.back(), ray, this);
     }
     glm::vec3 getNormal(glm::vec3 intersection)
     {
@@ -979,9 +979,9 @@ struct Union : Object
             ray->pushVolumeBoolean(tempEntr, tempExit, tempObjEntr->getNormal(ray->applyScalar(tempEntr)), tempObjExit->getNormal(ray->applyScalar(tempExit)), this);
 
         // if at the end of the while loop, either list has volumes remaining, since this is union, add these volumes to the ray
-        for (v1Index; v1Index < v1.size(); v1Index++)
+        for (int i = v1Index + 1; i < v1.size(); i++)
             ray->pushVolumeBoolean(v1[v1Index].entrance, v1[v1Index].exit, v1[v1Index].entranceNormal, v1[v1Index].exitNormal, this);
-        for (v2Index; v2Index < v2.size(); v2Index++)
+        for (int i = v2Index + 1; i < v2.size(); i++)
             ray->pushVolumeBoolean(v2[v2Index].entrance, v2[v2Index].exit, v2[v2Index].entranceNormal, v2[v2Index].exitNormal, this);
     }
     glm::vec3 getNormal(glm::vec3 intersection) { return glm::vec3(0.f); }
