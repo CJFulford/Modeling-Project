@@ -677,7 +677,7 @@ struct Torus : Object
         {
             glm::vec3 point = intersection - center;
             float a = 1.f - (R / sqrt(point.x*point.x + point.y*point.y));
-            return -normalize(glm::vec3(a*point.x, a*point.y, point.z));
+            return normalize(glm::vec3(a*point.x, a*point.y, point.z));
         }
     }
     void scale(bool enlarge) 
@@ -979,12 +979,20 @@ struct Union : Object
             ray->pushVolumeBoolean(tempEntr, tempExit, tempObjEntr->getNormal(ray->applyScalar(tempEntr)), tempObjExit->getNormal(ray->applyScalar(tempExit)), this);
 
         // if at the end of the while loop, either list has volumes remaining, since this is union, add these volumes to the ray
-        for (int i = v1Index + 1; i < v1.size(); i++)
+        for (int i = v1Index; i < v1.size(); i++)
             ray->pushVolumeBoolean(v1[v1Index].entrance, v1[v1Index].exit, v1[v1Index].entranceNormal, v1[v1Index].exitNormal, this);
-        for (int i = v2Index + 1; i < v2.size(); i++)
+        for (int i = v2Index; i < v2.size(); i++)
             ray->pushVolumeBoolean(v2[v2Index].entrance, v2[v2Index].exit, v2[v2Index].entranceNormal, v2[v2Index].exitNormal, this);
     }
-    glm::vec3 getNormal(glm::vec3 intersection) { return glm::vec3(0.f); }
+    glm::vec3 getNormal(glm::vec3 intersection) 
+    { 
+        glm::vec3 lNormal = leftChild->getNormal(intersection);
+        glm::vec3 rNormal = rightChild->getNormal(intersection);
+        if (lNormal != glm::vec3(0.f))
+            return lNormal;
+        else
+            return rNormal;
+    }
     void scale(bool enlarge)
     {
         leftChild->scale(enlarge);
@@ -1178,7 +1186,15 @@ struct Intersection : Object
         if (tempExit != -FLT_MAX)
             ray->pushVolumeBoolean(tempEntr, tempExit, tempObjEntr->getNormal(ray->applyScalar(tempEntr)), tempObjExit->getNormal(ray->applyScalar(tempExit)), this);
     }
-    glm::vec3 getNormal(glm::vec3 intersection) { return glm::vec3(0.f); }
+    glm::vec3 getNormal(glm::vec3 intersection)
+    {
+        glm::vec3 lNormal = leftChild->getNormal(intersection);
+        glm::vec3 rNormal = rightChild->getNormal(intersection);
+        if (lNormal != glm::vec3(0.f))
+            return lNormal;
+        else
+            return rNormal;
+    }
     void scale(bool enlarge)
     {
         leftChild->scale(enlarge);
@@ -1661,7 +1677,15 @@ struct Difference : Object
         for (int i = v1Index + 1; i < v1.size(); i++)
             ray->pushVolumeBoolean(v1[i].entrance, v1[i].exit, v1[i].entranceNormal, v1[i].exitNormal, this);
     }
-    glm::vec3 getNormal(glm::vec3 intersection) { return glm::vec3(0.f); }
+    glm::vec3 getNormal(glm::vec3 intersection)
+    {
+        glm::vec3 lNormal = leftChild->getNormal(intersection);
+        glm::vec3 rNormal = rightChild->getNormal(intersection);
+        if (lNormal != glm::vec3(0.f))
+            return lNormal;
+        else
+            return rNormal;
+    }
     void scale(bool enlarge)
     {
         leftChild->scale(enlarge);
