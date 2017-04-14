@@ -1658,8 +1658,8 @@ struct Difference : Object
             ray->pushVolumeBoolean(tempEntr, tempExit, tempObjEntr->getNormal(ray->applyScalar(tempEntr)), tempObjExit->getNormal(ray->applyScalar(tempExit)), this);
 
         // if any A remains, add it to the volume list
-        for (v1Index; v1Index < v1.size(); v1Index++)
-            ray->pushVolumeBoolean(v1[v1Index].entrance, v1[v1Index].exit, v1[v1Index].entranceNormal, v1[v1Index].exitNormal, this);
+        for (int i = v1Index + 1; i < v1.size(); i++)
+            ray->pushVolumeBoolean(v1[i].entrance, v1[i].exit, v1[i].entranceNormal, v1[i].exitNormal, this);
     }
     glm::vec3 getNormal(glm::vec3 intersection) { return glm::vec3(0.f); }
     void scale(bool enlarge)
