@@ -27,7 +27,7 @@ bool    select1   = true,
 Ray generateTempRay(Ray *ray, glm::vec3 center, glm::vec3 rotation)
 {
     return Ray(
-        glm::rotateX(glm::rotateY(glm::rotateZ(ray->origin, -rotation.z), -rotation.y), -rotation.x) - center,
+        glm::rotateX(glm::rotateY(glm::rotateZ(ray->origin - center, -rotation.z), -rotation.y), -rotation.x),
         glm::rotateX(glm::rotateY(glm::rotateZ(ray->direction, -rotation.z), -rotation.y), -rotation.x));
 }
 
