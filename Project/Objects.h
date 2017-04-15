@@ -1100,63 +1100,59 @@ struct Intersection : Object
                 vol2 = temp;
             }
 
-            // volume 1 is closer to the volume
-            if (vol1.entrance < vol2.entrance)
+            if (tempExit < vol1.entrance)
             {
-                if (tempExit < vol1.entrance)
+                // old volume is not involved. push it to the ray
+                if (tempExit != -FLT_MAX)
+                    ray->pushVolumeBoolean(tempEntr, tempExit, tempObjEntr->getNormal(ray->applyScalar(tempEntr)), tempObjExit->getNormal(ray->applyScalar(tempExit)), this);
+
+                // volume 1 is not involved in the intersection
+                if (vol1.exit < vol2.entrance)
                 {
-                    // old volume is not involved. push it to the ray
+                    // reset tempEntr and tempExit to defaults
+                    tempEntr = -FLT_MAX;
+                    tempExit = -FLT_MAX;
+                    tempObjEntr = NULL;
+                    tempObjExit = NULL;
+                    // toss v1, and restart volume search
+                    v1Index++;
+                }
+                // volume 2 entrance is contained within volume 1. reassign the volume
+                else
+                {
+                    tempEntr = vol2.entrance;
+                    tempObjEntr = vol2.object;
+                    if (vol1.exit < vol2.exit)
+                    {
+                        tempExit = vol1.exit;
+                        tempObjExit = vol1.object;
+                    }
+                    else
+                    {
+                        tempExit = vol2.exit;
+                        tempObjExit = vol2.object;
+                    }
+
+                    v1Index++;
+                    v2Index++;
+                }
+            }
+            // volume1s entrance is contained in the volume
+            else
+            {
+                // v1Index is done
+                v1Index++;
+
+                if (tempExit < vol2.entrance)
+                {
                     if (tempExit != -FLT_MAX)
                         ray->pushVolumeBoolean(tempEntr, tempExit, tempObjEntr->getNormal(ray->applyScalar(tempEntr)), tempObjExit->getNormal(ray->applyScalar(tempExit)), this);
 
-                    // volume 1 is not involved in the intersection
-                    if (vol1.exit < vol2.entrance)
-                    {
-                        // reset tempEntr and tempExit to defaults
-                        tempEntr = -FLT_MAX;
-                        tempExit = -FLT_MAX;
-                        tempObjEntr = NULL;
-                        tempObjExit = NULL;
-                        // toss v1, and restart volume search
-                        v1Index++;
-                    }
-                    // volume 2 entrance is contained within volume 1. reassign the volume
-                    else
-                    {
-                        tempEntr = vol2.entrance;
-                        tempObjEntr = vol2.object;
-                        if (vol1.exit < vol2.exit)
-                        {
-                            tempExit = vol1.exit;
-                            tempObjExit = vol1.object;
-                        }
-                        else
-                        {
-                            tempExit = vol2.exit;
-                            tempObjExit = vol2.object;
-                        }
-
-                        v1Index++;
-                        v2Index++;
-                    }
-                }
-                // volume1s entrance is contained in the volume
-                else
-                {
-                    // v1Index is done
-                    v1Index++;
-
-                    if (tempExit < vol2.entrance)
-                    {
-                        if (tempExit != -FLT_MAX)
-                            ray->pushVolumeBoolean(tempEntr, tempExit, tempObjEntr->getNormal(ray->applyScalar(tempEntr)), tempObjExit->getNormal(ray->applyScalar(tempExit)), this);
-
-                        // reset volume to defaults
-                        tempEntr = -FLT_MAX;
-                        tempExit = -FLT_MAX;
-                        tempObjEntr = NULL;
-                        tempObjExit = NULL;
-                    }
+                    // reset volume to defaults
+                    tempEntr = -FLT_MAX;
+                    tempExit = -FLT_MAX;
+                    tempObjEntr = NULL;
+                    tempObjExit = NULL;
                 }
             }
         }
