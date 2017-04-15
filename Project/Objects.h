@@ -12,8 +12,9 @@
 #define identity	glm::mat4(1.f)
 #define FLOAT_ERROR 1e-4
 #define radToDeg    (PI / 180)
+#define ZERO_VECTOR glm::vec3(0.f)
 
-#define BASE_CENTER glm::vec3(0.f);
+#define BASE_CENTER ZERO_VECTOR
 #define BASE_RADIUS .5f
 #define BASE_PHONG  50
 #define BASE_COLOUR glm::vec3(0.f, .7f, 0.f)
@@ -31,17 +32,26 @@ struct Ray;
 
 struct Object
 {
+    // object variables
+    glm::vec3 center = ZERO_VECTOR;
+    glm::vec3 colour = ZERO_VECTOR;
+    float phong = 50.f;
+    float radius = 1.f;
+    bool selected = false;
+    bool selectable = true;
+    bool differenceB = false;
+
+    // object derivative functions
     virtual void getVolume(Ray *ray) = 0;
     virtual glm::vec3 getNormal(glm::vec3 intersection) = 0;
     virtual void breakBoolean(std::vector<Object*> *objectVec, int index) = 0;
-    virtual void select() = 0;
-    virtual void deselect() = 0;
     virtual void scale(bool enlarge) = 0;
     virtual void move(glm::vec3 move) = 0;
     virtual void rotate(glm::vec3 rotate) = 0;
-    glm::vec3 center, colour;
-    float phong, radius;
-    bool selected = false, selectable = true, differenceB = false;
+
+    // object defined functions
+    void select() { selected = true; }
+    void deselect() { selected = false; }
     void generateTempRay(glm::vec3 *origin, glm::vec3 *direction, glm::vec3 rotation, glm::vec3 cent)
     {
         *origin = glm::rotateX(glm::rotateY(glm::rotateZ(*origin, -rotation.z), -rotation.y), -rotation.x) - cent;
@@ -178,8 +188,6 @@ struct Triangle : Object
     void scale(bool enlarge) {}
     void move(glm::vec3 move) {}
     void rotate(glm::vec3 rotate) {}
-    void select() {}
-    void deselect() {}
     void breakBoolean(std::vector<Object*> *objectVec, int index) {}
 };
 
@@ -214,8 +222,6 @@ struct Plane : Object
         center = glm::rotateZ(glm::rotateY(glm::rotateX(center, rotate.x), rotate.y), rotate.z);
         normal = normalize(glm::rotateZ(glm::rotateY(glm::rotateX(normal, rotate.x), rotate.y), rotate.z));
     }
-    void select() { selected = true; }
-    void deselect() { selected = false; }
     void breakBoolean(std::vector<Object*> *objectVec, int index) {}
 };
 
@@ -257,7 +263,7 @@ struct Sphere : Object
     {
         if (abs(distance(intersection, center) - radius) < FLOAT_ERROR)
             return (differenceB) ? -glm::normalize(intersection - center) : glm::normalize(intersection - center);
-        return glm::vec3(0.f);
+        return ZERO_VECTOR;
     }
     void scale(bool enlarge)
     {
@@ -271,8 +277,6 @@ struct Sphere : Object
         center += move;
     }
     void rotate(glm::vec3 rotate) {}
-    void select() { selected = true; }
-    void deselect() { selected = false; }
     void breakBoolean(std::vector<Object*> *objectVec, int index) {}
 };
 
@@ -347,7 +351,7 @@ struct Cube : Object
             if (abs(dot(normalize(intersection - plane->center), plane->normal)) <= FLOAT_ERROR)
                 return (differenceB) ? -plane->normal : plane->normal;
         }
-        return glm::vec3(0.f);
+        return ZERO_VECTOR;
     }
     void scale(bool enlarge)
     {
@@ -377,18 +381,6 @@ struct Cube : Object
         front = normalize(cross(side, top));*/
         for (Plane *plane : planes)
             plane->rotate(rotate);
-    }
-    void select()
-    {
-        selected = true;
-        for (Plane *plane : planes)
-            plane->selected = true;
-    }
-    void deselect()
-    {
-        selected = false;
-        for (Plane *plane : planes)
-            plane->selected = false;
     }
     void breakBoolean(std::vector<Object*> *objectVec, int index) {}
 };
@@ -635,9 +627,13 @@ struct Torus : Object
     }
     glm::vec3 getNormal(glm::vec3 intersection)
     {
-        glm::vec3 point = intersection - center;
+        glm::vec3 intersect = glm::rotateX(glm::rotateY(glm::rotateZ(intersection, -rotation.z), -rotation.y), -rotation.x);
+        glm::vec3 point = intersect - center;
         float a = 1.f - (R / sqrt(point.x*point.x + point.y*point.y));
-        return (differenceB) ? -normalize(glm::vec3(a*point.x, a*point.y, point.z)) : normalize(glm::vec3(a*point.x, a*point.y, point.z));
+        glm::vec3 norm = normalize(glm::vec3(a*point.x, a*point.y, point.z));
+        norm = glm::rotateZ(glm::rotateY(glm::rotateX(norm, rotation.x), rotation.y), rotation.z);
+
+        return (differenceB) ? -norm : norm;
     }
     void scale(bool enlarge) 
     {
@@ -646,8 +642,6 @@ struct Torus : Object
     }
     void move(glm::vec3 move) { center += move; }
     void rotate(glm::vec3 rotate) { rotation += rotate; }
-    void select() { selected = true; }
-    void deselect() { selected = false; }
     void breakBoolean(std::vector<Object*> *objectVec, int index) {}
 };
 
@@ -655,7 +649,7 @@ struct Cylinder : Object
 {
     #define BASE_LENGTH .5f
     float length;
-    glm::vec3 rotation = glm::vec3(0.f);
+    glm::vec3 rotation = ZERO_VECTOR;
     Plane *topPlane, *bottomPlane;
 
     Cylinder()
@@ -733,19 +727,21 @@ struct Cylinder : Object
     }
     glm::vec3 getNormal(glm::vec3 intersection)
     {
+        glm::vec3 intersect = glm::rotateX(glm::rotateY(glm::rotateZ(intersection, -rotation.z), -rotation.y), -rotation.x);
         glm::vec3 vertMove(0.f, center.y, 0.f), norm(0.f);
         // top plane
-        if (abs(dot(normalize(intersection - (topPlane->center + vertMove)), topPlane->normal)) <= FLOAT_ERROR)
+        if (abs(dot(normalize(intersect - (topPlane->center + vertMove)), topPlane->normal)) <= FLOAT_ERROR)
             norm = topPlane->normal;
         // bottom plane
-        else if (abs(dot(normalize(intersection - (bottomPlane->center + vertMove)), bottomPlane->normal)) <= FLOAT_ERROR)
+        else if (abs(dot(normalize(intersect - (bottomPlane->center + vertMove)), bottomPlane->normal)) <= FLOAT_ERROR)
             norm = bottomPlane->normal;
         //cylinder
-        else if (distance(glm::vec2(intersection.x, intersection.z), glm::vec2(center.x, center.z)) - radius <= FLOAT_ERROR)
-            norm = normalize(intersection - glm::vec3(center.x, intersection.y, center.z));
+        else if (distance(glm::vec2(intersect.x, intersect.z), glm::vec2(center.x, center.z)) - radius <= FLOAT_ERROR)
+            norm = normalize(intersect - glm::vec3(center.x, intersect.y, center.z));
         else
-            return glm::vec3(0.f);
+            return ZERO_VECTOR;
 
+        norm = glm::rotateZ(glm::rotateY(glm::rotateX(norm, rotation.x), rotation.y), rotation.z);
         return (differenceB) ? -norm : norm;
     }
     void scale(bool enlarge)
@@ -767,18 +763,6 @@ struct Cylinder : Object
     }
     void move(glm::vec3 move) { center += move; }
     void rotate(glm::vec3 rotate) { rotation += rotate; }
-    void select() 
-    { 
-        selected = true; 
-        topPlane->select();
-        bottomPlane->select();
-    }
-    void deselect() 
-    { 
-        selected = false; 
-        topPlane->deselect();
-        bottomPlane->deselect();
-    }
     void breakBoolean(std::vector<Object*> *objectVec, int index) {}
 };
 
@@ -786,7 +770,7 @@ struct Cone : Object
 {
 #define BASE_LENGTH .5f
     float length;
-    glm::vec3 rotation = glm::vec3(0.f);
+    glm::vec3 rotation = ZERO_VECTOR;
     Plane *bottomPlane;
 
     Cone()
@@ -848,16 +832,18 @@ struct Cone : Object
     }
     glm::vec3 getNormal(glm::vec3 intersection)
     {
+        glm::vec3 intersect = glm::rotateX(glm::rotateY(glm::rotateZ(intersection, -rotation.z), -rotation.y), -rotation.x);
         glm::vec3 vertMove(0.f, center.y, 0.f), norm(0.f);
         // bottom plane
-        if (abs(dot(normalize(intersection - (bottomPlane->center + vertMove)), bottomPlane->normal)) <= FLOAT_ERROR)
+        if (abs(dot(normalize(intersect - (bottomPlane->center + vertMove)), bottomPlane->normal)) <= FLOAT_ERROR)
             norm = bottomPlane->normal;
         //cylinder
-        else if (distance(glm::vec2(intersection.x, intersection.z), glm::vec2(center.x, center.z)) - radius <= FLOAT_ERROR)
-            norm = normalize(intersection - glm::vec3(center.x, intersection.y, center.z));
+        else if (distance(glm::vec2(intersect.x, intersect.z), glm::vec2(center.x, center.z)) - radius <= FLOAT_ERROR)
+            norm = normalize(intersect - glm::vec3(center.x, intersect.y, center.z));
         else
-            return glm::vec3(0.f);
+            return ZERO_VECTOR;
 
+        norm = glm::rotateZ(glm::rotateY(glm::rotateX(norm, rotation.x), rotation.y), rotation.z);
         return (differenceB) ? -norm : norm;
     }
     void scale(bool enlarge)
@@ -877,16 +863,6 @@ struct Cone : Object
     }
     void move(glm::vec3 move) { center += move; }
     void rotate(glm::vec3 rotate) { rotation += rotate; }
-    void select()
-    {
-        selected = true;
-        bottomPlane->select();
-    }
-    void deselect()
-    {
-        selected = false;
-        bottomPlane->deselect();
-    }
     void breakBoolean(std::vector<Object*> *objectVec, int index) {}
 };
 
@@ -959,114 +935,110 @@ struct Union : Object
                 vol2 = temp;
             }
 
-            //vol1 is closer
-            if (vol1.entrance < vol2.entrance)
+            // if vol1 and vol2 are separate
+            if (vol1.exit < vol2.entrance)
             {
-                // if vol1 and vol2 are separate
-                if (vol1.exit < vol2.entrance)
+                // if old volume ends before vol1 begins
+                if (tempExit < vol1.entrance)
                 {
-                    // if old volume ends before vol1 begins
-                    if (tempExit < vol1.entrance)
-                    {
-                        if (tempExit != -FLT_MAX)
-                            ray->pushVolumeBoolean(tempEntr, tempExit, tempObjEntr->getNormal(ray->applyScalar(tempEntr)), tempObjExit->getNormal(ray->applyScalar(tempExit)), this);
-                        tempEntr = vol1.entrance;
-                        tempExit = vol1.exit;
-                        tempObjEntr = vol1.object;
-                        tempObjExit = vol1.object;
+                    if (tempExit != -FLT_MAX)
+                        ray->pushVolumeBoolean(tempEntr, tempExit, tempObjEntr->getNormal(ray->applyScalar(tempEntr)), tempObjExit->getNormal(ray->applyScalar(tempExit)), this);
+                    tempEntr = vol1.entrance;
+                    tempExit = vol1.exit;
+                    tempObjEntr = vol1.object;
+                    tempObjExit = vol1.object;
 
-                        v1Index++;
-                    }
-                    // vol1 starts inside old volume
-                    else if (tempExit < vol1.exit)
-                    {
-                        tempExit = vol1.exit;
-                        tempObjExit = vol1.object;
-                        v1Index++;
-                    }
-                    // vol1 lies inside of old volume and old volume ends before vol2 begins
-                    else if (tempExit < vol2.entrance)
-                    {
-                        v1Index++;
-                    }
-                    // old volume ends inside vol2
-                    else if (tempExit < vol2.exit)
-                    {
-                        tempExit = vol2.exit;
-                        tempObjExit = vol2.object;
-                        v1Index++;
-                        v2Index++;
-                    }
-                    // old volume extends beyond vol2
-                    else
-                    {
-                        v1Index++;
-                        v2Index++;
-                    }
+                    v1Index++;
                 }
-                // vol1 and vol2 partially overlap
-                else if (vol1.exit < vol2.exit)
+                // vol1 starts inside old volume
+                else if (tempExit < vol1.exit)
                 {
-                    // if old volume ends before vol1 begins
-                    if (tempExit < vol1.entrance)
-                    {
-                        if (tempExit != -FLT_MAX)
-                            ray->pushVolumeBoolean(tempEntr, tempExit, tempObjEntr->getNormal(ray->applyScalar(tempEntr)), tempObjExit->getNormal(ray->applyScalar(tempExit)), this);
-                        tempEntr = vol1.entrance;
-                        tempExit = vol2.exit;
-                        tempObjEntr = vol1.object;
-                        tempObjExit = vol2.object;
-
-                        v1Index++;
-                        v2Index++;
-                    }
-                    // old volume ends inside of vol2 or vol1
-                    else if (tempExit < vol2.exit)
-                    {
-                        tempExit = vol2.exit;
-                        tempObjExit = vol2.object;
-
-                        v1Index++;
-                        v2Index++;
-                    }
-                    // old volume contains both vol1 and vol2
-                    else
-                    {
-                        v1Index++;
-                        v2Index++;
-                    }
+                    tempExit = vol1.exit;
+                    tempObjExit = vol1.object;
+                    v1Index++;
                 }
-                // vol1 contains vol2
+                // vol1 lies inside of old volume and old volume ends before vol2 begins
+                else if (tempExit < vol2.entrance)
+                {
+                    v1Index++;
+                }
+                // old volume ends inside vol2
+                else if (tempExit < vol2.exit)
+                {
+                    tempExit = vol2.exit;
+                    tempObjExit = vol2.object;
+                    v1Index++;
+                    v2Index++;
+                }
+                // old volume extends beyond vol2
                 else
                 {
-                    // if old volume ends before vol1 begins
-                    if (tempExit < vol1.entrance)
-                    {
-                        if (tempExit != -FLT_MAX)
-                            ray->pushVolumeBoolean(tempEntr, tempExit, tempObjEntr->getNormal(ray->applyScalar(tempEntr)), tempObjExit->getNormal(ray->applyScalar(tempExit)), this);
-                        tempEntr = vol1.entrance;
-                        tempExit = vol1.exit;
-                        tempObjEntr = vol1.object;
-                        tempObjExit = vol1.object;
+                    v1Index++;
+                    v2Index++;
+                }
+            }
+            // vol1 and vol2 partially overlap
+            else if (vol1.exit < vol2.exit)
+            {
+                // if old volume ends before vol1 begins
+                if (tempExit < vol1.entrance)
+                {
+                    if (tempExit != -FLT_MAX)
+                        ray->pushVolumeBoolean(tempEntr, tempExit, tempObjEntr->getNormal(ray->applyScalar(tempEntr)), tempObjExit->getNormal(ray->applyScalar(tempExit)), this);
+                    tempEntr = vol1.entrance;
+                    tempExit = vol2.exit;
+                    tempObjEntr = vol1.object;
+                    tempObjExit = vol2.object;
 
-                        v1Index++;
-                        v2Index++;
-                    }
-                    // old volume ends inside of vol1
-                    else if (tempExit < vol1.exit)
-                    {
-                        tempExit = vol1.exit;
-                        tempObjExit = vol1.object;
+                    v1Index++;
+                    v2Index++;
+                }
+                // old volume ends inside of vol2 or vol1
+                else if (tempExit < vol2.exit)
+                {
+                    tempExit = vol2.exit;
+                    tempObjExit = vol2.object;
 
-                        v1Index++;
-                        v2Index++;
-                    }
-                    // vol1 is contined in old volume
-                    else
-                    {
-                        v1Index++;
-                        v2Index++;
-                    }
+                    v1Index++;
+                    v2Index++;
+                }
+                // old volume contains both vol1 and vol2
+                else
+                {
+                    v1Index++;
+                    v2Index++;
+                }
+            }
+            // vol1 contains vol2
+            else
+            {
+                // if old volume ends before vol1 begins
+                if (tempExit < vol1.entrance)
+                {
+                    if (tempExit != -FLT_MAX)
+                        ray->pushVolumeBoolean(tempEntr, tempExit, tempObjEntr->getNormal(ray->applyScalar(tempEntr)), tempObjExit->getNormal(ray->applyScalar(tempExit)), this);
+                    tempEntr = vol1.entrance;
+                    tempExit = vol1.exit;
+                    tempObjEntr = vol1.object;
+                    tempObjExit = vol1.object;
+
+                    v1Index++;
+                    v2Index++;
+                }
+                // old volume ends inside of vol1
+                else if (tempExit < vol1.exit)
+                {
+                    tempExit = vol1.exit;
+                    tempObjExit = vol1.object;
+
+                    v1Index++;
+                    v2Index++;
+                }
+                // vol1 is contined in old volume
+                else
+                {
+                    v1Index++;
+                    v2Index++;
                 }
             }
         }
@@ -1085,7 +1057,7 @@ struct Union : Object
     { 
         glm::vec3 lNormal = leftChild->getNormal(intersection);
         glm::vec3 rNormal = rightChild->getNormal(intersection);
-        if (lNormal != glm::vec3(0.f))
+        if (lNormal != ZERO_VECTOR)
             return lNormal;
         else
             return rNormal;
@@ -1236,7 +1208,7 @@ struct Intersection : Object
     {
         glm::vec3 lNormal = leftChild->getNormal(intersection);
         glm::vec3 rNormal = rightChild->getNormal(intersection);
-        if (lNormal != glm::vec3(0.f))
+        if (lNormal != ZERO_VECTOR)
             return lNormal;
         else
             return rNormal;
@@ -1256,8 +1228,6 @@ struct Intersection : Object
         leftChild->rotate(rotate);
         rightChild->rotate(rotate);
     }
-    void select() { selected = true; }
-    void deselect() { selected = false; }
     void breakBoolean(std::vector<Object*> *objectVec, int index)
     {
         objectVec->erase(objectVec->begin() + index);
@@ -1727,7 +1697,7 @@ struct Difference : Object
     {
         glm::vec3 lNormal = leftChild->getNormal(intersection);
         glm::vec3 rNormal = rightChild->getNormal(intersection);
-        if (lNormal != glm::vec3(0.f))
+        if (lNormal != ZERO_VECTOR)
             return lNormal;
         else
             return rNormal;
@@ -1747,8 +1717,6 @@ struct Difference : Object
         leftChild->rotate(rotate);
         rightChild->rotate(rotate);
     }
-    void select() { selected = true; }
-    void deselect() { selected = false; }
     void breakBoolean(std::vector<Object*> *objectVec, int index)
     {
         objectVec->erase(objectVec->begin() + index);
