@@ -174,6 +174,9 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
         case(GLFW_KEY_4):
             objectVec.push_back(new Cylinder());
             break;
+        case(GLFW_KEY_5):
+            objectVec.push_back(new Cone);
+            break;
         
         
         case(GLFW_KEY_I): // intersection

@@ -782,6 +782,114 @@ struct Cylinder : Object
     void breakBoolean(std::vector<Object*> *objectVec, int index) {}
 };
 
+struct Cone : Object
+{
+#define BASE_LENGTH .5f
+    float length;
+    glm::vec3 rotation = glm::vec3(0.f);
+    Plane *bottomPlane;
+
+    Cone()
+    {
+        radius = BASE_RADIUS;
+        center = BASE_CENTER;
+        colour = BASE_COLOUR;
+        phong = BASE_PHONG;
+        length = BASE_LENGTH;
+
+        bottomPlane = new Plane(center - (length * YAXIS), -YAXIS);
+    }
+    ~Cone() { delete bottomPlane; }
+
+    void getVolume(Ray *ray)
+    {
+        glm::vec3 origin = ray->origin;
+        glm::vec3 direction = ray->direction;
+        generateTempRay(&origin, &direction, rotation, center);
+        Ray tempRay(origin, direction);
+
+        std::vector<float> scalars;
+
+        // get the intersections for the bottom plane
+        float tempScalar = bottomPlane->getIntersection(&tempRay);
+        if (tempScalar != NULL)
+        {
+            glm::vec3 intersection = tempRay.applyScalar(tempScalar);
+            if (distance(intersection, bottomPlane->center) - radius <= FLOAT_ERROR)
+                scalars.push_back(tempScalar);
+        }
+
+        // at most 1 plane intersection. Need to check the cylinder now
+        float A = (tempRay.direction.x * tempRay.direction.x) + (tempRay.direction.z * tempRay.direction.z) - (tempRay.direction.y * tempRay.direction.y);
+        float B = (2.f * (tempRay.origin.x * tempRay.direction.x)) + (2.f * (tempRay.origin.z * tempRay.direction.z)) - (2.f * (tempRay.origin.y * tempRay.direction.y));
+        float C = (tempRay.origin.x * tempRay.origin.x) + (tempRay.origin.z * tempRay.origin.z) - (tempRay.origin.y * tempRay.origin.y);
+
+        // now we solve the quadratic equation
+        float rootTerm = (B * B) - (4.f * A * C);
+        if (rootTerm < 0) return;   // no solutions, misses the cylinder
+
+        rootTerm = sqrt(rootTerm);
+
+        float scalar1 = (-B - rootTerm) / (2.f * A);
+        float scalar2 = (-B + rootTerm) / (2.f * A);
+
+        glm::vec3 intersection1 = tempRay.applyScalar(scalar1);
+        glm::vec3 intersection2 = tempRay.applyScalar(scalar2);
+
+        if (abs(intersection1.y) - length <= FLOAT_ERROR && intersection1.y <= 0)
+            scalars.push_back(scalar1);
+        if (abs(intersection2.y) - length <= FLOAT_ERROR && intersection2.y <= 0)
+            scalars.push_back(scalar2);
+
+        if (scalars.size() < 2) return;
+
+        std::sort(scalars.begin(), scalars.end());
+        ray->pushVolume(scalars.front(), scalars.back(), ray, this);
+    }
+    glm::vec3 getNormal(glm::vec3 intersection)
+    {
+        glm::vec3 vertMove(0.f, center.y, 0.f), norm(0.f);
+        // bottom plane
+        if (abs(dot(normalize(intersection - (bottomPlane->center + vertMove)), bottomPlane->normal)) <= FLOAT_ERROR)
+            norm = bottomPlane->normal;
+        //cylinder
+        else if (distance(glm::vec2(intersection.x, intersection.z), glm::vec2(center.x, center.z)) - radius <= FLOAT_ERROR)
+            norm = normalize(intersection - glm::vec3(center.x, intersection.y, center.z));
+        else
+            return glm::vec3(0.f);
+
+        return (differenceB) ? -norm : norm;
+    }
+    void scale(bool enlarge)
+    {
+        if (enlarge)
+        {
+            radius += SCALE_CHANGE;
+            length += SCALE_CHANGE;
+            bottomPlane->center.y += -SCALE_CHANGE;
+        }
+        else
+        {
+            radius = glm::max(MIN_SCALE, radius - SCALE_CHANGE);
+            length = glm::max(MIN_SCALE, length - SCALE_CHANGE);
+            bottomPlane->center.y = ((bottomPlane->center.y >= -.1f) ? bottomPlane->center.y : bottomPlane->center.y + SCALE_CHANGE);
+        }
+    }
+    void move(glm::vec3 move) { center += move; }
+    void rotate(glm::vec3 rotate) { rotation += rotate; }
+    void select()
+    {
+        selected = true;
+        bottomPlane->select();
+    }
+    void deselect()
+    {
+        selected = false;
+        bottomPlane->deselect();
+    }
+    void breakBoolean(std::vector<Object*> *objectVec, int index) {}
+};
+
 // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 // the combinations
 struct Union : Object

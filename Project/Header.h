@@ -23,7 +23,7 @@
 #define FOCAL_LENGTH	-2.2f
 #define DEF_CAM_POS     glm::vec3(0.f, 0.f, 4.f)
 #define ZOOM_SENS       .1f
-#define DEF_ZOOM        1.f
+#define DEF_ZOOM        2.f
 #define MAX_ZOOM        .001f
 #define DEF_ROTATION    glm::vec3(0.f)
 #define DEF_MOVEMENT	glm::vec3(0.f)
