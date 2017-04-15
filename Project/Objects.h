@@ -2,10 +2,8 @@
 #include <algorithm>
 #include <glm/glm.hpp>
 #include <vector>
-#include <utility>
 #include <glm/gtx/rotate_vector.hpp>
 #include <complex>
-#include <omp.h>
 
 // Mathematical values
 #define PI			3.14159265359f
@@ -52,11 +50,6 @@ struct Object
     // object defined functions
     void select() { selected = true; }
     void deselect() { selected = false; }
-    void generateTempRay(glm::vec3 *origin, glm::vec3 *direction, glm::vec3 rotation, glm::vec3 cent)
-    {
-        *origin = glm::rotateX(glm::rotateY(glm::rotateZ(*origin, -rotation.z), -rotation.y), -rotation.x) - cent;
-        *direction = glm::rotateX(glm::rotateY(glm::rotateZ(*direction, -rotation.z), -rotation.y), -rotation.x);
-    }
 };
 
 
@@ -123,6 +116,7 @@ struct Ray
     }
 };
 
+Ray generateTempRay(Ray *ray, glm::vec3 center, glm::vec3 rotation);
 
 // uncreateable objects
 struct Triangle : Object
@@ -284,7 +278,7 @@ struct Cube : Object
 {
     // variables
     Plane* planes[6];
-    glm::vec3 top, side, front;
+    glm::vec3 rotation;
     float radi;
 
     // constructors
@@ -292,18 +286,15 @@ struct Cube : Object
     {
         radius = BASE_RADIUS;
         center = BASE_CENTER;
-        top = YAXIS;
-        side = XAXIS;
-        front = ZAXIS;
         colour = BASE_COLOUR;
         phong = BASE_PHONG;
 
-        planes[0] = new Plane(center + (radius * side), side);
-        planes[1] = new Plane(center + (radius * -side), -side);
-        planes[2] = new Plane(center + (radius * top), top);
-        planes[3] = new Plane(center + (radius * -top), -top);
-        planes[4] = new Plane(center + (radius * front), front);
-        planes[5] = new Plane(center + (radius * -front), -front);
+        planes[0] = new Plane(center + (radius * XAXIS), XAXIS);
+        planes[1] = new Plane(center - (radius * XAXIS), -XAXIS);
+        planes[2] = new Plane(center + (radius * YAXIS), YAXIS);
+        planes[3] = new Plane(center - (radius * YAXIS), -YAXIS);
+        planes[4] = new Plane(center + (radius * ZAXIS), ZAXIS);
+        planes[5] = new Plane(center - (radius * ZAXIS), -ZAXIS);
     }
     ~Cube()
     {
@@ -313,75 +304,54 @@ struct Cube : Object
 
     void getVolume(Ray *ray)
     {
+        Ray tempRay = generateTempRay(ray, center, rotation);
+
         std::vector<float> points;
 
         // 6 is the number of planes in planes
-        for (Plane *plane : planes)
+        for (Plane* plane : planes)
         {
-            float scalar = plane->getIntersection(ray);
+            float scalar = plane->getIntersection(&tempRay);
             // if parallel, the scalar will be NULL
             if (!scalar) continue;
 
-            bool contained = true;
-            for (Plane *planeCheck : planes)
-            {
-                glm::vec3 relativeIntersect = normalize(ray->applyScalar(scalar) - planeCheck->center);
-                if (dot(relativeIntersect, planeCheck->normal) > FLOAT_ERROR)
-                {
-                    contained = false;
-                    break;
-                }
-            }
-            // if point is contained in the cube, add to point vec
-            if (contained) points.push_back(scalar);
+            // intersect position relative to the cube center
+            glm::vec3 intersect = tempRay.applyScalar(scalar);
+            glm::vec3 corner = radius * (YAXIS + XAXIS + ZAXIS);
+
+            // if the intersection does not exceed the bounds of the normals
+            if (abs(intersect.x) <= abs(corner.x) + FLOAT_ERROR &&
+                abs(intersect.y) <= abs(corner.y) + FLOAT_ERROR &&
+                abs(intersect.z) <= abs(corner.z) + FLOAT_ERROR)
+                points.push_back(scalar);
         }
 
-        // ignore single point result
-        if (points.size() < 1) return;
+        if (points.size() < 2) return;
 
-        // add intersections to ray
         std::sort(points.begin(), points.end());
         ray->pushVolume(points.front(), points.back(), ray, this);
     }
     glm::vec3 getNormal(glm::vec3 intersection)
     {
+        glm::vec3 intersect = glm::rotateX(glm::rotateY(glm::rotateZ(intersection, -rotation.z), -rotation.y), -rotation.x) - center;
         for (Plane *plane : planes)
         {
-            glm::vec3 relativeIntersect = normalize(intersection - plane->center);
-            if (abs(dot(normalize(intersection - plane->center), plane->normal)) <= FLOAT_ERROR)
-                return (differenceB) ? -plane->normal : plane->normal;
+            if (abs(dot(normalize(intersect - plane->center), plane->normal)) <= FLOAT_ERROR)
+            {
+                glm::vec3 norm = glm::rotateZ(glm::rotateY(glm::rotateX(plane->normal, rotation.x), rotation.y), rotation.z);
+                return (differenceB) ? -norm : norm;
+            }
         }
         return ZERO_VECTOR;
     }
     void scale(bool enlarge)
     {
-        if (enlarge)
-        {
-            radius += SCALE_CHANGE;
-            for (Plane *plane : planes)
-                plane->center = center + (radius * plane->normal);
-        }
-        else
-        {
-            radius = glm::max(MIN_SCALE, radius - SCALE_CHANGE);
-            for (Plane *plane : planes)
-                plane->center = center + (radius * plane->normal);
-        }
-    }
-    void move(glm::vec3 move)
-    {
-        center += move;
+        radius = (enlarge) ? radius + SCALE_CHANGE : glm::max(MIN_SCALE, radius - SCALE_CHANGE);
         for (Plane *plane : planes)
-            plane->move(move);
+            plane->center = (radius * plane->normal);
     }
-    void rotate(glm::vec3 rotate)
-    {
-        /*top = normalize(glm::rotateZ(glm::rotateY(glm::rotateX(YAXIS, rotation.x), rotation.y), rotation.z));
-        side = normalize(rotateZ(glm::rotateY(glm::rotateX(XAXIS, rotation.x), rotation.y), rotation.z));
-        front = normalize(cross(side, top));*/
-        for (Plane *plane : planes)
-            plane->rotate(rotate);
-    }
+    void move(glm::vec3 move) { center += move; }
+    void rotate(glm::vec3 rotate) { rotation += rotate; }
     void breakBoolean(std::vector<Object*> *objectVec, int index) {}
 };
 
@@ -570,10 +540,9 @@ struct Torus : Object
     */
     void getVolume(Ray *ray)
     {  
-        glm::vec3 origin = ray->origin;
-        glm::vec3 direction = ray->direction;
-        generateTempRay(&origin, &direction, rotation, center);
-        Ray tempRay(origin, direction);
+        Ray tempRay = generateTempRay(ray, center, rotation);
+
+        // BEGINNING OF SOURCED CODE
 
         double T = 4.f * R * R;
         double G = T * ((tempRay.direction.x * tempRay.direction.x) + (tempRay.direction.y * tempRay.direction.y));
@@ -603,12 +572,10 @@ struct Torus : Object
         {
             // Compact the array...
             if (roots[i] > SURFACE_TOLERANCE)
-            {
                scalars.push_back(roots[i]);
-            }
         }
 
-
+        // END OF SOURCED CODE
 
 
         std::sort(scalars.begin(), scalars.end());
@@ -667,10 +634,7 @@ struct Cylinder : Object
 
     void getVolume(Ray *ray)
     {
-        glm::vec3 origin = ray->origin;
-        glm::vec3 direction = ray->direction;
-        generateTempRay(&origin, &direction, rotation, center);
-        Ray tempRay(origin, direction);
+        Ray tempRay = generateTempRay(ray, center, rotation);
 
         std::vector<float> scalars;
 
@@ -787,10 +751,7 @@ struct Cone : Object
 
     void getVolume(Ray *ray)
     {
-        glm::vec3 origin = ray->origin;
-        glm::vec3 direction = ray->direction;
-        generateTempRay(&origin, &direction, rotation, center);
-        Ray tempRay(origin, direction);
+        Ray tempRay = generateTempRay(ray, center, rotation);
 
         std::vector<float> scalars;
 

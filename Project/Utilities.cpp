@@ -24,6 +24,12 @@ bool    select1   = true,
         rotationY = false,
         rotationZ = false;
 
+Ray generateTempRay(Ray *ray, glm::vec3 center, glm::vec3 rotation)
+{
+    return Ray(
+        glm::rotateX(glm::rotateY(glm::rotateZ(ray->origin, -rotation.z), -rotation.y), -rotation.x) - center,
+        glm::rotateX(glm::rotateY(glm::rotateZ(ray->direction, -rotation.z), -rotation.y), -rotation.x));
+}
 
 // Error Checking
 void ErrorCallback(int error, const char* description)
