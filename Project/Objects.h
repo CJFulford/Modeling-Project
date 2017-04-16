@@ -662,7 +662,7 @@ struct Cylinder : Object
         // if the ray collides perfectly with both planes then it is inside the cylinder, and we dont need to check the cylinder
         if (scalars.size() == 2)
         {
-            ray->pushVolume(glm::min(scalars[0], scalars[1]), glm::max(scalars[0], scalars[1]), ray, this);
+            ray->pushVolume(glm::min(scalars[0], scalars[1]), glm::max(scalars[0], scalars[1]), &tempRay, this);
             return;
         }
 
@@ -692,17 +692,18 @@ struct Cylinder : Object
         if (scalars.size() < 2) return;
 
         std::sort(scalars.begin(), scalars.end());
-        ray->pushVolume(scalars.front(), scalars.back(), ray, this);
+        ray->pushVolume(scalars.front(), scalars.back(), &tempRay, this);
     }
-    glm::vec3 getNormal(glm::vec3 intersection)
+    glm::vec3 getNormal(glm::vec3 intersect)
     {
-        glm::vec3 intersect = glm::rotateX(glm::rotateY(glm::rotateZ(intersection - center, -rotation.z), -rotation.y), -rotation.x);
+        //glm::vec3 intersect = glm::rotateX(glm::rotateY(glm::rotateZ(intersection + center, -rotation.z), -rotation.y), -rotation.x);
+        intersect += center;
         glm::vec3 norm(0.f);
         // top plane
-        if (abs(dot(normalize(intersect - (topPlane->center)), topPlane->normal)) <= FLOAT_ERROR)
+        if (abs(intersect.y - center.y - topPlane->center.y) <= FLOAT_ERROR)
             norm = topPlane->normal;
         // bottom plane
-        else if (abs(dot(normalize(intersect - (bottomPlane->center)), bottomPlane->normal)) <= FLOAT_ERROR)
+        else if (abs(intersect.y - center.y - bottomPlane->center.y) <= FLOAT_ERROR)
             norm = bottomPlane->normal;
         //cylinder
         else if (distance(glm::vec2(intersect.x, intersect.z), glm::vec2(center.x, center.z)) - radius <= FLOAT_ERROR)
@@ -727,103 +728,6 @@ struct Cylinder : Object
             radius = glm::max(MIN_SCALE, radius - SCALE_CHANGE);
             length = glm::max(MIN_SCALE, length - SCALE_CHANGE);
             topPlane->center.y = ((topPlane->center.y <= .1f) ? topPlane->center.y : topPlane->center.y - SCALE_CHANGE);
-            bottomPlane->center.y = ((bottomPlane->center.y >= -.1f) ? bottomPlane->center.y : bottomPlane->center.y + SCALE_CHANGE);
-        }
-    }
-    void move(glm::vec3 move) { center += move; }
-    void rotate(glm::vec3 rotate) { rotation += rotate; }
-    void breakBoolean(std::vector<Object*> *objectVec, int index) {}
-};
-
-struct Cone : Object
-{
-#define BASE_LENGTH .5f
-    float length;
-    glm::vec3 rotation = ZERO_VECTOR;
-    Plane *bottomPlane;
-
-    Cone()
-    {
-        radius = BASE_RADIUS;
-        center = BASE_CENTER;
-        colour = BASE_COLOUR;
-        phong = BASE_PHONG;
-        length = BASE_LENGTH;
-
-        bottomPlane = new Plane(center - (length * YAXIS), -YAXIS);
-    }
-    ~Cone() { delete bottomPlane; }
-
-    void getVolume(Ray *ray)
-    {
-        Ray tempRay = generateTempRay(ray, center, rotation);
-
-        std::vector<float> scalars;
-
-        // get the intersections for the bottom plane
-        float tempScalar = bottomPlane->getIntersection(&tempRay);
-        if (tempScalar != NULL)
-        {
-            glm::vec3 intersection = tempRay.applyScalar(tempScalar);
-            if (distance(intersection, bottomPlane->center) - radius <= FLOAT_ERROR)
-                scalars.push_back(tempScalar);
-        }
-
-        // at most 1 plane intersection. Need to check the cylinder now
-        float A = (tempRay.direction.x * tempRay.direction.x) + (tempRay.direction.z * tempRay.direction.z) - (tempRay.direction.y * tempRay.direction.y);
-        float B = (2.f * (tempRay.origin.x * tempRay.direction.x)) + (2.f * (tempRay.origin.z * tempRay.direction.z)) - (2.f * (tempRay.origin.y * tempRay.direction.y));
-        float C = (tempRay.origin.x * tempRay.origin.x) + (tempRay.origin.z * tempRay.origin.z) - (tempRay.origin.y * tempRay.origin.y);
-
-        // now we solve the quadratic equation
-        float rootTerm = (B * B) - (4.f * A * C);
-        if (rootTerm < 0) return;   // no solutions, misses the cylinder
-
-        rootTerm = sqrt(rootTerm);
-
-        float scalar1 = (-B - rootTerm) / (2.f * A);
-        float scalar2 = (-B + rootTerm) / (2.f * A);
-
-        glm::vec3 intersection1 = tempRay.applyScalar(scalar1);
-        glm::vec3 intersection2 = tempRay.applyScalar(scalar2);
-
-        if (abs(intersection1.y) - length <= FLOAT_ERROR && intersection1.y <= 0)
-            scalars.push_back(scalar1);
-        if (abs(intersection2.y) - length <= FLOAT_ERROR && intersection2.y <= 0)
-            scalars.push_back(scalar2);
-
-        if (scalars.size() < 2) return;
-
-        std::sort(scalars.begin(), scalars.end());
-        ray->pushVolume(scalars.front(), scalars.back(), ray, this);
-    }
-    glm::vec3 getNormal(glm::vec3 intersection)
-    {
-        glm::vec3 intersect = glm::rotateX(glm::rotateY(glm::rotateZ(intersection - center, -rotation.z), -rotation.y), -rotation.x);
-        glm::vec3 norm(0.f);
-        // bottom plane
-        if (abs(dot(normalize(intersect - (bottomPlane->center)), bottomPlane->normal)) <= FLOAT_ERROR)
-            norm = bottomPlane->normal;
-        //cylinder
-        else if (distance(glm::vec2(intersect.x, intersect.z), glm::vec2(center.x, center.z)) - radius <= FLOAT_ERROR)
-            norm = normalize(intersect - glm::vec3(center.x, intersect.y, center.z));
-        else
-            return ZERO_VECTOR;
-
-        norm = glm::rotateZ(glm::rotateY(glm::rotateX(norm, rotation.x), rotation.y), rotation.z);
-        return (differenceB) ? -norm : norm;
-    }
-    void scale(bool enlarge)
-    {
-        if (enlarge)
-        {
-            radius += SCALE_CHANGE;
-            length += SCALE_CHANGE;
-            bottomPlane->center.y += -SCALE_CHANGE;
-        }
-        else
-        {
-            radius = glm::max(MIN_SCALE, radius - SCALE_CHANGE);
-            length = glm::max(MIN_SCALE, length - SCALE_CHANGE);
             bottomPlane->center.y = ((bottomPlane->center.y >= -.1f) ? bottomPlane->center.y : bottomPlane->center.y + SCALE_CHANGE);
         }
     }

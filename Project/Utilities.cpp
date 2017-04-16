@@ -24,6 +24,8 @@ bool    select1   = true,
         rotationY = false,
         rotationZ = false;
 
+// --input: original ray, theoretical center or object, theoreticle object rotation
+// --output: a ray that considers the object to be at 0,0,0 with no rotation (aligned along y axis (vertical))
 Ray generateTempRay(Ray *ray, glm::vec3 center, glm::vec3 rotation)
 {
     return Ray(
@@ -179,9 +181,6 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
             break;
         case(GLFW_KEY_4):
             objectVec.push_back(new Cylinder());
-            break;
-        case(GLFW_KEY_5):
-            objectVec.push_back(new Cone);
             break;
         
         
