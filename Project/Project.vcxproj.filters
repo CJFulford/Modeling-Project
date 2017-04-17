@@ -33,6 +33,12 @@
     <ClCompile Include="Tools.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="TList.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Shader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Header.h">
@@ -47,5 +53,19 @@
     <ClInclude Include="Tools.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="TList.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Shader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="general.frag">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="general.vert">
+      <Filter>Source Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

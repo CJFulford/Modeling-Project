@@ -56,19 +56,6 @@ bool CheckGLErrors()
 }
 
 
-// For User Information
-void printOpenGLVersion(GLenum majorVer, GLenum minorVer, GLenum langVer)
-{
-    GLint major, minor;
-    glGetIntegerv(majorVer, &major);
-    glGetIntegerv(minorVer, &minor);
-    printf("OpenGL on %s %s\n", glGetString(GL_VENDOR), glGetString(GL_RENDERER));
-    printf("OpenGL version supported %s\n", glGetString(GL_VERSION));
-    printf("GLSL version supported %s\n", glGetString(langVer));
-    printf("GL version major, minor: %i.%i\n", major, minor);
-}
-
-
 // controls
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
@@ -297,8 +284,11 @@ void mouseMotion(GLFWwindow* window, double x, double y)
     // screen rotation
     else if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_1))
     {
-        rotate_x += (float)((y - mouse_old_y)) * radToDeg;
-        rotate_y += (float)((x - mouse_old_x)) * radToDeg;
+        if (x < HALF_WIDTH && y < HALF_HEIGHT)                  //moving around the Rendering
+        {
+            rotate_x += (float)((y - mouse_old_y)) * radToDeg;
+            rotate_y += (float)((x - mouse_old_x)) * radToDeg;
+        }
     }
     mouse_old_x = x;
     mouse_old_y = y;
@@ -403,7 +393,7 @@ GLFWwindow* generateWindow()
     glfwWindowHint(GLFW_DOUBLEBUFFER, GLFW_TRUE);
 
 	// attempt to create a window with an OpenGL 4.4 core profile context
-	GLFWwindow *window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Implicit Surfaces", 0, 0);
+	GLFWwindow *window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Render Window", 0, 0);
 	if (!window) 
     {
 		std::cout << "Program failed to create GLFW window, TERMINATING" << std::endl;
@@ -419,11 +409,36 @@ GLFWwindow* generateWindow()
     glfwSetMouseButtonCallback(window, mouseButtonCallback);
     glfwMakeContextCurrent(window);
 
-	// load glad
-	gladLoadGL();
+    return window;
+}
 
-	// query and print out information about our OpenGL environment
-    printOpenGLVersion(GL_MAJOR_VERSION, GL_MINOR_VERSION, GL_SHADING_LANGUAGE_VERSION);
-    
+GLFWwindow* generateControl()
+{
+    if (!glfwInit())
+    {
+        std::cout << "ERROR: GLFW failed to initilize, TERMINATING" << std::endl;
+        return NULL;
+    }
+
+    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+    glfwWindowHint(GLFW_DOUBLEBUFFER, GLFW_TRUE);
+
+    // attempt to create a window with an OpenGL 4.4 core profile context
+    GLFWwindow *window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "CSG Window", 0, 0);
+    if (!window)
+    {
+        std::cout << "Program failed to create GLFW window, TERMINATING" << std::endl;
+        glfwTerminate();
+        return NULL;
+    }
+
+    // set Callbacks
+    //glfwSetErrorCallback(ErrorCallback);
+    //glfwSetKeyCallback(window, keyCallback);
+    //glfwSetCursorPosCallback(window, mouseMotion);
+    //glfwSetScrollCallback(window, scrollCallback);
+    //glfwSetMouseButtonCallback(window, mouseButtonCallback);
+    //glfwMakeContextCurrent(window);
+
     return window;
 }

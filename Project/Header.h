@@ -1,11 +1,10 @@
 #include "Objects.h"
-
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
 // window info
-#define WINDOW_WIDTH	500
-#define WINDOW_HEIGHT	500
+#define WINDOW_WIDTH	1000
+#define WINDOW_HEIGHT	1000
 #define HALF_WIDTH		(WINDOW_WIDTH / 2)
 #define HALF_HEIGHT		(WINDOW_HEIGHT / 2)
 
@@ -40,7 +39,7 @@ extern float rotate_y;
 // ============================== Utilities.cpp
 // Error Checking
 GLFWwindow* generateWindow();
-
+GLFWwindow* generateControl();
 
 // ============================== Lighting.cpp
 glm::vec3 getColour(Ray *ray, std::vector<Object*> *objectVec);

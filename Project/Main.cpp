@@ -1,6 +1,6 @@
 #include "Header.h"
+#include "TList.h"
 #include "ImageBuffer.h"
-
 #include <iostream>
 #include <ctime>
 #include <omp.h>
@@ -36,7 +36,10 @@ void addFloor(std::vector<Object*> *objectVec)
 
 int main(int argc, char *argv[])
 {
-	GLFWwindow* window = generateWindow();
+    GLFWwindow* window = generateWindow();
+
+    // load glad
+    gladLoadGL();
 	
 	ImageBuffer imageBuffer;
 	imageBuffer.Initialize();
@@ -50,10 +53,10 @@ int main(int argc, char *argv[])
 	int frames = 0;
 	float	w = -(rayr / (float)tan(FOV / 2));
 
+    TList tlist = TList();
 
 	while (!glfwWindowShouldClose(window))
 	{
-        
         startTime = time(NULL);
 
         // rotateX, rotateY, zoom. Do here for single calc
@@ -63,13 +66,13 @@ int main(int argc, char *argv[])
                             * zoom;
 
 		#pragma omp parallel for schedule(dynamic)
-		for (int i = 0; i < WINDOW_WIDTH; i++)
+		for (int i = 0; i < HALF_WIDTH; i++)
 		{
-			for (int j = 0; j < WINDOW_HEIGHT; j++)
+			for (int j = 0; j < HALF_HEIGHT; j++)
 			{
     			glm::vec3 colourVec = BLACK;
-				float u = rayl + ((rayr - rayl)*(i + .5f)) / WINDOW_WIDTH;
-				float v = rayb + ((rayt - rayb)*(j + .5f)) / WINDOW_HEIGHT;
+				float u = rayl + ((rayr - rayl)*(i + .5f)) / HALF_WIDTH;
+				float v = rayb + ((rayt - rayb)*(j + .5f)) / HALF_HEIGHT;
 
                 // construct the ray
                 // rotate the direction along the x axis then the y axis
@@ -80,13 +83,14 @@ int main(int argc, char *argv[])
                                 , rotate_y)));
 
 				colourVec = getColour(&ray, &objectVec);
-				imageBuffer.SetPixel(i, j, colourVec);
+				imageBuffer.SetPixel(i, j + HALF_HEIGHT, colourVec);
 			}
 		}
-
-
+        #pragma omp barrier
 
 		imageBuffer.Render();
+        tlist.render();
+
         glfwSwapBuffers(window);
 
 
@@ -99,10 +103,7 @@ int main(int argc, char *argv[])
 			frames = 0;
 		}
 
-
-
-
-		glfwPollEvents();
+        glfwPollEvents();
 	}
 
 	// clean up allocated resources before exit
