@@ -23,16 +23,6 @@ bool    select1   = true,
         rotationX = false,
         rotationY = false,
         rotationZ = false;
-
-// --input: original ray, theoretical center or object, theoreticle object rotation
-// --output: a ray that considers the object to be at 0,0,0 with no rotation (aligned along y axis (vertical))
-Ray generateTempRay(Ray *ray, glm::vec3 center, glm::vec3 rotation)
-{
-    return Ray(
-        glm::rotateX(glm::rotateY(glm::rotateZ(ray->origin - center, -rotation.z), -rotation.y), -rotation.x),
-        glm::rotateX(glm::rotateY(glm::rotateZ(ray->direction, -rotation.z), -rotation.y), -rotation.x));
-}
-
 // Error Checking
 void ErrorCallback(int error, const char* description)
 {

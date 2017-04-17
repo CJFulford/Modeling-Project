@@ -99,6 +99,7 @@ struct Ray
         *normal = norm;
         *scalar = min;
         return object;
+
     }
     glm::vec3 applyScalar(float scalar)
     {
@@ -115,9 +116,13 @@ struct Ray
     {
         volumes.push_back(Volume(s1, s2, normal1, -normal2, obj));
     }
+    Ray generateTempRay(glm::vec3 center, glm::vec3 rotation)
+    {
+        return Ray(
+            glm::rotateX(glm::rotateY(glm::rotateZ(origin - center, -rotation.z), -rotation.y), -rotation.x),
+            glm::rotateX(glm::rotateY(glm::rotateZ(direction, -rotation.z), -rotation.y), -rotation.x));
+    }
 };
-
-Ray generateTempRay(Ray *ray, glm::vec3 center, glm::vec3 rotation);
 
 // uncreateable objects
 struct Triangle : Object
@@ -237,8 +242,7 @@ struct Sphere : Object
     */
     void getVolume(Ray *ray)
     {
-        Ray tempRay = generateTempRay(ray, center, rotation);
-
+        Ray tempRay = ray->generateTempRay(center, rotation);
         glm::vec3 relativeCenter = center - tempRay.origin;
         float directionAngle = dot(relativeCenter, tempRay.direction);
 
@@ -310,7 +314,7 @@ struct Cube : Object
 
     void getVolume(Ray *ray)
     {
-        Ray tempRay = generateTempRay(ray, center, rotation);
+        Ray tempRay = ray->generateTempRay(center, rotation);
 
         std::vector<float> points;
 
@@ -546,7 +550,7 @@ struct Torus : Object
     */
     void getVolume(Ray *ray)
     {  
-        Ray tempRay = generateTempRay(ray, center, rotation);
+        Ray tempRay = ray->generateTempRay(center, rotation);
 
         // BEGINNING OF MODIFIED SOURCED CODE
 
@@ -601,10 +605,11 @@ struct Torus : Object
     glm::vec3 getNormal(glm::vec3 intersection)
     {
         glm::vec3 intersect = glm::rotateX(glm::rotateY(glm::rotateZ(intersection - center, -rotation.z), -rotation.y), -rotation.x);
-        float a = 1.f - (R / sqrt(intersect.x * intersect.x + intersect.y * intersect.y));
-        glm::vec3 norm = normalize(glm::vec3(a*intersect.x, a*intersect.y, intersect.z));
-        norm = glm::rotateZ(glm::rotateY(glm::rotateX(norm, rotation.x), rotation.y), rotation.z);
 
+        float a = 1.f - (R / sqrt((intersect.x * intersect.x) + (intersect.y * intersect.y)));
+        glm::vec3 norm = normalize(glm::vec3(a * intersect.x, a * intersect.y, intersect.z));
+
+        norm = glm::rotateZ(glm::rotateY(glm::rotateX(norm, rotation.x), rotation.y), rotation.z);
         return (differenceB) ? -norm : norm;
     }
     void scale(bool enlarge) 
@@ -639,7 +644,7 @@ struct Cylinder : Object
 
     void getVolume(Ray *ray)
     {
-        Ray tempRay = generateTempRay(ray, center, rotation);
+        Ray tempRay = ray->generateTempRay(center, rotation);
 
         std::vector<float> scalars;
 
@@ -662,7 +667,7 @@ struct Cylinder : Object
         // if the ray collides perfectly with both planes then it is inside the cylinder, and we dont need to check the cylinder
         if (scalars.size() == 2)
         {
-            ray->pushVolume(glm::min(scalars[0], scalars[1]), glm::max(scalars[0], scalars[1]), &tempRay, this);
+            ray->pushVolume(glm::min(scalars[0], scalars[1]), glm::max(scalars[0], scalars[1]), ray, this);
             return;
         }
 
@@ -692,24 +697,26 @@ struct Cylinder : Object
         if (scalars.size() < 2) return;
 
         std::sort(scalars.begin(), scalars.end());
-        ray->pushVolume(scalars.front(), scalars.back(), &tempRay, this);
+        ray->pushVolume(scalars.front(), scalars.back(), ray, this);
     }
-    glm::vec3 getNormal(glm::vec3 intersect)
+    glm::vec3 getNormal(glm::vec3 intersection)
     {
-        //glm::vec3 intersect = glm::rotateX(glm::rotateY(glm::rotateZ(intersection + center, -rotation.z), -rotation.y), -rotation.x);
-        intersect += center;
         glm::vec3 norm(0.f);
+        glm::vec3 intersect= glm::rotateX(glm::rotateY(glm::rotateZ(intersection - center, -rotation.z), -rotation.y), -rotation.x);
+
+
         // top plane
-        if (abs(intersect.y - center.y - topPlane->center.y) <= FLOAT_ERROR)
+        if (abs(intersect.y - topPlane->center.y) <= FLOAT_ERROR)
             norm = topPlane->normal;
         // bottom plane
-        else if (abs(intersect.y - center.y - bottomPlane->center.y) <= FLOAT_ERROR)
+        else if (abs(intersect.y - bottomPlane->center.y) <= FLOAT_ERROR)
             norm = bottomPlane->normal;
         //cylinder
-        else if (distance(glm::vec2(intersect.x, intersect.z), glm::vec2(center.x, center.z)) - radius <= FLOAT_ERROR)
-            norm = normalize(intersect - glm::vec3(center.x, intersect.y, center.z));
+        else if (glm::length(glm::vec2(intersect.x, intersect.z)) - radius <= FLOAT_ERROR)
+            norm = normalize(glm::vec3(intersect.x, 0.f, intersect.z));
         else
             return ZERO_VECTOR;
+
 
         norm = glm::rotateZ(glm::rotateY(glm::rotateX(norm, rotation.x), rotation.y), rotation.z);
         return (differenceB) ? -norm : norm;
