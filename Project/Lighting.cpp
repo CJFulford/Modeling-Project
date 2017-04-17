@@ -35,5 +35,5 @@ vec3 getColour(Ray *ray, std::vector<Object*> *objectVec)
 	if (scalar != 0)
 		return Blinn_Phong(ray, scalar, normal, obj);
 	else 
-		return BLUE * .1f; // navy blue background
+		return BACKGROUND_COLOUR;
 }

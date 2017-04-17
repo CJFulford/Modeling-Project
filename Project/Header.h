@@ -29,6 +29,7 @@
 #define DEF_MOVEMENT	glm::vec3(0.f)
 
 #define LIGHT_POS       glm::vec3(2.f, 2.f, 2.f)
+#define BACKGROUND_COLOUR   glm::vec3(.5f);
 
 extern std::vector<Object*> objectVec;
 extern glm::vec3 camOrigin;

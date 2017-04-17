@@ -1,4 +1,5 @@
 #pragma once
+#include "Tools.h"
 #include <algorithm>
 #include <glm/glm.hpp>
 #include <vector>
@@ -15,7 +16,7 @@
 #define BASE_CENTER ZERO_VECTOR
 #define BASE_RADIUS .5f
 #define BASE_PHONG  50
-#define BASE_COLOUR glm::vec3(0.f, .7f, 0.f)
+#define BASE_COLOUR glm::vec3(1.f, .4f, 0.f)
 
 #define SCALE_CHANGE .01f
 #define MIN_SCALE .1f
@@ -24,10 +25,11 @@
 #define YAXIS glm::vec3(0.f, 1.f, 0.f)
 #define ZAXIS glm::vec3(0.f, 0.f, 1.f)
 
+
+// need this defined for object as the virtual function getVolume takes in a Ray
 struct Ray;
 
-
-
+// need this here as the ray's pushVolume funciton takes in an object
 struct Object
 {
     // object variables
@@ -53,8 +55,7 @@ struct Object
     void deselect() { selected = false; }
 };
 
-
-
+// ray
 struct Volume
 {
     Volume(float entrance, float exit, glm::vec3 entranceNormal, glm::vec3 exitNormal, Object *object) :
@@ -63,7 +64,6 @@ struct Volume
     glm::vec3 entranceNormal, exitNormal;
     Object *object;
 };
-
 struct Ray
 {
     Ray(glm::vec3 orig, glm::vec3 dir) :
@@ -190,16 +190,14 @@ struct Triangle : Object
     void rotate(glm::vec3 rotate) {}
     void breakBoolean(std::vector<Object*> *objectVec, int index) {}
 };
-
-// objects only used by other objects
 struct Plane : Object
 {
     glm::vec3 normal;
-    Plane(glm::vec3 point, glm::vec3 normal) :
+    Plane(glm::vec3 point, glm::vec3 normal, glm::vec3 col) :
         normal(normalize(normal))
     {
         center = point;
-        colour = BASE_COLOUR;
+        colour = col;
         phong = BASE_PHONG;
     }
 
@@ -225,6 +223,7 @@ struct Plane : Object
     void breakBoolean(std::vector<Object*> *objectVec, int index) {}
 };
 
+
 // the actual objects
 struct Sphere : Object
 {
@@ -232,7 +231,7 @@ struct Sphere : Object
     {
         radius = BASE_RADIUS;
         center = BASE_CENTER;
-        colour = BASE_COLOUR;
+        colour = generateRandomVector();
         phong = BASE_PHONG;
     }
 
@@ -283,7 +282,6 @@ struct Sphere : Object
     void rotate(glm::vec3 rotate) { rotation += rotate; }
     void breakBoolean(std::vector<Object*> *objectVec, int index) {}
 };
-
 struct Cube : Object
 {
     // variables
@@ -296,15 +294,15 @@ struct Cube : Object
     {
         radius = BASE_RADIUS;
         center = BASE_CENTER;
-        colour = BASE_COLOUR;
+        colour = generateRandomVector();
         phong = BASE_PHONG;
 
-        planes[0] = new Plane(center + (radius * XAXIS), XAXIS);
-        planes[1] = new Plane(center - (radius * XAXIS), -XAXIS);
-        planes[2] = new Plane(center + (radius * YAXIS), YAXIS);
-        planes[3] = new Plane(center - (radius * YAXIS), -YAXIS);
-        planes[4] = new Plane(center + (radius * ZAXIS), ZAXIS);
-        planes[5] = new Plane(center - (radius * ZAXIS), -ZAXIS);
+        planes[0] = new Plane(center + (radius * XAXIS), XAXIS, colour);
+        planes[1] = new Plane(center - (radius * XAXIS), -XAXIS, colour);
+        planes[2] = new Plane(center + (radius * YAXIS), YAXIS, colour);
+        planes[3] = new Plane(center - (radius * YAXIS), -YAXIS, colour);
+        planes[4] = new Plane(center + (radius * ZAXIS), ZAXIS, colour);
+        planes[5] = new Plane(center - (radius * ZAXIS), -ZAXIS, colour);
     }
     ~Cube()
     {
@@ -364,7 +362,6 @@ struct Cube : Object
     void rotate(glm::vec3 rotate) { rotation += rotate; }
     void breakBoolean(std::vector<Object*> *objectVec, int index) {}
 };
-
 struct Torus : Object
 {
     glm::vec3 rotation;
@@ -374,7 +371,7 @@ struct Torus : Object
     {
         center = BASE_CENTER;
         radius = BASE_RADIUS;
-        colour = BASE_COLOUR;
+        colour = generateRandomVector();
         phong = BASE_PHONG;
         R = BASE_RADIUS;
         r = BASE_RADIUS * .25f;
@@ -629,7 +626,6 @@ struct Torus : Object
     void rotate(glm::vec3 rotate) { rotation += rotate; }
     void breakBoolean(std::vector<Object*> *objectVec, int index) {}
 };
-
 struct Cylinder : Object
 {
     #define BASE_LENGTH .5f
@@ -641,12 +637,12 @@ struct Cylinder : Object
     {
         radius = BASE_RADIUS;
         center = BASE_CENTER;
-        colour = BASE_COLOUR;
+        colour = generateRandomVector();
         phong = BASE_PHONG;
         length = BASE_LENGTH;
 
-        topPlane = new Plane(center + (length * YAXIS), YAXIS);
-        bottomPlane = new Plane(center - (length * YAXIS), -YAXIS);
+        topPlane = new Plane(center + (length * YAXIS), YAXIS, colour);
+        bottomPlane = new Plane(center - (length * YAXIS), -YAXIS, colour);
     }
     ~Cylinder() { delete topPlane; delete bottomPlane; }
 
@@ -975,7 +971,6 @@ struct Union : Object
         delete this;
     }
 };
-
 struct Intersection : Object
 {
     Object *leftChild, *rightChild;
@@ -1123,7 +1118,6 @@ struct Intersection : Object
         delete this;
     }
 };
-
 struct Difference : Object
 {
     Object *leftChild, *rightChild;

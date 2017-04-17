@@ -163,6 +163,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="libraries\GLAD_V4.5\src\glad.c" />
+    <ClCompile Include="Tools.cpp" />
     <ClCompile Include="Utilities.cpp" />
     <ClCompile Include="ImageBuffer.cpp" />
     <ClCompile Include="Lighting.cpp" />
@@ -172,6 +173,7 @@
     <ClInclude Include="Header.h" />
     <ClInclude Include="ImageBuffer.h" />
     <ClInclude Include="Objects.h" />
+    <ClInclude Include="Tools.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
