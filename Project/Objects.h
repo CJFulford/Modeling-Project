@@ -242,7 +242,7 @@ struct Sphere : Object
     void getVolume(Ray *ray)
     {
         Ray tempRay = ray->generateTempRay(center, rotation);
-        glm::vec3 relativeCenter = center - tempRay.origin;
+        glm::vec3 relativeCenter = ZERO_VECTOR - tempRay.origin;
         float directionAngle = dot(relativeCenter, tempRay.direction);
 
         if (directionAngle >= 0)
@@ -261,7 +261,7 @@ struct Sphere : Object
     glm::vec3 getNormal(glm::vec3 intersection)
     {
         glm::vec3 intersect = glm::rotateX(glm::rotateY(glm::rotateZ(intersection - center, -rotation.z), -rotation.y), -rotation.x);
-        if (abs(distance(intersect, center) - radius) < FLOAT_ERROR)
+        if (abs(glm::length(intersect) - radius) < FLOAT_ERROR)
         {
             glm::vec3 norm = glm::rotateZ(glm::rotateY(glm::rotateX(intersect, rotation.x), rotation.y), rotation.z);
             return (differenceB) ? -glm::normalize(norm) : glm::normalize(norm);
@@ -279,7 +279,7 @@ struct Sphere : Object
     {
         center += move;
     }
-    void rotate(glm::vec3 rotate) { rotation += rotate; }
+    void rotate(glm::vec3 rotate) {}
     void breakBoolean(std::vector<Object*> *objectVec, int index) {}
 };
 struct Cube : Object
