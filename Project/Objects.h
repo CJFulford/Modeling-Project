@@ -606,6 +606,14 @@ struct Torus : Object
     {
         glm::vec3 intersect = glm::rotateX(glm::rotateY(glm::rotateZ(intersection - center, -rotation.z), -rotation.y), -rotation.x);
 
+
+        float implicit = pow(R - sqrt((intersect.x * intersect.x) + (intersect.y * intersect.y)), 2.f) + (intersect.z * intersect.z) - (r * r);
+
+        if (implicit >= FLOAT_ERROR)
+            return ZERO_VECTOR;
+
+
+
         float a = 1.f - (R / sqrt((intersect.x * intersect.x) + (intersect.y * intersect.y)));
         glm::vec3 norm = normalize(glm::vec3(a * intersect.x, a * intersect.y, intersect.z));
 
@@ -931,13 +939,16 @@ struct Union : Object
             ray->pushVolumeBoolean(v2[v2Index].entrance, v2[v2Index].exit, v2[v2Index].entranceNormal, v2[v2Index].exitNormal, this);
     }
     glm::vec3 getNormal(glm::vec3 intersection) 
-    { 
+    {
         glm::vec3 lNormal = leftChild->getNormal(intersection);
-        glm::vec3 rNormal = rightChild->getNormal(intersection);
         if (lNormal != ZERO_VECTOR)
-            return lNormal;
-        else
-            return rNormal;
+            return (differenceB) ? -lNormal : lNormal;
+
+        glm::vec3 rNormal = rightChild->getNormal(intersection);
+        if (rNormal != ZERO_VECTOR)
+            return (differenceB) ? -rNormal : rNormal;
+
+        return ZERO_VECTOR;
     }
     void scale(bool enlarge)
     {
@@ -1080,11 +1091,14 @@ struct Intersection : Object
     glm::vec3 getNormal(glm::vec3 intersection)
     {
         glm::vec3 lNormal = leftChild->getNormal(intersection);
-        glm::vec3 rNormal = rightChild->getNormal(intersection);
         if (lNormal != ZERO_VECTOR)
-            return lNormal;
-        else
-            return rNormal;
+            return (differenceB) ? -lNormal : lNormal;
+
+        glm::vec3 rNormal = rightChild->getNormal(intersection);
+        if (rNormal != ZERO_VECTOR)
+            return (differenceB) ? -rNormal : rNormal;
+
+        return ZERO_VECTOR;
     }
     void scale(bool enlarge)
     {
@@ -1569,11 +1583,14 @@ struct Difference : Object
     glm::vec3 getNormal(glm::vec3 intersection)
     {
         glm::vec3 lNormal = leftChild->getNormal(intersection);
-        glm::vec3 rNormal = rightChild->getNormal(intersection);
         if (lNormal != ZERO_VECTOR)
-            return lNormal;
-        else
-            return rNormal;
+            return (differenceB) ? -lNormal : lNormal;
+
+        glm::vec3 rNormal = rightChild->getNormal(intersection);
+        if (rNormal != ZERO_VECTOR)
+            return (differenceB) ? -rNormal : rNormal;
+
+        return ZERO_VECTOR;
     }
     void scale(bool enlarge)
     {

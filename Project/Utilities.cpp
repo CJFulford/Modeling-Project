@@ -399,6 +399,9 @@ GLFWwindow* generateWindow()
 		return NULL;
 	}
 
+    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+    glfwWindowHint(GLFW_DOUBLEBUFFER, GLFW_TRUE);
+
 	// attempt to create a window with an OpenGL 4.4 core profile context
 	GLFWwindow *window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Implicit Surfaces", 0, 0);
 	if (!window) 
