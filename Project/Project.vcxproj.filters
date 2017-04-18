@@ -39,6 +39,9 @@
     <ClCompile Include="Shader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="CSGtree.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Header.h">
@@ -59,12 +62,15 @@
     <ClInclude Include="Shader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="CSGtree.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="general.frag">
+    <None Include="TList.frag">
       <Filter>Source Files</Filter>
     </None>
-    <None Include="general.vert">
+    <None Include="TList.vert">
       <Filter>Source Files</Filter>
     </None>
   </ItemGroup>

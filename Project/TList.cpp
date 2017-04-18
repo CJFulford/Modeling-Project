@@ -9,7 +9,7 @@ TList::TList()
 {
     vertexArray = 0;
     vertexBuffer = 0;
-    program = generateProgram("general.vert", "general.frag");
+    program = generateProgram("TList.vert", "TList.frag");
     generateBuffer();
 }
 

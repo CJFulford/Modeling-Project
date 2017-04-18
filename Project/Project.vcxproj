@@ -162,6 +162,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="CSGtree.cpp" />
     <ClCompile Include="libraries\GLAD_V4.5\src\glad.c" />
     <ClCompile Include="Shader.cpp" />
     <ClCompile Include="TList.cpp" />
@@ -172,6 +173,7 @@
     <ClCompile Include="Main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="CSGtree.h" />
     <ClInclude Include="Header.h" />
     <ClInclude Include="ImageBuffer.h" />
     <ClInclude Include="Objects.h" />
@@ -180,8 +182,8 @@
     <ClInclude Include="Tools.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="general.frag" />
-    <None Include="general.vert" />
+    <None Include="TList.frag" />
+    <None Include="TList.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

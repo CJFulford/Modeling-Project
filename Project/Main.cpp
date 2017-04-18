@@ -1,4 +1,5 @@
 #include "Header.h"
+#include "CSGtree.h"
 #include "TList.h"
 #include "ImageBuffer.h"
 #include <iostream>
@@ -54,6 +55,7 @@ int main(int argc, char *argv[])
 	float	w = -(rayr / (float)tan(FOV / 2));
 
     TList tlist = TList();
+	CSGtree csg = CSGtree();
 
 	while (!glfwWindowShouldClose(window))
 	{
@@ -88,9 +90,15 @@ int main(int argc, char *argv[])
 		}
         #pragma omp barrier
 
+		tlist.getLines(&tlistRay);
+		
+		if(selected2 == -1)
+			csg.constructInfo(objectVec[selected1]);
+
 		imageBuffer.Render();
-        tlist.getLines(&tlistRay);
         tlist.render();
+
+		//csg.render();
 
         glfwSwapBuffers(window);
 
