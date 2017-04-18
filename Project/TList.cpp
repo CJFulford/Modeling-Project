@@ -38,8 +38,11 @@ void TList::render()
     glLineWidth(1);
     glDrawArrays(GL_LINES, 0, 10);                 //drawing five thin lines
 
-    glLineWidth(5);
-    glDrawArrays(GL_LINES, 10, verts.size());       //drawing thick lines over thin
+    if (verts.size() > 10)
+    {
+        glLineWidth(5);
+        glDrawArrays(GL_LINES, 10, verts.size() - 10);       //drawing thick lines over thin
+    }
 
     glBindVertexArray(0);
     glUseProgram(0);
@@ -59,8 +62,6 @@ void TList::addToVerts(Ray *ray, int level)
 
 void TList::getLines(Ray *ray)
 {
-    glBindVertexArray(vertexArray);
-
     verts.clear();
     float y = -0.1;
     for (int i = 0; i < 5; i++)
@@ -76,6 +77,7 @@ void TList::getLines(Ray *ray)
     {
         Ray tempRay(ray->origin, ray->direction);
         objectVec[selected1]->getVolume(&tempRay);
+        addToVerts(&tempRay, 0);
     }
     // 2 objects selected
     else if (selected1 != -1 && selected2 != -1)
@@ -99,11 +101,31 @@ void TList::getLines(Ray *ray)
         objectVec[selected2]->differenceB = false;
     }
 
+    // line scaling
+    if (verts.size() > 10)
+    {
+        // get the minimum and maximum t values
+        int i = 10;
+        float tmin = FLT_MAX, tmax = FLT_MIN;
+        do {
+            tmin = min(tmin, verts[i].x);
+            tmax = max(tmax, verts[i].x);
+            i++;
+        } while (i < verts.size());
 
+        float distance = abs(tmax - tmin);
+
+        for (int i = 10; i < verts.size(); i++)
+            verts[i].x = (.7f * (((verts[i].x - tmin) / distance))) + .15f - 1.f;
+    }
+
+    glBindVertexArray(vertexArray);
 
     glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(verts[0])*verts.size(), &verts[0], GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(verts[0]) * verts.size(), &verts[0], GL_STATIC_DRAW);
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, NULL);
     glEnableVertexAttribArray(0);
+ 
 
+    glBindVertexArray(0);
 }
