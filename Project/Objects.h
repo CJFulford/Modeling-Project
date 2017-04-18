@@ -803,14 +803,10 @@ struct Union : Object
         Object *tempObjExit = NULL;
 
         // while both lists still have unvisited elements
-        bool loop = true;
-        while (loop)
+        while (true)
         {
             if (v1Index >= v1.size() && v2Index >= v2.size())
-            {
-                loop = false;
                 break;
-            }
 
             // variables for easier access of volumes, initialize to zero as there is no base construct
             Volume vol1 = v1[0], vol2 = v2[0];
@@ -1213,8 +1209,8 @@ struct Intersection : Object
         if (v1.size() == 0 || v2.size() == 0) return;
 
         // intex trackers for each list
-        float v1Index = 0;
-        float v2Index = 0;
+        int v1Index = 0;
+        int v2Index = 0;
 
         // temporary storge for enterences and exits, initialize the floats to smallest possible
         float tempEntr = -FLT_MAX;
@@ -1393,7 +1389,7 @@ struct Intersection : Object
                     }
                 }
                 // vol2 and vol1 partially overlap
-                else if (vol1.entrance < vol2.exit)
+                else if (vol2.exit < vol1.exit)
                 {
                     // old volume ends before vol2 begins
                     if (tempExit < vol2.entrance)
