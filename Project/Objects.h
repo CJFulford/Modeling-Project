@@ -1156,21 +1156,13 @@ struct Union : Object
 
         return ZERO_VECTOR;
     }
-    void scale(bool enlarge)
-    {
-        leftChild->scale(enlarge);
-        rightChild->scale(enlarge);
-    }
+    void scale(bool enlarge){}
     void move(glm::vec3 move)
     {
         leftChild->move(move);
         rightChild->move(move);
     }
-    void rotate(glm::vec3 rotate)
-    {
-        leftChild->rotate(rotate);
-        rightChild->rotate(rotate);
-    }
+    void rotate(glm::vec3 rotate){}
     void select() { selected = true; }
     void deselect() { selected = false; }
     void breakBoolean(std::vector<Object*> *objectVec, int index)
@@ -1504,21 +1496,13 @@ struct Intersection : Object
 
         return ZERO_VECTOR;
     }
-    void scale(bool enlarge)
-    {
-        leftChild->scale(enlarge);
-        rightChild->scale(enlarge);
-    }
+    void scale(bool enlarge){}
     void move(glm::vec3 move)
     {
         leftChild->move(move);
         rightChild->move(move);
     }
-    void rotate(glm::vec3 rotate)
-    {
-        leftChild->rotate(rotate);
-        rightChild->rotate(rotate);
-    }
+    void rotate(glm::vec3 rotate){}
     void breakBoolean(std::vector<Object*> *objectVec, int index)
     {
         objectVec->erase(objectVec->begin() + index);
@@ -2026,21 +2010,13 @@ struct Difference : Object
 
         return ZERO_VECTOR;
     }
-    void scale(bool enlarge)
-    {
-        leftChild->scale(enlarge);
-        rightChild->scale(enlarge);
-    }
+    void scale(bool enlarge){}
     void move(glm::vec3 move)
     {
         leftChild->move(move);
         rightChild->move(move);
     }
-    void rotate(glm::vec3 rotate)
-    {
-        leftChild->rotate(rotate);
-        rightChild->rotate(rotate);
-    }
+    void rotate(glm::vec3 rotate){}
     void breakBoolean(std::vector<Object*> *objectVec, int index)
     {
         objectVec->erase(objectVec->begin() + index);
