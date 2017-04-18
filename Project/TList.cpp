@@ -51,7 +51,7 @@ void TList::render()
 
 void TList::addToVerts(Ray *ray, int level)
 {
-    float y = -0.1 + (level * -.2f);
+    float y = -0.1 + (level * -.1f);
     for (int i = 0; i < ray->volumes.size(); i++)
     {
         verts.push_back(vec2(ray->volumes[i].entrance, y));

@@ -808,118 +808,222 @@ struct Union : Object
             // variables for easier access of volumes
             Volume vol1 = v1[v1Index], vol2 = v2[v2Index];
 
-            // if vol2 is closer, swap.
-            if (vol2.entrance < vol1.entrance)
+            if (vol1.entrance < vol2.entrance)
             {
-                Volume temp = vol1;
-                vol1 = vol2;
-                vol2 = temp;
-            }
+                // if vol1 and vol2 are separate
+                if (vol1.exit < vol2.entrance)
+                {
+                    // if old volume ends before vol1 begins
+                    if (tempExit < vol1.entrance)
+                    {
+                        if (tempExit != -FLT_MAX)
+                            ray->pushVolumeBoolean(tempEntr, tempExit, tempObjEntr->getNormal(ray->applyScalar(tempEntr)), tempObjExit->getNormal(ray->applyScalar(tempExit)), this);
+                        tempEntr = vol1.entrance;
+                        tempExit = vol1.exit;
+                        tempObjEntr = vol1.object;
+                        tempObjExit = vol1.object;
 
-            // if vol1 and vol2 are separate
-            if (vol1.exit < vol2.entrance)
-            {
-                // if old volume ends before vol1 begins
-                if (tempExit < vol1.entrance)
+                        v1Index++;
+                    }
+                    // vol1 starts inside old volume
+                    else if (tempExit < vol1.exit)
+                    {
+                        tempExit = vol1.exit;
+                        tempObjExit = vol1.object;
+                        v1Index++;
+                    }
+                    // vol1 lies inside of old volume and old volume ends before vol2 begins
+                    else if (tempExit < vol2.entrance)
+                    {
+                        v1Index++;
+                    }
+                    // old volume ends inside vol2
+                    else if (tempExit < vol2.exit)
+                    {
+                        tempExit = vol2.exit;
+                        tempObjExit = vol2.object;
+                        v1Index++;
+                        v2Index++;
+                    }
+                    // old volume extends beyond vol2
+                    else
+                    {
+                        v1Index++;
+                        v2Index++;
+                    }
+                }
+                // vol1 and vol2 partially overlap
+                else if (vol1.exit < vol2.exit)
                 {
-                    if (tempExit != -FLT_MAX)
-                        ray->pushVolumeBoolean(tempEntr, tempExit, tempObjEntr->getNormal(ray->applyScalar(tempEntr)), tempObjExit->getNormal(ray->applyScalar(tempExit)), this);
-                    tempEntr = vol1.entrance;
-                    tempExit = vol1.exit;
-                    tempObjEntr = vol1.object;
-                    tempObjExit = vol1.object;
+                    // if old volume ends before vol1 begins
+                    if (tempExit < vol1.entrance)
+                    {
+                        if (tempExit != -FLT_MAX)
+                            ray->pushVolumeBoolean(tempEntr, tempExit, tempObjEntr->getNormal(ray->applyScalar(tempEntr)), tempObjExit->getNormal(ray->applyScalar(tempExit)), this);
+                        tempEntr = vol1.entrance;
+                        tempExit = vol2.exit;
+                        tempObjEntr = vol1.object;
+                        tempObjExit = vol2.object;
 
-                    v1Index++;
+                        v1Index++;
+                        v2Index++;
+                    }
+                    // old volume ends inside of vol2 or vol1
+                    else if (tempExit < vol2.exit)
+                    {
+                        tempExit = vol2.exit;
+                        tempObjExit = vol2.object;
+
+                        v1Index++;
+                        v2Index++;
+                    }
+                    // old volume contains both vol1 and vol2
+                    else
+                    {
+                        v1Index++;
+                        v2Index++;
+                    }
                 }
-                // vol1 starts inside old volume
-                else if (tempExit < vol1.exit)
-                {
-                    tempExit = vol1.exit;
-                    tempObjExit = vol1.object;
-                    v1Index++;
-                }
-                // vol1 lies inside of old volume and old volume ends before vol2 begins
-                else if (tempExit < vol2.entrance)
-                {
-                    v1Index++;
-                }
-                // old volume ends inside vol2
-                else if (tempExit < vol2.exit)
-                {
-                    tempExit = vol2.exit;
-                    tempObjExit = vol2.object;
-                    v1Index++;
-                    v2Index++;
-                }
-                // old volume extends beyond vol2
+                // vol1 contains vol2
                 else
                 {
-                    v1Index++;
-                    v2Index++;
+                    // if old volume ends before vol1 begins
+                    if (tempExit < vol1.entrance)
+                    {
+                        if (tempExit != -FLT_MAX)
+                            ray->pushVolumeBoolean(tempEntr, tempExit, tempObjEntr->getNormal(ray->applyScalar(tempEntr)), tempObjExit->getNormal(ray->applyScalar(tempExit)), this);
+                        tempEntr = vol1.entrance;
+                        tempExit = vol1.exit;
+                        tempObjEntr = vol1.object;
+                        tempObjExit = vol1.object;
+
+                        v1Index++;
+                        v2Index++;
+                    }
+                    // old volume ends inside of vol1
+                    else if (tempExit < vol1.exit)
+                    {
+                        tempExit = vol1.exit;
+                        tempObjExit = vol1.object;
+
+                        v1Index++;
+                        v2Index++;
+                    }
+                    // vol1 is contined in old volume
+                    else
+                    {
+                        v1Index++;
+                        v2Index++;
+                    }
                 }
             }
-            // vol1 and vol2 partially overlap
-            else if (vol1.exit < vol2.exit)
-            {
-                // if old volume ends before vol1 begins
-                if (tempExit < vol1.entrance)
-                {
-                    if (tempExit != -FLT_MAX)
-                        ray->pushVolumeBoolean(tempEntr, tempExit, tempObjEntr->getNormal(ray->applyScalar(tempEntr)), tempObjExit->getNormal(ray->applyScalar(tempExit)), this);
-                    tempEntr = vol1.entrance;
-                    tempExit = vol2.exit;
-                    tempObjEntr = vol1.object;
-                    tempObjExit = vol2.object;
-
-                    v1Index++;
-                    v2Index++;
-                }
-                // old volume ends inside of vol2 or vol1
-                else if (tempExit < vol2.exit)
-                {
-                    tempExit = vol2.exit;
-                    tempObjExit = vol2.object;
-
-                    v1Index++;
-                    v2Index++;
-                }
-                // old volume contains both vol1 and vol2
-                else
-                {
-                    v1Index++;
-                    v2Index++;
-                }
-            }
-            // vol1 contains vol2
             else
             {
-                // if old volume ends before vol1 begins
-                if (tempExit < vol1.entrance)
+                // if vol1 and vol2 are separate
+                if (vol2.exit < vol1.entrance)
                 {
-                    if (tempExit != -FLT_MAX)
-                        ray->pushVolumeBoolean(tempEntr, tempExit, tempObjEntr->getNormal(ray->applyScalar(tempEntr)), tempObjExit->getNormal(ray->applyScalar(tempExit)), this);
-                    tempEntr = vol1.entrance;
-                    tempExit = vol1.exit;
-                    tempObjEntr = vol1.object;
-                    tempObjExit = vol1.object;
+                    // if old volume ends before vol1 begins
+                    if (tempExit < vol2.entrance)
+                    {
+                        if (tempExit != -FLT_MAX)
+                            ray->pushVolumeBoolean(tempEntr, tempExit, tempObjEntr->getNormal(ray->applyScalar(tempEntr)), tempObjExit->getNormal(ray->applyScalar(tempExit)), this);
+                        tempEntr = vol2.entrance;
+                        tempExit = vol2.exit;
+                        tempObjEntr = vol2.object;
+                        tempObjExit = vol2.object;
 
-                    v1Index++;
-                    v2Index++;
+                        v2Index++;
+                    }
+                    // vol1 starts inside old volume
+                    else if (tempExit < vol2.exit)
+                    {
+                        tempExit = vol2.exit;
+                        tempObjExit = vol2.object;
+                        v2Index++;
+                    }
+                    // vol1 lies inside of old volume and old volume ends before vol2 begins
+                    else if (tempExit < vol2.entrance)
+                    {
+                        v2Index++;
+                    }
+                    // old volume ends inside vol2
+                    else if (tempExit < vol2.exit)
+                    {
+                        tempExit = vol2.exit;
+                        tempObjExit = vol2.object;
+                        v2Index++;
+                        v1Index++;
+                    }
+                    // old volume extends beyond vol2
+                    else
+                    {
+                        v2Index++;
+                        v1Index++;
+                    }
                 }
-                // old volume ends inside of vol1
-                else if (tempExit < vol1.exit)
+                // vol1 and vol2 partially overlap
+                else if (vol2.exit < vol1.exit)
                 {
-                    tempExit = vol1.exit;
-                    tempObjExit = vol1.object;
+                    // if old volume ends before vol1 begins
+                    if (tempExit < vol2.entrance)
+                    {
+                        if (tempExit != -FLT_MAX)
+                            ray->pushVolumeBoolean(tempEntr, tempExit, tempObjEntr->getNormal(ray->applyScalar(tempEntr)), tempObjExit->getNormal(ray->applyScalar(tempExit)), this);
+                        tempEntr = vol2.entrance;
+                        tempExit = vol1.exit;
+                        tempObjEntr = vol2.object;
+                        tempObjExit = vol1.object;
 
-                    v1Index++;
-                    v2Index++;
+                        v2Index++;
+                        v1Index++;
+                    }
+                    // old volume ends inside of vol2 or vol1
+                    else if (tempExit < vol1.exit)
+                    {
+                        tempExit = vol1.exit;
+                        tempObjExit = vol1.object;
+
+                        v2Index++;
+                        v1Index++;
+                    }
+                    // old volume contains both vol1 and vol2
+                    else
+                    {
+                        v2Index++;
+                        v1Index++;
+                    }
                 }
-                // vol1 is contined in old volume
+                // vol1 contains vol2
                 else
                 {
-                    v1Index++;
-                    v2Index++;
+                    // if old volume ends before vol1 begins
+                    if (tempExit < vol2.entrance)
+                    {
+                        if (tempExit != -FLT_MAX)
+                            ray->pushVolumeBoolean(tempEntr, tempExit, tempObjEntr->getNormal(ray->applyScalar(tempEntr)), tempObjExit->getNormal(ray->applyScalar(tempExit)), this);
+                        tempEntr = vol2.entrance;
+                        tempExit = vol2.exit;
+                        tempObjEntr = vol2.object;
+                        tempObjExit = vol2.object;
+
+                        v2Index++;
+                        v1Index++;
+                    }
+                    // old volume ends inside of vol1
+                    else if (tempExit < vol2.exit)
+                    {
+                        tempExit = vol2.exit;
+                        tempObjExit = vol2.object;
+
+                        v2Index++;
+                        v1Index++;
+                    }
+                    // vol1 is contined in old volume
+                    else
+                    {
+                        v2Index++;
+                        v1Index++;
+                    }
                 }
             }
         }
@@ -929,10 +1033,10 @@ struct Union : Object
             ray->pushVolumeBoolean(tempEntr, tempExit, tempObjEntr->getNormal(ray->applyScalar(tempEntr)), tempObjExit->getNormal(ray->applyScalar(tempExit)), this);
 
         // if at the end of the while loop, either list has volumes remaining, since this is union, add these volumes to the ray
-        for (int i = v1Index + 1; i < v1.size(); i++)
-            ray->pushVolumeBoolean(v1[v1Index].entrance, v1[v1Index].exit, v1[v1Index].entranceNormal, v1[v1Index].exitNormal, this);
-        for (int i = v2Index + 1; i < v2.size(); i++)
-            ray->pushVolumeBoolean(v2[v2Index].entrance, v2[v2Index].exit, v2[v2Index].entranceNormal, v2[v2Index].exitNormal, this);
+        for (int i = v1Index; i < v1.size(); i++)
+            ray->pushVolumeBoolean(v1[i].entrance, v1[i].exit, v1[i].entranceNormal, v1[i].exitNormal, this);
+        for (int i = v2Index; i < v2.size(); i++)
+            ray->pushVolumeBoolean(v2[i].entrance, v2[i].exit, v2[i].entranceNormal, v2[i].exitNormal, this);
     }
     glm::vec3 getNormal(glm::vec3 intersection) 
     {
@@ -1013,68 +1117,121 @@ struct Intersection : Object
         {
             // define as new volume for easier access
             Volume vol1 = v1[v1Index], vol2 = v2[v2Index];
-
-            // if vol2 is closer, swap
-            if (vol2.entrance < vol1.entrance)
+            
+            if (vol1.entrance < vol2.entrance)
             {
-                Volume temp = vol1;
-                vol1 = vol2;
-                vol2 = temp;
-            }
-
-            if (tempExit < vol1.entrance)
-            {
-                // old volume is not involved. push it to the ray
-                if (tempExit != -FLT_MAX)
-                    ray->pushVolumeBoolean(tempEntr, tempExit, tempObjEntr->getNormal(ray->applyScalar(tempEntr)), tempObjExit->getNormal(ray->applyScalar(tempExit)), this);
-
-                // volume 1 is not involved in the intersection
-                if (vol1.exit < vol2.entrance)
+                if (tempExit < vol1.entrance)
                 {
-                    // reset tempEntr and tempExit to defaults
-                    tempEntr = -FLT_MAX;
-                    tempExit = -FLT_MAX;
-                    tempObjEntr = NULL;
-                    tempObjExit = NULL;
-                    // toss v1, and restart volume search
-                    v1Index++;
-                }
-                // volume 2 entrance is contained within volume 1. reassign the volume
-                else
-                {
-                    tempEntr = vol2.entrance;
-                    tempObjEntr = vol2.object;
-                    if (vol1.exit < vol2.exit)
-                    {
-                        tempExit = vol1.exit;
-                        tempObjExit = vol1.object;
-                    }
-                    else
-                    {
-                        tempExit = vol2.exit;
-                        tempObjExit = vol2.object;
-                    }
-
-                    v1Index++;
-                    v2Index++;
-                }
-            }
-            // volume1s entrance is contained in the volume
-            else
-            {
-                // v1Index is done
-                v1Index++;
-
-                if (tempExit < vol2.entrance)
-                {
+                    // old volume is not involved. push it to the ray
                     if (tempExit != -FLT_MAX)
                         ray->pushVolumeBoolean(tempEntr, tempExit, tempObjEntr->getNormal(ray->applyScalar(tempEntr)), tempObjExit->getNormal(ray->applyScalar(tempExit)), this);
 
-                    // reset volume to defaults
-                    tempEntr = -FLT_MAX;
-                    tempExit = -FLT_MAX;
-                    tempObjEntr = NULL;
-                    tempObjExit = NULL;
+                    // volume 1 is not involved in the intersection
+                    if (vol1.exit < vol2.entrance)
+                    {
+                        // reset tempEntr and tempExit to defaults
+                        tempEntr = -FLT_MAX;
+                        tempExit = -FLT_MAX;
+                        tempObjEntr = NULL;
+                        tempObjExit = NULL;
+                        // toss v1, and restart volume search
+                        v1Index++;
+                    }
+                    // volume 2 entrance is contained within volume 1. reassign the volume
+                    else
+                    {
+                        tempEntr = vol2.entrance;
+                        tempObjEntr = vol2.object;
+                        if (vol1.exit < vol2.exit)
+                        {
+                            tempExit = vol1.exit;
+                            tempObjExit = vol1.object;
+                        }
+                        else
+                        {
+                            tempExit = vol2.exit;
+                            tempObjExit = vol2.object;
+                        }
+
+                        v1Index++;
+                        v2Index++;
+                    }
+                }
+                // volume1s entrance is contained in the volume
+                else
+                {
+                    // v1Index is done
+                    v1Index++;
+
+                    if (tempExit < vol2.entrance)
+                    {
+                        if (tempExit != -FLT_MAX)
+                            ray->pushVolumeBoolean(tempEntr, tempExit, tempObjEntr->getNormal(ray->applyScalar(tempEntr)), tempObjExit->getNormal(ray->applyScalar(tempExit)), this);
+
+                        // reset volume to defaults
+                        tempEntr = -FLT_MAX;
+                        tempExit = -FLT_MAX;
+                        tempObjEntr = NULL;
+                        tempObjExit = NULL;
+                    }
+                }
+            }
+            else
+            {
+                if (tempExit < vol2.entrance)
+                {
+                    // old volume is not involved. push it to the ray
+                    if (tempExit != -FLT_MAX)
+                        ray->pushVolumeBoolean(tempEntr, tempExit, tempObjEntr->getNormal(ray->applyScalar(tempEntr)), tempObjExit->getNormal(ray->applyScalar(tempExit)), this);
+
+                    // volume 1 is not involved in the intersection
+                    if (vol2.exit < vol1.entrance)
+                    {
+                        // reset tempEntr and tempExit to defaults
+                        tempEntr = -FLT_MAX;
+                        tempExit = -FLT_MAX;
+                        tempObjEntr = NULL;
+                        tempObjExit = NULL;
+                        // toss v1, and restart volume search
+                        v2Index++;
+                    }
+                    // volume 2 entrance is contained within volume 1. reassign the volume
+                    else
+                    {
+                        tempEntr = vol1.entrance;
+                        tempObjEntr = vol1.object;
+                        if (vol2.exit < vol1.exit)
+                        {
+                            tempExit = vol2.exit;
+                            tempObjExit = vol2.object;
+                        }
+                        else
+                        {
+                            tempExit = vol1.exit;
+                            tempObjExit = vol1.object;
+                        }
+
+                        v2Index++;
+                        v1Index++;
+                    }
+                }
+                // volume1s entrance is contained in the volume
+                else
+                {
+                    // v1Index is done
+                    v2Index++;
+
+                    if (tempExit < vol1.entrance)
+                    {
+                        if (tempExit != -FLT_MAX)
+                            ray->pushVolumeBoolean(tempEntr, tempExit, tempObjEntr->getNormal(ray->applyScalar(tempEntr)), tempObjExit->getNormal(ray->applyScalar(tempExit)), this);
+
+                        // reset volume to defaults
+                        tempEntr = -FLT_MAX;
+                        tempExit = -FLT_MAX;
+                        tempObjEntr = NULL;
+                        tempObjExit = NULL;
+                    }
                 }
             }
         }
@@ -1280,6 +1437,7 @@ struct Difference : Object
                                 // vol2 done
                                 v2Index++;
                             }
+                            v1Index++;
                         }
                     }
                     // vol2 obstructs vol1
@@ -1438,7 +1596,8 @@ struct Difference : Object
                         else if (tempExit < vol1.exit)
                         {
                             ray->pushVolumeBoolean(tempEntr, vol2.entrance, tempObjEntr->getNormal(ray->applyScalar(tempEntr)), vol2.entranceNormal, this);
-
+                            //MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+                            // last here
                             tempEntr = vol2.exit;
                             tempExit = vol1.exit;
                             tempObjEntr = vol2.object;
@@ -1571,7 +1730,7 @@ struct Difference : Object
             ray->pushVolumeBoolean(tempEntr, tempExit, tempObjEntr->getNormal(ray->applyScalar(tempEntr)), tempObjExit->getNormal(ray->applyScalar(tempExit)), this);
 
         // if any A remains, add it to the volume list
-        for (int i = v1Index + 1; i < v1.size(); i++)
+        for (int i = v1Index; i < v1.size(); i++)
             ray->pushVolumeBoolean(v1[i].entrance, v1[i].exit, v1[i].entranceNormal, v1[i].exitNormal, this);
     }
     glm::vec3 getNormal(glm::vec3 intersection)
