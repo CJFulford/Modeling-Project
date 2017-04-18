@@ -26,7 +26,13 @@ void TList::generateBuffer()
     glBufferData(GL_ARRAY_BUFFER, sizeof(verts[0]) * verts.size(), &verts[0], GL_STATIC_DRAW);
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, NULL);
     glEnableVertexAttribArray(0);
+    glBindVertexArray(0);
 
+    glGenBuffers(1, &colourBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, colourBuffer);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(colours[0]) * colours.size(), &colours[0], GL_STATIC_DRAW);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+    glEnableVertexAttribArray(1);
     glBindVertexArray(0);
 }
 
@@ -35,12 +41,12 @@ void TList::render()
     glUseProgram(program);
     glBindVertexArray(vertexArray);
 
-    glLineWidth(1);
+    glLineWidth(3);
     glDrawArrays(GL_LINES, 0, 10);                 //drawing five thin lines
 
     if (verts.size() > 10)
     {
-        glLineWidth(5);
+        glLineWidth(10);
         glDrawArrays(GL_LINES, 10, verts.size() - 10);       //drawing thick lines over thin
     }
 
@@ -49,13 +55,15 @@ void TList::render()
 
 }
 
-void TList::addToVerts(Ray *ray, int level)
+void TList::addToVerts(Ray *ray, int level, vec3 colour)
 {
-    float y = -0.1 + (level * -.1f);
+    float y = -0.5 + (level * -.1f);
     for (int i = 0; i < ray->volumes.size(); i++)
     {
         verts.push_back(vec2(ray->volumes[i].entrance, y));
         verts.push_back(vec2(ray->volumes[i].exit, y));
+        colours.push_back(colour);
+        colours.push_back(colour);
     }
     ray->volumes.clear();
 }
@@ -63,12 +71,15 @@ void TList::addToVerts(Ray *ray, int level)
 void TList::getLines(Ray *ray)
 {
     verts.clear();
-    float y = -0.1;
+    colours.clear();
+    float y = -0.5;
     for (int i = 0; i < 5; i++)
     {
         verts.push_back(vec2(-.9, y));
         verts.push_back(vec2(-.1, y));
-        y -= 0.2;
+        colours.push_back(vec3(0.f));
+        colours.push_back(vec3(0.f));
+        y -= 0.1;
     }
 
 
@@ -77,26 +88,29 @@ void TList::getLines(Ray *ray)
     {
         Ray tempRay(ray->origin, ray->direction);
         objectVec[selected1]->getVolume(&tempRay);
-        addToVerts(&tempRay, 0);
+        addToVerts(&tempRay, 0, objectVec[selected1]->colour);
     }
     // 2 objects selected
     else if (selected1 != -1 && selected2 != -1)
     {
         Ray tempRay(ray->origin, ray->direction);
         objectVec[selected1]->getVolume(&tempRay);
-        addToVerts(&tempRay, 0);
+        addToVerts(&tempRay, 0, objectVec[selected1]->colour);
 
         objectVec[selected2]->getVolume(&tempRay);
-        addToVerts(&tempRay, 1);
+        addToVerts(&tempRay, 1, objectVec[selected2]->colour);
 
-        Union(objectVec[selected1], objectVec[selected2]).getVolume(&tempRay);
-        addToVerts(&tempRay, 2);
+        Object *obj = &Union(objectVec[selected1], objectVec[selected2]);
+        obj->getVolume(&tempRay);
+        addToVerts(&tempRay, 2, obj->colour);
 
-        Intersection(objectVec[selected1], objectVec[selected2]).getVolume(&tempRay);
-        addToVerts(&tempRay, 3);
+        obj = new Intersection(objectVec[selected1], objectVec[selected2]);
+        obj->getVolume(&tempRay);
+        addToVerts(&tempRay, 3, obj->colour);
 
-        Difference(objectVec[selected1], objectVec[selected2]).getVolume(&tempRay);
-        addToVerts(&tempRay, 4);
+        obj = new Difference(objectVec[selected1], objectVec[selected2]);
+        obj->getVolume(&tempRay);
+        addToVerts(&tempRay, 4, obj->colour);
 
         objectVec[selected2]->differenceB = false;
     }
@@ -125,6 +139,11 @@ void TList::getLines(Ray *ray)
     glBufferData(GL_ARRAY_BUFFER, sizeof(verts[0]) * verts.size(), &verts[0], GL_STATIC_DRAW);
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, NULL);
     glEnableVertexAttribArray(0);
+
+    glBindBuffer(GL_ARRAY_BUFFER, colourBuffer);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(colours[0]) * colours.size(), &colours[0], GL_STATIC_DRAW);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+    glEnableVertexAttribArray(1);
  
 
     glBindVertexArray(0);

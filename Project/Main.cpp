@@ -66,13 +66,13 @@ int main(int argc, char *argv[])
                             * zoom;
 
 		#pragma omp parallel for schedule(dynamic)
-		for (int i = 0; i < HALF_WIDTH; i++)
+		for (int i = 0; i < RENDER_WINDOW_WIDTH; i++)
 		{
-			for (int j = 0; j < HALF_HEIGHT; j++)
+			for (int j = 0; j < RENDER_WINDOW_HEIGHT; j++)
 			{
     			glm::vec3 colourVec = BLACK;
-				float u = rayl + ((rayr - rayl)*(i + .5f)) / HALF_WIDTH;
-				float v = rayb + ((rayt - rayb)*(j + .5f)) / HALF_HEIGHT;
+				float u = rayl + ((rayr - rayl)*(i + .5f)) / RENDER_WINDOW_WIDTH;
+				float v = rayb + ((rayt - rayb)*(j + .5f)) / RENDER_WINDOW_HEIGHT;
 
                 // construct the ray
                 // rotate the direction along the x axis then the y axis
@@ -83,7 +83,7 @@ int main(int argc, char *argv[])
                                 , rotate_y)));
 
 				colourVec = getColour(&ray, &objectVec);
-				imageBuffer.SetPixel(i, j + HALF_HEIGHT, colourVec);
+				imageBuffer.SetPixel(i, j + (WHOLE_HEIGHT - RENDER_WINDOW_HEIGHT), colourVec);
 			}
 		}
         #pragma omp barrier

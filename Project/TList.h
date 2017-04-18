@@ -7,8 +7,10 @@ public:
     TList();
 
     std::vector<glm::vec2> verts;
+    std::vector<glm::vec3> colours;
 
     GLuint vertexBuffer;
+    GLuint colourBuffer;
     GLuint vertexArray;
     GLuint program;
 
@@ -17,7 +19,7 @@ public:
 
 private:
     void generateBuffer();
-    void addToVerts(Ray *ray, int level);
+    void addToVerts(Ray *ray, int level, glm::vec3 colour);
 
 };
 

@@ -15,7 +15,7 @@ Ray tlistRay(glm::vec3(0.f), glm::vec3(0.f));
 float   rotate_x = 0.0,
         rotate_y = 0.0,
         zoom = DEF_ZOOM,
-        aspectRatio = (float)WINDOW_WIDTH / (float)WINDOW_HEIGHT;
+        aspectRatio = (float)RENDER_WINDOW_WIDTH / (float)RENDER_WINDOW_HEIGHT;
 
 bool    select1   = true, 
         scale     = false, 
@@ -250,8 +250,8 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
             double xpos, ypos;
             glfwGetCursorPos(window, &xpos, &ypos);
 
-            float u = rayl + ((rayr - rayl)*((float)xpos + .5f)) / HALF_WIDTH;
-            float v = rayb + ((rayt - rayb)*(HALF_HEIGHT - (float)ypos + .5f)) / HALF_HEIGHT;
+            float u = rayl + ((rayr - rayl)*((float)xpos + .5f)) / RENDER_WINDOW_WIDTH;
+            float v = rayb + ((rayt - rayb)*(RENDER_WINDOW_HEIGHT - (float)ypos + .5f)) / RENDER_WINDOW_HEIGHT;
             float w = -(rayr / (float)tan(FOV / 2));
 
             // construct the ray
@@ -268,7 +268,7 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
 
 void mouseMotion(GLFWwindow* window, double x, double y)
 {
-    #define SCREEN_CONTROL_SCALE (2.f / WINDOW_HEIGHT)
+    #define SCREEN_CONTROL_SCALE (2.f / WHOLE_HEIGHT)
 
     // scale, rotation, movement applications
     if (scale)
@@ -288,9 +288,9 @@ void mouseMotion(GLFWwindow* window, double x, double y)
     else if (movementY || rotationY)
     {
         if (movement)
-            objectVec[selected1]->move(glm::vec3(0.f, (float)(y - mouse_old_y) * SCREEN_CONTROL_SCALE, 0.f));
+            objectVec[selected1]->move(glm::vec3(0.f, (float)(y - mouse_old_y) * -SCREEN_CONTROL_SCALE, 0.f));
         else if (rotation)
-            objectVec[selected1]->rotate(glm::vec3(0.f, (float)(y - mouse_old_y) * SCREEN_CONTROL_SCALE, 0.f));
+            objectVec[selected1]->rotate(glm::vec3(0.f, (float)(y - mouse_old_y) * -SCREEN_CONTROL_SCALE, 0.f));
     }
     else if (movementZ || rotationZ)
     {
@@ -303,7 +303,7 @@ void mouseMotion(GLFWwindow* window, double x, double y)
     // screen rotation
     else if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_1))
     {
-        if (x < HALF_WIDTH && y < HALF_HEIGHT)                  //moving around the Rendering
+        if (x < WHOLE_WIDTH && y < WHOLE_HEIGHT)                  //moving around the Rendering
         {
             rotate_x += (float)((y - mouse_old_y)) * radToDeg;
             rotate_y += (float)((x - mouse_old_x)) * radToDeg;
@@ -330,8 +330,8 @@ void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
         double xpos, ypos;
         glfwGetCursorPos(window, &xpos, &ypos);
 
-        float u = rayl + ((rayr - rayl)*((float)xpos + .5f)) / HALF_WIDTH;
-        float v = rayb + ((rayt - rayb)*(HALF_HEIGHT - (float)ypos + .5f)) / HALF_HEIGHT;
+        float u = rayl + ((rayr - rayl)*((float)xpos + .5f)) / RENDER_WINDOW_WIDTH;
+        float v = rayb + ((rayt - rayb)*(RENDER_WINDOW_HEIGHT - (float)ypos + .5f)) / RENDER_WINDOW_HEIGHT;
         float w = -(rayr / (float)tan(FOV / 2));
 
         // construct the ray
@@ -405,7 +405,7 @@ GLFWwindow* generateWindow()
     glfwWindowHint(GLFW_DOUBLEBUFFER, GLFW_TRUE);
 
 	// attempt to create a window with an OpenGL 4.4 core profile context
-	GLFWwindow *window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Render Window", 0, 0);
+	GLFWwindow *window = glfwCreateWindow(WHOLE_WIDTH, WHOLE_HEIGHT, "Render Window", 0, 0);
 	if (!window) 
     {
 		std::cout << "Program failed to create GLFW window, TERMINATING" << std::endl;
@@ -420,37 +420,6 @@ GLFWwindow* generateWindow()
     glfwSetScrollCallback(window, scrollCallback);
     glfwSetMouseButtonCallback(window, mouseButtonCallback);
     glfwMakeContextCurrent(window);
-
-    return window;
-}
-
-GLFWwindow* generateControl()
-{
-    if (!glfwInit())
-    {
-        std::cout << "ERROR: GLFW failed to initilize, TERMINATING" << std::endl;
-        return NULL;
-    }
-
-    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
-    glfwWindowHint(GLFW_DOUBLEBUFFER, GLFW_TRUE);
-
-    // attempt to create a window with an OpenGL 4.4 core profile context
-    GLFWwindow *window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "CSG Window", 0, 0);
-    if (!window)
-    {
-        std::cout << "Program failed to create GLFW window, TERMINATING" << std::endl;
-        glfwTerminate();
-        return NULL;
-    }
-
-    // set Callbacks
-    //glfwSetErrorCallback(ErrorCallback);
-    //glfwSetKeyCallback(window, keyCallback);
-    //glfwSetCursorPosCallback(window, mouseMotion);
-    //glfwSetScrollCallback(window, scrollCallback);
-    //glfwSetMouseButtonCallback(window, mouseButtonCallback);
-    //glfwMakeContextCurrent(window);
 
     return window;
 }
