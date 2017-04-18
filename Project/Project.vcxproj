@@ -182,6 +182,8 @@
     <ClInclude Include="Tools.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="CSGtree.frag" />
+    <None Include="CSGtree.vert" />
     <None Include="TList.frag" />
     <None Include="TList.vert" />
   </ItemGroup>

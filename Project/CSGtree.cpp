@@ -19,14 +19,10 @@ void CSGtree::generateBuffer()
 	glGenVertexArrays(1, &vertexArray);
 	glBindVertexArray(vertexArray);
 
-	//getLines(NULL);
+	makeVerts();
 
 	glGenBuffers(1, &vertexBuffer);
-	glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(verts[0]) * verts.size(), &verts[0], GL_STATIC_DRAW);
-	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, NULL);
-	glEnableVertexAttribArray(0);
-	glBindVertexArray(0);
+
 }
 
 void CSGtree::render()
@@ -35,12 +31,12 @@ void CSGtree::render()
 	glBindVertexArray(vertexArray);
 
 	//draw points
-	glPointSize(2.f);
-	glDrawArrays(GL_POINTS, 0, verts.size());
+	glPointSize(15.f);
+	glDrawArrays(GL_POINTS, 0, info.size());
 
 	//draw connecting lines
-	//glLineWidth(3);
-	//glDrawArrays(GL_LINES, 0, 10);                 
+	glLineWidth(3);
+	glDrawArrays(GL_LINES, info.size(), verts.size() - info.size());                 
 
 	glBindVertexArray(0);
 	glUseProgram(0);
@@ -49,7 +45,7 @@ void CSGtree::render()
 
 void CSGtree::update()
 {
-	//getLines(NULL);
+	makeVerts();
 
 	glBindVertexArray(vertexArray);
 
@@ -96,7 +92,6 @@ void CSGtree::constructInfo(Object *obj, int level)
 		constructInfo(dynamic_cast<Intersection*>(obj)->rightChild, level + 1);
 	}
 
-
 	temp = dynamic_cast<Difference*>(obj);
 	if (temp != NULL)
 	{
@@ -104,4 +99,44 @@ void CSGtree::constructInfo(Object *obj, int level)
 		constructInfo(dynamic_cast<Difference*>(obj)->leftChild, level + 1);
 		constructInfo(dynamic_cast<Difference*>(obj)->rightChild, level + 1);
 	}	
+}
+
+void CSGtree::makeVerts()
+{
+	// for nodes
+	vector<int> levelTotalCount;
+
+	for (vec2 vec : info)
+	{
+		if (vec.x > levelTotalCount.size())
+			levelTotalCount.push_back(1);
+		else
+			levelTotalCount[vec.x-1]++;
+	}
+
+	vector<int> levelCount(levelTotalCount.size(),0);
+	for (int i = 0; i < info.size(); i++)
+	{
+		levelCount[info[i].x - 1]++;
+		verts.push_back(vec2(((float) levelCount[info[i].x-1]) / (float)(levelTotalCount[info[i].x-1] + 1), 1.f - (info[i].x / (levelTotalCount.size() + 1.f))));
+	}
+
+
+	int leafctr = info.size() - 1;
+	int parentctr = leafctr;
+
+	while(leafctr > 0)
+	{
+		if (info[parentctr].x != info[leafctr].x - 1)
+			parentctr--;
+		else
+		{
+			verts.push_back(verts[parentctr]);
+			verts.push_back(verts[leafctr]);
+			leafctr--;
+			parentctr = leafctr;
+		}
+	}
+
+
 }

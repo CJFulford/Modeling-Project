@@ -73,5 +73,11 @@
     <None Include="TList.vert">
       <Filter>Source Files</Filter>
     </None>
+    <None Include="CSGtree.vert">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="CSGtree.frag">
+      <Filter>Source Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

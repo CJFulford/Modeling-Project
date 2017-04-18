@@ -95,14 +95,16 @@ int main(int argc, char *argv[])
 		if (selected2 == -1 && selected1 != -1)
 		{
 			csg.info.clear();
+			csg.verts.clear();
 			csg.constructInfo(objectVec[selected1], 1);
+			csg.update();
 		}
 			
 
 		imageBuffer.Render();
         tlist.render();
 
-		//csg.render();
+		csg.render();
 
         glfwSwapBuffers(window);
 
