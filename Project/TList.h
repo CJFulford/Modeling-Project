@@ -12,11 +12,12 @@ public:
     GLuint vertexArray;
     GLuint program;
 
-    void generateBuffer();
     void render();
-    void getLines();
+    void getLines(Ray *ray);
 
 private:
+    void generateBuffer();
+    void addToVerts(Ray *ray, int level);
 
 };
 

@@ -35,6 +35,9 @@ extern glm::vec3 camOrigin;
 extern float zoom;
 extern float rotate_x;
 extern float rotate_y;
+extern Ray tlistRay;
+extern int selected1;
+extern int selected2;
  
 // ============================== Utilities.cpp
 // Error Checking

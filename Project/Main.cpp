@@ -89,6 +89,7 @@ int main(int argc, char *argv[])
         #pragma omp barrier
 
 		imageBuffer.Render();
+        tlist.getLines(&tlistRay);
         tlist.render();
 
         glfwSwapBuffers(window);

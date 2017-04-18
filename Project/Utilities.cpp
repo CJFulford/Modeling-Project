@@ -3,8 +3,14 @@
 
 using namespace std;
 
+#define rayl	-1
+#define rayr	1
+#define rayt	1
+#define rayb	-1
+
 int selected1 = -1, selected2 = -1;
 double mouse_old_x, mouse_old_y;
+Ray tlistRay(glm::vec3(0.f), glm::vec3(0.f));
 
 float   rotate_x = 0.0,
         rotate_y = 0.0,
@@ -239,8 +245,21 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
             }
             break;
 		
-        
-        
+        case(GLFW_KEY_T):
+        {
+            double xpos, ypos;
+            glfwGetCursorPos(window, &xpos, &ypos);
+
+            float u = rayl + ((rayr - rayl)*((float)xpos + .5f)) / HALF_WIDTH;
+            float v = rayb + ((rayt - rayb)*(HALF_HEIGHT - (float)ypos + .5f)) / HALF_HEIGHT;
+            float w = -(rayr / (float)tan(FOV / 2));
+
+            // construct the ray
+            // rotate the direction along the x axis then the y axis
+            tlistRay = Ray(rotateY(rotateX(camOrigin, rotate_x), rotate_y) * zoom,
+                glm::normalize(rotateY(rotateX(glm::vec3(u, v, w), rotate_x), rotate_y)));
+            break;
+        }
         default:
 			break;
 		}
@@ -308,24 +327,17 @@ void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
     // selection
     if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS)
     {
-        #define rayl	-1
-        #define rayr	1
-        #define rayt	1
-        #define rayb	-1
-
-
         double xpos, ypos;
         glfwGetCursorPos(window, &xpos, &ypos);
 
-        float u = rayl + ((rayr - rayl)*((float)xpos + .5f)) / WINDOW_WIDTH;
-        float v = rayb + ((rayt - rayb)*(WINDOW_HEIGHT - (float)ypos + .5f)) / WINDOW_HEIGHT;
+        float u = rayl + ((rayr - rayl)*((float)xpos + .5f)) / HALF_WIDTH;
+        float v = rayb + ((rayt - rayb)*(HALF_HEIGHT - (float)ypos + .5f)) / HALF_HEIGHT;
         float w = -(rayr / (float)tan(FOV / 2));
 
         // construct the ray
         // rotate the direction along the x axis then the y axis
         Ray ray(rotateY(    rotateX(camOrigin, rotate_x),     rotate_y) * zoom,
-            
-                glm::normalize(rotateY(    rotateX(glm::vec3(u, v, w), rotate_x),     rotate_y)));
+            glm::normalize(rotateY(    rotateX(glm::vec3(u, v, w), rotate_x),     rotate_y)));
 
         for (unsigned int i = 0; i < objectVec.size(); i++)
         {
