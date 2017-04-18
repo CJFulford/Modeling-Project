@@ -92,8 +92,12 @@ int main(int argc, char *argv[])
 
 		tlist.getLines(&tlistRay);
 		
-		if(selected2 == -1)
-			csg.constructInfo(objectVec[selected1]);
+		if (selected2 == -1 && selected1 != -1)
+		{
+			csg.info.clear();
+			csg.constructInfo(objectVec[selected1], 1);
+		}
+			
 
 		imageBuffer.Render();
         tlist.render();

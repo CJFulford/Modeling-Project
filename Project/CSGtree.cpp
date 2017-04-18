@@ -61,7 +61,47 @@ void CSGtree::update()
 	glBindVertexArray(0);
 }
 
-void CSGtree::constructInfo(Object *obj)
+void CSGtree::constructInfo(Object *obj, int level)		
 {
-	obj
+	Object *temp;
+	temp = dynamic_cast<Sphere*>(obj);
+	if (temp != NULL) // then it is a sphere
+		info.push_back(vec2(level,1));
+
+	temp = dynamic_cast<Cube*>(obj);
+	if (temp != NULL)
+		info.push_back(vec2(level, 2));
+
+	temp = dynamic_cast<Torus*>(obj);
+	if (temp != NULL)
+		info.push_back(vec2(level, 3));
+
+	temp = dynamic_cast<Cylinder*>(obj);
+	if (temp != NULL)
+		info.push_back(vec2(level, 4));
+
+	temp = dynamic_cast<Union*>(obj);
+	if (temp != NULL)
+	{
+		info.push_back(vec2(level, 5));
+		constructInfo(dynamic_cast<Union*>(obj)->leftChild, level + 1);
+		constructInfo(dynamic_cast<Union*>(obj)->rightChild, level + 1);
+	}
+		
+	temp = dynamic_cast<Intersection*>(obj);
+	if (temp != NULL)
+	{
+		info.push_back(vec2(level, 6));
+		constructInfo(dynamic_cast<Intersection*>(obj)->leftChild, level + 1);
+		constructInfo(dynamic_cast<Intersection*>(obj)->rightChild, level + 1);
+	}
+
+
+	temp = dynamic_cast<Difference*>(obj);
+	if (temp != NULL)
+	{
+		info.push_back(vec2(level, 7));
+		constructInfo(dynamic_cast<Difference*>(obj)->leftChild, level + 1);
+		constructInfo(dynamic_cast<Difference*>(obj)->rightChild, level + 1);
+	}	
 }

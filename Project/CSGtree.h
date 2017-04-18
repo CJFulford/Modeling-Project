@@ -8,7 +8,7 @@ public:
 	CSGtree();
 
 	std::vector<glm::vec2> verts;
-	std::vector<int> info;			//index = level;
+	std::vector<glm::vec2> info;			//index = level;
 									//int at index = # nodes on level
 	GLuint vertexBuffer;
 	GLuint colourBuffer;
@@ -17,7 +17,7 @@ public:
 
 	void render();
 	void update();
-	void constructInfo(Object *obj);
+	void constructInfo(Object *obj, int level);
 
 private:
 	void generateBuffer();

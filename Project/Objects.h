@@ -49,7 +49,6 @@ struct Object
     virtual void scale(bool enlarge) = 0;
     virtual void move(glm::vec3 move) = 0;
     virtual void rotate(glm::vec3 rotate) = 0;
-	virtual void getTree() = 0;
 
     // object defined functions
     void select() { selected = true; }
@@ -190,7 +189,6 @@ struct Triangle : Object
     void move(glm::vec3 move) {}
     void rotate(glm::vec3 rotate) {}
     void breakBoolean(std::vector<Object*> *objectVec, int index) {}
-	void getTree() {}
 };
 struct Plane : Object
 {
@@ -223,7 +221,6 @@ struct Plane : Object
         normal = normalize(glm::rotateZ(glm::rotateY(glm::rotateX(normal, rotate.x), rotate.y), rotate.z));
     }
     void breakBoolean(std::vector<Object*> *objectVec, int index) {}
-	void getTree() {}
 };
 
 
@@ -756,6 +753,7 @@ struct Cylinder : Object
 
 // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 // the combinations
+
 struct Union : Object
 {
     Object *leftChild, *rightChild;
