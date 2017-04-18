@@ -76,7 +76,7 @@ void TList::getLines(Ray *ray)
     for (int i = 0; i < 5; i++)
     {
         verts.push_back(vec2(-.9, y));
-        verts.push_back(vec2(-.1, y));
+        verts.push_back(vec2(.9, y));
         colours.push_back(vec3(0.f));
         colours.push_back(vec3(0.f));
         y -= 0.1;
@@ -130,7 +130,7 @@ void TList::getLines(Ray *ray)
         float distance = abs(tmax - tmin);
 
         for (int i = 10; i < verts.size(); i++)
-            verts[i].x = (.7f * (((verts[i].x - tmin) / distance))) + .15f - 1.f;
+            verts[i].x = (2.f * (.85f * (((verts[i].x - tmin) / distance))) + .15f) - 1.f;
     }
 
     glBindVertexArray(vertexArray);

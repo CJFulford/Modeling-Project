@@ -65,7 +65,7 @@ bool ImageBuffer::Initialize()
             // this defaults the screen to a checkerboard pattern
 			//int p = (i >> 4) + (j >> 4);
 			//float c = 0.2f + ((p & 1) ? 0.1f : 0.f);
-			m_imageData[k] = vec3(.75f);
+			m_imageData[k] = vec3(.4f);
 		}
 
 	// allocate texture object

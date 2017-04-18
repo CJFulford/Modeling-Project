@@ -91,19 +91,26 @@ int main(int argc, char *argv[])
         #pragma omp barrier
 
 		tlist.getLines(&tlistRay);
+
+		csg.info.clear();
+		csg.verts.clear();
+		csg.colours.clear();
+		csg.tempColours.clear();
 		
 		if (selected2 == -1 && selected1 != -1)
 		{
-			csg.info.clear();
-			csg.verts.clear();
 			csg.constructInfo(objectVec[selected1], 1);
+			csg.update();
+		}
+		else if (selected2 != -1)
+		{
+			csg.constructInfo(new Union(objectVec[selected1], objectVec[selected2]), 1);
 			csg.update();
 		}
 			
 
 		imageBuffer.Render();
         tlist.render();
-
 		csg.render();
 
         glfwSwapBuffers(window);

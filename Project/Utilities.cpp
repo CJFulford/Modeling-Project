@@ -403,6 +403,7 @@ GLFWwindow* generateWindow()
 
     glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
     glfwWindowHint(GLFW_DOUBLEBUFFER, GLFW_TRUE);
+	glfwWindowHint(GLFW_SAMPLES, 16);
 
 	// attempt to create a window with an OpenGL 4.4 core profile context
 	GLFWwindow *window = glfwCreateWindow(WHOLE_WIDTH, WHOLE_HEIGHT, "Render Window", 0, 0);
