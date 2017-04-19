@@ -163,8 +163,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="CSGtree.cpp" />
+    <ClCompile Include="Icon.cpp" />
     <ClCompile Include="libraries\GLAD_V4.5\src\glad.c" />
+    <ClCompile Include="lodepng.cpp" />
     <ClCompile Include="Shader.cpp" />
+    <ClCompile Include="texture.cpp" />
     <ClCompile Include="TList.cpp" />
     <ClCompile Include="Tools.cpp" />
     <ClCompile Include="Utilities.cpp" />
@@ -175,15 +178,20 @@
   <ItemGroup>
     <ClInclude Include="CSGtree.h" />
     <ClInclude Include="Header.h" />
+    <ClInclude Include="Icon.h" />
     <ClInclude Include="ImageBuffer.h" />
+    <ClInclude Include="lodepng.h" />
     <ClInclude Include="Objects.h" />
     <ClInclude Include="Shader.h" />
+    <ClInclude Include="texture.h" />
     <ClInclude Include="TList.h" />
     <ClInclude Include="Tools.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="CSGtree.frag" />
     <None Include="CSGtree.vert" />
+    <None Include="Icon.frag" />
+    <None Include="Icon.vert" />
     <None Include="TList.frag" />
     <None Include="TList.vert" />
   </ItemGroup>

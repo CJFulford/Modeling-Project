@@ -1,4 +1,5 @@
 #include "Header.h"
+#include "Icon.h"
 #include "CSGtree.h"
 #include "TList.h"
 #include "ImageBuffer.h"
@@ -56,6 +57,9 @@ int main(int argc, char *argv[])
 
     TList tlist = TList();
 	CSGtree csg = CSGtree();
+	Icon icon = Icon();
+	
+	icon.loadImages();
 
 	while (!glfwWindowShouldClose(window))
 	{
@@ -108,10 +112,12 @@ int main(int argc, char *argv[])
 			csg.update();
 		}
 			
-
+		
 		imageBuffer.Render();
         tlist.render();
 		csg.render();
+		//icon.render();
+		//icon.update();
 
         glfwSwapBuffers(window);
 
