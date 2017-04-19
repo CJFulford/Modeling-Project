@@ -11,24 +11,31 @@ using namespace std;
 int selected1 = -1, selected2 = -1;
 double mouse_old_x, mouse_old_y;
 Ray tlistRay(glm::vec3(0.f), glm::vec3(0.f));
+RayCylinder rayCylinder(&tlistRay);
 
-float   rotate_x = 0.0,
-        rotate_y = 0.0,
-        zoom = DEF_ZOOM,
-        aspectRatio = (float)RENDER_WINDOW_WIDTH / (float)RENDER_WINDOW_HEIGHT;
+float   
+    rotate_x = 0.0,
+    rotate_y = 0.0,
+    trotate_x = 0.0,
+    trotate_y = 0.0,
+    zoom = DEF_ZOOM,
+    aspectRatio = (float)RENDER_WINDOW_WIDTH / (float)RENDER_WINDOW_HEIGHT;
 
-bool    select1   = true, 
-        scale     = false, 
+bool    
+    select1   = true, 
+    scale     = false, 
 
-        movement  = false,
-        movementX = false,
-        movementY = false,
-        movementZ = false,
+    movement  = false,
+    movementX = false,
+    movementY = false,
+    movementZ = false,
 
-        rotation  = false,
-        rotationX = false,
-        rotationY = false,
-        rotationZ = false;
+    rotation  = false,
+    rotationX = false,
+    rotationY = false,
+    rotationZ = false;
+
+
 // Error Checking
 void ErrorCallback(int error, const char* description)
 {
@@ -258,6 +265,10 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
             // rotate the direction along the x axis then the y axis
             tlistRay = Ray(rotateY(rotateX(camOrigin, rotate_x), rotate_y) * zoom,
                 glm::normalize(rotateY(rotateX(glm::vec3(u, v, w), rotate_x), rotate_y)));
+
+            trotate_x = rotate_x;
+            trotate_y = rotate_y;
+
             break;
         }
         default:
@@ -421,6 +432,8 @@ GLFWwindow* generateWindow()
     glfwSetScrollCallback(window, scrollCallback);
     glfwSetMouseButtonCallback(window, mouseButtonCallback);
     glfwMakeContextCurrent(window);
+
+    objectVec.push_back(&rayCylinder);
 
     return window;
 }

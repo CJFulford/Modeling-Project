@@ -25,6 +25,10 @@
 #define YAXIS glm::vec3(0.f, 1.f, 0.f)
 #define ZAXIS glm::vec3(0.f, 0.f, 1.f)
 
+extern float trotate_x;
+extern float trotate_y;
+extern float rotate_x;
+extern float rotate_y;
 
 // need this defined for object as the virtual function getVolume takes in a Ray
 struct Ray;
@@ -222,7 +226,71 @@ struct Plane : Object
     }
     void breakBoolean(std::vector<Object*> *objectVec, int index) {}
 };
+struct RayCylinder : Object
+{
+#define BASE_LENGTH .5f
+    glm::vec3 rotation = ZERO_VECTOR;
 
+    Ray *orientation;
+
+    RayCylinder(Ray *ray)
+    {
+        orientation = ray;
+        radius = .01f;
+        center = BASE_CENTER;
+        colour = ZERO_VECTOR;
+        phong = BASE_PHONG;
+    }
+
+    void getVolume(Ray *ray)
+    {
+        glm::vec3 origin = rotateX(
+            rotateY(ray->origin, -(trotate_y))
+            , -(trotate_x + (PI / 2.f)));
+
+        Ray tempRay(origin,
+            glm::normalize(
+                rotateX(
+                    rotateY(ray->direction, -(trotate_y))
+                    , -(trotate_x + (PI / 2.f)))));
+
+        // at most 1 plane intersection. Need to check the cylinder now
+        float A = (tempRay.direction.x * tempRay.direction.x) + (tempRay.direction.z * tempRay.direction.z);
+        float B = 2.f * ((tempRay.origin.x * tempRay.direction.x) + (tempRay.origin.z * tempRay.direction.z));
+        float C = (tempRay.origin.x * tempRay.origin.x) + (tempRay.origin.z * tempRay.origin.z) - (radius * radius);
+
+        // now we solve the quadratic equation
+        float rootTerm = (B * B) - (4.f * A * C);
+        if (rootTerm < 0) return;   // no solutions, misses the cylinder
+
+        rootTerm = sqrt(rootTerm);
+
+        float scalars[2] = 
+        { 
+            (-B - rootTerm) / (2.f * A),
+            (-B + rootTerm) / (2.f * A) 
+        };
+
+        ray->pushVolume(glm::min(scalars[0], scalars[1]), glm::min(scalars[0], scalars[1]), ray, this);
+    }
+    glm::vec3 getNormal(glm::vec3 intersection)
+    {
+        glm::vec3 norm(0.f);
+        glm::vec3 intersect = glm::rotateX(glm::rotateY(glm::rotateZ(intersection - center, -rotation.z), -rotation.y), -rotation.x);
+
+        if (glm::length(glm::vec2(intersect.x, intersect.z)) - radius <= FLOAT_ERROR)
+            norm = normalize(glm::vec3(intersect.x, 0.f, intersect.z));
+        else
+            return ZERO_VECTOR;
+
+        norm = glm::rotateZ(glm::rotateY(glm::rotateX(norm, rotation.x), rotation.y), rotation.z);
+        return (differenceB) ? -norm : norm;
+    }
+    void scale(bool enlarge){}
+    void move(glm::vec3 move) {}
+    void rotate(glm::vec3 rotate) {}
+    void breakBoolean(std::vector<Object*> *objectVec, int index) {}
+};
 
 // the actual objects
 struct Sphere : Object
