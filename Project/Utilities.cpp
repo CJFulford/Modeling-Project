@@ -10,8 +10,8 @@ using namespace std;
 
 int selected1 = -1, selected2 = -1;
 double mouse_old_x, mouse_old_y;
-Ray tlistRay(glm::vec3(0.f), glm::vec3(0.f));
-RayCylinder rayCylinder(&tlistRay);
+Ray tlistRay(DEF_CAM_POS, glm::vec3(0.f) - DEF_CAM_POS);
+//RayCylinder rayCylinder(&tlistRay);
 
 float   
     rotate_x = 0.0,
@@ -124,12 +124,13 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
             break;
         // movement toggle
         case (GLFW_KEY_G):
-            if (selected1 != -1 && selected2 == -1)
+            if (selected1 != -1)
             {
                 movement = !movement;
                 scale = false;
                 rotation = false;
             }
+			
             break;
         // rotation toggle
         case (GLFW_KEY_R):
@@ -257,8 +258,13 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
             double xpos, ypos;
             glfwGetCursorPos(window, &xpos, &ypos);
 
+			xpos = 250.0;
+			ypos = 250.0;
+
             float u = rayl + ((rayr - rayl)*((float)xpos + .5f)) / RENDER_WINDOW_WIDTH;
             float v = rayb + ((rayt - rayb)*(RENDER_WINDOW_HEIGHT - (float)ypos + .5f)) / RENDER_WINDOW_HEIGHT;
+			//float u = HALF_RENDER_WIDTH;
+			//float v = HALF_RENDER_HEIGHT;
             float w = -(rayr / (float)tan(FOV / 2));
 
             // construct the ray
@@ -291,22 +297,36 @@ void mouseMotion(GLFWwindow* window, double x, double y)
     }
     else if (movementX || rotationX)
     {
-        if (movement)
-            objectVec[selected1]->move(glm::vec3((float)(x - mouse_old_x) * SCREEN_CONTROL_SCALE, 0.f, 0.f));
+		if (movement)
+		{
+			objectVec[selected1]->move(glm::vec3((float)(x - mouse_old_x) * SCREEN_CONTROL_SCALE, 0.f, 0.f));
+			if(selected2 != -1)
+				objectVec[selected2]->move(glm::vec3((float)(x - mouse_old_x) * SCREEN_CONTROL_SCALE, 0.f, 0.f));
+		}
+            
         else if (rotation)
             objectVec[selected1]->rotate(glm::vec3((float)(x - mouse_old_x) * SCREEN_CONTROL_SCALE, 0.f, 0.f));
     }
     else if (movementY || rotationY)
     {
-        if (movement)
-            objectVec[selected1]->move(glm::vec3(0.f, (float)(y - mouse_old_y) * -SCREEN_CONTROL_SCALE, 0.f));
+		if (movement)
+		{
+			objectVec[selected1]->move(glm::vec3(0.f, (float)(y - mouse_old_y) * -SCREEN_CONTROL_SCALE, 0.f));
+			if (selected2 != -1)
+				objectVec[selected2]->move(glm::vec3(0.f, (float)(y - mouse_old_y) * -SCREEN_CONTROL_SCALE, 0.f));
+		}
+
         else if (rotation)
             objectVec[selected1]->rotate(glm::vec3(0.f, (float)(y - mouse_old_y) * -SCREEN_CONTROL_SCALE, 0.f));
     }
     else if (movementZ || rotationZ)
     {
-        if (movement)
-            objectVec[selected1]->move(glm::vec3(0.f, 0.f, (float)(y - mouse_old_y) * SCREEN_CONTROL_SCALE));
+		if (movement)
+		{
+			objectVec[selected1]->move(glm::vec3(0.f, 0.f, (float)(y - mouse_old_y) * SCREEN_CONTROL_SCALE));
+			if(selected2 != -1)
+				objectVec[selected2]->move(glm::vec3(0.f, 0.f, (float)(y - mouse_old_y) * SCREEN_CONTROL_SCALE));
+		}
         else if (rotation)
             objectVec[selected1]->rotate(glm::vec3(0.f, 0.f, (float)(y - mouse_old_y) * SCREEN_CONTROL_SCALE));
     }
@@ -433,7 +453,8 @@ GLFWwindow* generateWindow()
     glfwSetMouseButtonCallback(window, mouseButtonCallback);
     glfwMakeContextCurrent(window);
 
-    objectVec.push_back(&rayCylinder);
+	objectVec.push_back(new RayCylinder(new Ray(DEF_CAM_POS, glm::vec3(0.f) - DEF_CAM_POS)));
 
     return window;
 }
+

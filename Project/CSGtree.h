@@ -1,4 +1,6 @@
 #include "Header.h"
+#include "Icon.h"
+#include "Shader.h"
 #include <vector>
 
 #pragma once
@@ -11,6 +13,9 @@ public:
 	std::vector<glm::vec3> colours, tempColours;
 	std::vector<glm::vec2> info;			//index = level;
 									//int at index = # nodes on level
+	std::vector<Icon> icons;
+	std::vector<Icon> tempIcons;
+
 	GLuint vertexBuffer;
 	GLuint colourBuffer;
 	GLuint vertexArray;

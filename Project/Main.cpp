@@ -7,6 +7,7 @@
 #include <ctime>
 #include <omp.h>
 #include <glm/gtx/rotate_vector.hpp>
+#include <stdio.h>
 
 #define rayl	-1
 #define rayr	1
@@ -57,9 +58,18 @@ int main(int argc, char *argv[])
 
     TList tlist = TList();
 	CSGtree csg = CSGtree();
-	Icon icon = Icon();
+
+	Icon sel1 = Icon("icons/A.png", glm::vec2(-0.95, -0.5));
+	Icon sel2 = Icon("icons/B.png", glm::vec2(-0.95, -0.6));
+	Icon unio = Icon("icons/Union.png", glm::vec2(-0.95,-0.7));
+	Icon inte = Icon("icons/Intersection.png", glm::vec2(-0.95, -0.8));
+	Icon diff = Icon("icons/Difference.png", glm::vec2(-0.95, -0.9));
 	
-	icon.loadImages();
+	sel1.loadImages();
+	sel2.loadImages();
+	unio.loadImages();
+	inte.loadImages();
+	diff.loadImages();
 
 	while (!glfwWindowShouldClose(window))
 	{
@@ -95,13 +105,15 @@ int main(int argc, char *argv[])
         #pragma omp barrier
 
 		tlist.getLines(&tlistRay);
-
+		
 		csg.info.clear();
 		csg.verts.clear();
 		csg.colours.clear();
 		csg.tempColours.clear();
+		csg.icons.clear();
+		csg.tempIcons.clear();
 		
-		if (selected2 == -1 && selected1 != -1)
+		if (selected2 == -1 && selected1 != -1)					//sel1
 		{
 			csg.constructInfo(objectVec[selected1], 1);
 			csg.update();
@@ -116,12 +128,20 @@ int main(int argc, char *argv[])
 		imageBuffer.Render();
         tlist.render();
 		csg.render();
-		//icon.render();
-		//icon.update();
+
+		sel1.render();
+		sel1.update();
+		sel2.render();
+		sel2.update();
+		unio.render();
+		unio.update();
+		inte.render();
+		inte.update();
+		diff.render();
+		diff.update();
+
 
         glfwSwapBuffers(window);
-
-
 
         // update and print frames per second
 		frames++;
@@ -138,6 +158,9 @@ int main(int argc, char *argv[])
 
 	glfwDestroyWindow(window);
 	glfwTerminate();
+
+	std::cout << objectVec.size() << std::endl;
+
     for (Object *object : objectVec)
     {
         delete object;

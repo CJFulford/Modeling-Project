@@ -40,6 +40,8 @@ extern float zoom;
 extern Ray tlistRay;
 extern int selected1;
 extern int selected2;
+
+
  
 // ============================== Utilities.cpp
 // Error Checking

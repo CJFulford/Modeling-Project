@@ -1,12 +1,15 @@
 #include "Header.h"
 #include "texture.h"
 #include <vector>
+#include <string.h>
 
 #pragma once
 class Icon
 {
 public:
-	Icon();
+	Icon(std::string file, glm::vec2 pos);
+
+	glm::vec2 position;
 
 	std::vector<glm::vec2> verts;
 	std::vector<glm::vec2> uvs;
@@ -26,6 +29,7 @@ public:
 
 	void render();
 	void update();
+	//void update(std::string file);
 
 	void loadImages();
 

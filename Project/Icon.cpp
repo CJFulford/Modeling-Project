@@ -6,16 +6,25 @@ using namespace std;
 using namespace glm;
 
 
-Icon::Icon()
+Icon::Icon(string file, vec2 pos)
 {
 	vertexArray = 0;
 	vertexBuffer = 0;
 	uvBuffer = 0;
 	textureID = 0;
-	filename = "icons/rainbow.png";
+	
+	filename = file;
+	position = pos;
+
 	imageHeight = 32;
 	imageWidth = 32;
 	program = generateProgram("Icon.vert", "Icon.frag");
+	
+
+	uvs.push_back(vec2(0.f, 1.f));
+	uvs.push_back(vec2(1.f, 1.f));
+	uvs.push_back(vec2(0.f, 0.f));
+	uvs.push_back(vec2(1.f, 0.f));
 }
 
 
@@ -31,22 +40,30 @@ void Icon::generateBuffer()
 
 void Icon::render()
 {
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
 	glUseProgram(program);
 	glBindVertexArray(vertexArray);
 	texture.bind2DTexture(program, textureID, std::string("tex"));
 
 	//draw 2 triangles 
-	glDrawArrays(GL_TRIANGLE_STRIP, 0, 2);
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
 	glBindVertexArray(0);
 	texture.unbind2DTexture();
 	glUseProgram(0);
+
+	glDisable(GL_BLEND);
 
 }
 
 void Icon::update()
 {
 	glBindVertexArray(vertexArray);
+
+	verts.clear();	
+	getTriangles();
 
 	glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vec2) * verts.size(), verts.data(), GL_STATIC_DRAW);
@@ -60,6 +77,11 @@ void Icon::update()
 
 	glBindVertexArray(0);
 }
+
+//void Icon::update(string file)
+//{
+//	filename = file;
+//}
 
 void Icon::loadImages()
 {
@@ -82,13 +104,8 @@ void Icon::loadImages()
 
 void Icon::getTriangles()
 {
-	verts.push_back(vec2(-1.f, -1.f));
-	verts.push_back(vec2( 1.f, -1.f));
-	verts.push_back(vec2(-1.f,  1.f));
-	verts.push_back(vec2( 1.f,  1.f));
-
-	uvs.push_back(vec2(0.f, 0.f));
-	uvs.push_back(vec2(1.f, 0.f));
-	uvs.push_back(vec2(0.f, 1.f));
-	uvs.push_back(vec2(1.f, 1.f));
+	verts.push_back(position + vec2(-.03f, -.03f));
+	verts.push_back(position + vec2( .03f, -.03f));
+	verts.push_back(position + vec2(-.03f,  .03f));
+	verts.push_back(position + vec2( .03f,  .03f));
 }
