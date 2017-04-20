@@ -1935,7 +1935,7 @@ struct Difference : Object
                         tempObjEntr = vol2.object;
                         tempObjExit = vol1.object;
 
-                        v1Index++;  //CHECK
+                        //v1Index++;  //CHECK
                         v2Index++;
                     }
                     // old volume ends before vol1 begins

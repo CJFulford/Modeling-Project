@@ -1,7 +1,6 @@
 #include "TList.h"
 #include "ShaderBuilder.h"
 
-using namespace std;
 using namespace glm;
 
 
