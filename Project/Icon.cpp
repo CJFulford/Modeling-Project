@@ -6,25 +6,47 @@ using namespace std;
 using namespace glm;
 
 
+
+Icon::Icon(std::string file)
+{
+    vertexArray = 0;
+    vertexBuffer = 0;
+    uvBuffer = 0;
+    textureID = 0;
+    filename = file;
+    position = vec3(0.f);
+    // all of our images are 32x32
+    imageHeight = 32;
+    imageWidth = 32;
+    // shader program
+    program = generateProgram("Icon.vert", "Icon.frag");
+    // uv coordinates
+    uvs.push_back(vec2(0.f, 1.f));
+    uvs.push_back(vec2(1.f, 1.f));
+    uvs.push_back(vec2(0.f, 0.f));
+    uvs.push_back(vec2(1.f, 0.f));
+    loadImages();
+}
+
 Icon::Icon(string file, vec2 pos)
 {
 	vertexArray = 0;
 	vertexBuffer = 0;
 	uvBuffer = 0;
 	textureID = 0;
-	
 	filename = file;
 	position = pos;
-
+    // all of our images are 32x32
 	imageHeight = 32;
 	imageWidth = 32;
+    // shader program
 	program = generateProgram("Icon.vert", "Icon.frag");
-	
-
+    // uv coordinates
 	uvs.push_back(vec2(0.f, 1.f));
 	uvs.push_back(vec2(1.f, 1.f));
 	uvs.push_back(vec2(0.f, 0.f));
 	uvs.push_back(vec2(1.f, 0.f));
+    loadImages();
 }
 
 
@@ -34,8 +56,20 @@ void Icon::generateBuffer()
 	glBindVertexArray(vertexArray);
 
 	glGenBuffers(1, &vertexBuffer);
-	glGenBuffers(1, &uvBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(verts[0]) * sizeof(verts), verts, GL_STATIC_DRAW);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, NULL);
+    glEnableVertexAttribArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
 
+    glGenBuffers(1, &uvBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, uvBuffer);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vec2) * uvs.size(), &uvs[0], GL_STATIC_DRAW);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, NULL);
+    glEnableVertexAttribArray(1);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    glBindVertexArray(0);
 }
 
 void Icon::render()
@@ -60,32 +94,26 @@ void Icon::render()
 
 void Icon::update()
 {
-	glBindVertexArray(vertexArray);
+    // move the icons to their respective nodes
+    for (int i = 0; i < 4 /*size of arrays*/; i++)
+        verts[i] = defaultVerts[i] + position;
 
-	verts.clear();	
-	getTriangles();
+    // each icon only has 2 triangles and 4 uv's. 
+    // the uv's never change so dont update them
+    // the number of triangles doesnt change so just overwrite the buffer
+    glBindVertexArray(vertexArray);
 
 	glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vec2) * verts.size(), verts.data(), GL_STATIC_DRAW);
+	glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(verts[0]) * sizeof(verts), verts);
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, NULL);
 	glEnableVertexAttribArray(0);
-
-	glBindBuffer(GL_ARRAY_BUFFER, uvBuffer);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vec2) * uvs.size(), uvs.data(), GL_STATIC_DRAW);
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, NULL);
-	glEnableVertexAttribArray(1);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	glBindVertexArray(0);
 }
 
-//void Icon::update(string file)
-//{
-//	filename = file;
-//}
-
 void Icon::loadImages()
 {
-	getTriangles();
 	generateBuffer();
 
 	image.clear();
@@ -94,18 +122,7 @@ void Icon::loadImages()
 	unsigned int error = lodepng::decode(image, imageWidth, imageHeight, filename);
 
 	if (error)
-	{
 		std::cout << "error " << error << ":" << lodepng_error_text(error) << std::endl;
-	}
 	//creating 2D texture
 	textureID = texture.create2DTexture(image, imageWidth, imageHeight);
-
-}
-
-void Icon::getTriangles()
-{
-	verts.push_back(position + vec2(-.03f, -.03f));
-	verts.push_back(position + vec2( .03f, -.03f));
-	verts.push_back(position + vec2(-.03f,  .03f));
-	verts.push_back(position + vec2( .03f,  .03f));
 }

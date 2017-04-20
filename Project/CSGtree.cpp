@@ -1,6 +1,6 @@
 #include "CSGtree.h"
+#include "ShaderBuilder.h"
 
-using namespace std;
 using namespace glm;
 
 
@@ -26,13 +26,13 @@ void CSGtree::generateBuffer()
     glGenVertexArrays(1, &vertexArray);
 
     glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(verts[0]) * verts.size(), &verts[0], GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(verts[0]) * verts.size(), verts.data(), GL_STATIC_DRAW);
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, NULL);
     glEnableVertexAttribArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     glBindBuffer(GL_ARRAY_BUFFER, colourBuffer);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(colours[0]) * colours.size(), &colours[0], GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(colours[0]) * colours.size(), colours.data(), GL_STATIC_DRAW);
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, NULL);
     glEnableVertexAttribArray(1);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -63,12 +63,19 @@ void CSGtree::render()
 	
 	glBindVertexArray(0);
 	glUseProgram(0);
+
+    // clear vectors to prepare for next frame
+    info.clear();
+    verts.clear();
+    colours.clear();
+    icons.clear();
 }
 
 void CSGtree::update()
 {
 	makeVerts();
 
+    // tell the icons how to line up with the nodes of the tree
 	for (int i = 0; i < icons.size(); i++)
 		icons[i].position = verts[i];
 
@@ -99,71 +106,57 @@ void CSGtree::constructInfo(Object *obj, int level)
     {
     case(1):
     {
-        info.push_back(vec2(level, 1));
+        info.push_back(vec2(level, obj->objectID));
         colours.push_back(obj->colour);
-        Icon tempcon("icons/Sphere.png", vec2(0, 0));
-        tempcon.loadImages();
-        icons.push_back(tempcon);
+        icons.push_back(Icon("icons/Sphere.png"));
         break;
     }
     case(2):
     {
-        info.push_back(vec2(level, 2));
+        info.push_back(vec2(level, obj->objectID));
         colours.push_back(obj->colour);
-        Icon tempcon("icons/Cube.png", vec2(0, 0));
-        tempcon.loadImages();
-        icons.push_back(tempcon);
+        icons.push_back(Icon("icons/Cube.png"));
         break;
     }
     case(3):
     {
-        info.push_back(vec2(level, 3));
+        info.push_back(vec2(level, obj->objectID));
         colours.push_back(obj->colour);
-        Icon tempcon("icons/Torus.png", vec2(0, 0));
-        tempcon.loadImages();
-        icons.push_back(tempcon);
+        icons.push_back(Icon("icons/Torus.png"));
         break;
     }
     case(4):
     {
-        info.push_back(vec2(level, 4));
+        info.push_back(vec2(level, obj->objectID));
         colours.push_back(obj->colour);
-        Icon tempcon("icons/Cylinder.png", vec2(0, 0));
-        tempcon.loadImages();
-        icons.push_back(tempcon);
+        icons.push_back(Icon("icons/Cylinder.png"));
         break;
     }
     case(5):
     {
-        info.push_back(vec2(level, 5));
+        info.push_back(vec2(level, obj->objectID));
         colours.push_back(obj->colour);
+        icons.push_back(Icon("icons/Union.png"));
         constructInfo(dynamic_cast<Union*>(obj)->leftChild, level + 1);
         constructInfo(dynamic_cast<Union*>(obj)->rightChild, level + 1);
-        Icon tempcon("icons/Union.png", vec2(0, 0));
-        tempcon.loadImages();
-        icons.push_back(tempcon);
         break;
     }
     case(6):
     {
-        info.push_back(vec2(level, 6));
+        info.push_back(vec2(level, obj->objectID));
         colours.push_back(obj->colour);
+        icons.push_back(Icon("icons/Intersection.png"));
         constructInfo(dynamic_cast<Intersection*>(obj)->leftChild, level + 1);
         constructInfo(dynamic_cast<Intersection*>(obj)->rightChild, level + 1);
-        Icon tempcon("icons/Intersection.png", vec2(0, 0));
-        tempcon.loadImages();
-        icons.push_back(tempcon);
         break;
     }
     case(7):
     {
-        info.push_back(vec2(level, 7));
+        info.push_back(vec2(level, obj->objectID));
         colours.push_back(obj->colour);
+        icons.push_back(Icon("icons/Difference.png"));
         constructInfo(dynamic_cast<Difference*>(obj)->leftChild, level + 1);
         constructInfo(dynamic_cast<Difference*>(obj)->rightChild, level + 1);
-        Icon tempcon("icons/Difference.png", vec2(0, 0));
-        tempcon.loadImages();
-        icons.push_back(tempcon);
         break;
     }
     default:
@@ -174,7 +167,7 @@ void CSGtree::constructInfo(Object *obj, int level)
 void CSGtree::makeVerts()
 {
 	// for nodes
-	vector<int> levelTotalCount;
+	std::vector<int> levelTotalCount;
 
     // count the number of objects in each level. index = level. value@index = # in level
 	for (vec2 obj : info)
@@ -187,7 +180,7 @@ void CSGtree::makeVerts()
 	}
 
     // generate the trees' nodes' positions
-	vector<int> levelCount(levelTotalCount.size(),0);
+    std::vector<int> levelCount(levelTotalCount.size(),0);
 	for (int i = 0; i < info.size(); i++)
 	{
 		levelCount[info[i].x - 1]++;    // indicate we have visited another object at CSG level x

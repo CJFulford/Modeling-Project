@@ -1,5 +1,4 @@
 #include "Header.h"
-#include "Icon.h"
 #include "CSGtree.h"
 #include "TList.h"
 #include "ImageBuffer.h"
@@ -65,11 +64,9 @@ int main(int argc, char *argv[])
         Icon("icons/Intersection.png", glm::vec2(-0.95, -0.8)),
         Icon("icons/Difference.png", glm::vec2(-0.95, -0.9)) }; 
 	
-    for (int i = 0; i < 5 /*length of tListSymbols*/; i++)
-    {
-        tListSymbols[i].loadImages();
-        tListSymbols[i].update();
-    };
+    // line icons dont move. only update once
+    for (Icon symbol : tListSymbols)
+        symbol.update();
 
 	while (!glfwWindowShouldClose(window))
 	{
@@ -105,19 +102,12 @@ int main(int argc, char *argv[])
         #pragma omp barrier
         imageBuffer.Render();
 
+        // compute and draw the tlists
         tlist.getLines(&tlistRay);
         tlist.render();
 
         for (Icon symbol : tListSymbols)
             symbol.render();
-		
-
-
-
-		csg.info.clear();
-		csg.verts.clear();
-		csg.colours.clear();
-		csg.icons.clear();
 		
 		if (selected1 != -1)
 		{
