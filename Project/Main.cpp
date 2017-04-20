@@ -117,9 +117,7 @@ int main(int argc, char *argv[])
 		csg.info.clear();
 		csg.verts.clear();
 		csg.colours.clear();
-		csg.tempColours.clear();
 		csg.icons.clear();
-		csg.tempIcons.clear();
 		
 		if (selected1 != -1)
 		{
@@ -127,12 +125,13 @@ int main(int argc, char *argv[])
             {
                 // if we have 2 objects selectedc, we want to display their potential CSG tree, so create a dummy tree to display
                 Object *tempObj = new Union(objectVec[selected1], objectVec[selected2]);
-                csg.constructInfo(tempObj, 1);
+                csg.constructInfo(tempObj, 1/*base level of tree*/);
                 // delete dummy tree to prevent memory leak
                 delete tempObj;
             }
             else
-			    csg.constructInfo(objectVec[selected1], 1);
+			    csg.constructInfo(objectVec[selected1], 1/*base level of tree*/);
+            csg.update();
 		}
 			
 		

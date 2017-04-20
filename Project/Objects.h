@@ -44,6 +44,7 @@ struct Object
     bool selected = false;
     bool selectable = true;
     bool differenceB = false;
+    unsigned int objectID = 0;
 
     // object derivative functions
     virtual void getVolume(Ray *ray) = 0;
@@ -235,6 +236,7 @@ struct RayCylinder : Object
     RayCylinder(Ray *ray)
     {
         orientation = ray;
+        selectable = false;
         radius = .01f;
         center = BASE_CENTER;
         colour = ZERO_VECTOR;
@@ -300,6 +302,7 @@ struct Sphere : Object
         center = BASE_CENTER;
         colour = generateRandomVector();
         phong = BASE_PHONG;
+        objectID = 1;
     }
 
     /*
@@ -367,6 +370,7 @@ struct Cube : Object
         center = BASE_CENTER;
         colour = generateRandomVector();
         phong = BASE_PHONG;
+        objectID = 2;
 
         planes[0] = new Plane(center + (radius * XAXIS), XAXIS, colour);
         planes[1] = new Plane(center - (radius * XAXIS), -XAXIS, colour);
@@ -446,6 +450,7 @@ struct Torus : Object
         phong = BASE_PHONG;
         R = BASE_RADIUS;
         r = BASE_RADIUS * .25f;
+        objectID = 3;
     }
 
 
@@ -711,6 +716,7 @@ struct Cylinder : Object
         colour = generateRandomVector();
         phong = BASE_PHONG;
         length = BASE_LENGTH;
+        objectID = 3;
 
         topPlane = new Plane(center + (length * YAXIS), YAXIS, colour);
         bottomPlane = new Plane(center - (length * YAXIS), -YAXIS, colour);
@@ -822,6 +828,7 @@ struct Union : Object
         colour = (obj1->colour + obj2->colour) / 2.f;
         center = (obj1->center + obj2->center) / 2.f;
         selected = false;
+        objectID = 5;
     }
 
     void getVolume(Ray *ray)
@@ -1246,6 +1253,7 @@ struct Intersection : Object
         colour = (obj1->colour + obj2->colour) / 2.f;
         center = (obj1->center + obj2->center) / 2.f;
         selected = false;
+        objectID = 6;
     }
 
     void getVolume(Ray *ray)
@@ -1584,6 +1592,7 @@ struct Difference : Object
         colour = (obj1->colour + obj2->colour) / 2.f;
         center = (obj1->center + obj2->center) / 2.f;
         selected = false;
+        objectID = 7;
 
         rightChild->differenceB = true;
     }
