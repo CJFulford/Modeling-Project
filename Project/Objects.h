@@ -18,7 +18,6 @@
 #define BASE_PHONG  50
 #define BASE_COLOUR glm::vec3(1.f, .4f, 0.f)
 
-#define SCALE_CHANGE .01f
 #define MIN_SCALE .1f
 
 #define XAXIS glm::vec3(1.f, 0.f, 0.f)
@@ -50,7 +49,7 @@ struct Object
     virtual void getVolume(Ray *ray) = 0;
     virtual glm::vec3 getNormal(glm::vec3 intersection) = 0;
     virtual void breakBoolean(std::vector<Object*> *objectVec, int index) = 0;
-    virtual void scale(bool enlarge) = 0;
+    virtual void scale(float scale) = 0;
     virtual void move(glm::vec3 move) = 0;
     virtual void rotate(glm::vec3 rotate) = 0;
 
@@ -189,7 +188,7 @@ struct Triangle : Object
     {
         return normal;
     }
-    void scale(bool enlarge) {}
+    void scale(float scale) {}
     void move(glm::vec3 move) {}
     void rotate(glm::vec3 rotate) {}
     void breakBoolean(std::vector<Object*> *objectVec, int index) {}
@@ -214,7 +213,7 @@ struct Plane : Object
     }
     void getVolume(Ray *ray) {}
     glm::vec3 getNormal(glm::vec3 intersection) { return (differenceB) ? -normal : normal; }
-    void scale(bool enlarge) {}
+    void scale(float scale) {}
     void move(glm::vec3 move)
     {
         center += move;
@@ -286,7 +285,7 @@ struct RayCylinder : Object
         norm = glm::rotateZ(glm::rotateY(glm::rotateX(norm, rotation.x), rotation.y), rotation.z);
         return (differenceB) ? -norm : norm;
     }
-    void scale(bool enlarge){}
+    void scale(float scale){}
     void move(glm::vec3 move) {}
     void rotate(glm::vec3 rotate) {}
     void breakBoolean(std::vector<Object*> *objectVec, int index) {}
@@ -336,12 +335,12 @@ struct Sphere : Object
         }
         return ZERO_VECTOR;
     }
-    void scale(bool enlarge)
+    void scale(float scale)
     {
-        if (enlarge)
-            radius += SCALE_CHANGE;
+        if (scale > 0)
+            radius += scale;
         else
-            radius = glm::max(MIN_SCALE, radius - SCALE_CHANGE);
+            radius = glm::max(MIN_SCALE, radius + scale);
     }
     void move(glm::vec3 move)
     {
@@ -424,9 +423,9 @@ struct Cube : Object
         }
         return ZERO_VECTOR;
     }
-    void scale(bool enlarge)
+    void scale(float scale)
     {
-        radius = (enlarge) ? radius + SCALE_CHANGE : glm::max(MIN_SCALE, radius - SCALE_CHANGE);
+        radius = (scale > 0) ? radius + scale : glm::max(MIN_SCALE, radius + scale);
         for (Plane *plane : planes)
             plane->center = (radius * plane->normal);
     }
@@ -689,9 +688,9 @@ struct Torus : Object
         norm = glm::rotateZ(glm::rotateY(glm::rotateX(norm, rotation.x), rotation.y), rotation.z);
         return (differenceB) ? -norm : norm;
     }
-    void scale(bool enlarge) 
+    void scale(float scale)
     {
-        R += (enlarge) ? SCALE_CHANGE : -SCALE_CHANGE;
+        R = (scale > 0) ? R + scale : glm::max(MIN_SCALE, R + scale);
         r = R * .25f;
     }
     void move(glm::vec3 move) { center += move; }
@@ -797,22 +796,14 @@ struct Cylinder : Object
         norm = glm::rotateZ(glm::rotateY(glm::rotateX(norm, rotation.x), rotation.y), rotation.z);
         return (differenceB) ? -norm : norm;
     }
-    void scale(bool enlarge)
+    void scale(float scale)
     {
-        if (enlarge)
-        {
-            radius += SCALE_CHANGE;
-            length += SCALE_CHANGE;
-            topPlane->center.y += SCALE_CHANGE;
-            bottomPlane->center.y += -SCALE_CHANGE;
-        } 
-        else
-        {
-            radius = glm::max(MIN_SCALE, radius - SCALE_CHANGE);
-            length = glm::max(MIN_SCALE, length - SCALE_CHANGE);
-            topPlane->center.y = ((topPlane->center.y <= .1f) ? topPlane->center.y : topPlane->center.y - SCALE_CHANGE);
-            bottomPlane->center.y = ((bottomPlane->center.y >= -.1f) ? bottomPlane->center.y : bottomPlane->center.y + SCALE_CHANGE);
-        }
+        radius = (scale > 0) ? radius + scale : glm::max(MIN_SCALE, radius + scale);
+        length = (scale > 0) ? length + scale : glm::max(MIN_SCALE, length + scale);
+        topPlane->center.y = (scale > 0) ? topPlane->center.y + scale : 
+                                ((topPlane->center.y <= .1f) ? topPlane->center.y : topPlane->center.y + scale);
+        bottomPlane->center.y = (scale > 0) ? bottomPlane->center.y + -scale :
+            ((bottomPlane->center.y >= -.1f) ? bottomPlane->center.y : bottomPlane->center.y - scale);
     }
     void move(glm::vec3 move) { center += move; }
     void rotate(glm::vec3 rotate) { rotation += rotate; }
@@ -1229,7 +1220,7 @@ struct Union : Object
 
         return ZERO_VECTOR;
     }
-    void scale(bool enlarge){}
+    void scale(float scale){}
     void move(glm::vec3 move)
     {
         leftChild->move(move);
@@ -1569,7 +1560,7 @@ struct Intersection : Object
 
         return ZERO_VECTOR;
     }
-    void scale(bool enlarge){}
+    void scale(float scale){}
     void move(glm::vec3 move)
     {
         leftChild->move(move);
@@ -2083,7 +2074,7 @@ struct Difference : Object
 
         return ZERO_VECTOR;
     }
-    void scale(bool enlarge){}
+    void scale(float scale){}
     void move(glm::vec3 move)
     {
         leftChild->move(move);

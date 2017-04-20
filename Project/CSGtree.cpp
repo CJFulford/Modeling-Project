@@ -23,25 +23,6 @@ void CSGtree::generateBuffer()
 	glGenBuffers(1, &vertexBuffer);
 	glGenBuffers(1, &colourBuffer);
 
-
-
-
-
-	/*glGenBuffers(1, &vertexBuffer);
-	glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(verts[0]) * verts.size(), &verts[0], GL_STATIC_DRAW);
-	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, NULL);
-	glEnableVertexAttribArray(0);
-	glBindVertexArray(0);
-
-	glGenBuffers(1, &colourBuffer);
-	glBindBuffer(GL_ARRAY_BUFFER, colourBuffer);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(colours[0]) * colours.size(), &colours[0], GL_STATIC_DRAW);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, NULL);
-	glEnableVertexAttribArray(1);
-	glBindVertexArray(0)*/
-
-
 }
 
 void CSGtree::render()
@@ -57,7 +38,7 @@ void CSGtree::render()
 	glPointSize(30.f);
 	glDrawArrays(GL_POINTS, 0, info.size());
 
-	//render the icons
+	//render the icon s
 	for (int i = 0; i < icons.size(); i++)
 	{
 		icons[i].update();
@@ -74,54 +55,10 @@ void CSGtree::update()
 {
 	makeVerts();
 
-	for (int i = 0; i < info.size(); i++)
+	for (int i = 0; i < icons.size(); i++)
 	{
-
-		if (info[i].y == 1) {
-			Icon tempIcon = Icon("icons/Sphere.png", vec2(0, 0));
-			tempIcon.position = verts[i];
-			icons.push_back(tempIcon);
-		}
-		/*else if (info[i].y == 2){
-			Icon tempIcon = Icon("icons/Cube.png", vec2(0, 0));
-			tempIcon.position = verts[i];
-			icons.push_back(tempIcon);
-		}*/
-		else if (info[i].y == 3){
-			Icon tempIcon = Icon("icons/Torus.png", vec2(0, 0));
-			tempIcon.position = verts[i];
-			icons.push_back(tempIcon);
-		}
-		/*else if (info[i].y == 4) {
-			Icon tempIcon = Icon("icons/Cylinder.png", vec2(0, 0));
-			tempIcon.position = verts[i];
-			icons.push_back(tempIcon);
-		}
-		else if (info[i].y == 5){
-			Icon tempIcon = Icon("icons/Union.png", vec2(0, 0));
-			tempIcon.position = verts[i];
-			icons.push_back(tempIcon);
-		}
-		else if (info[i].y == 6) {
-			Icon tempIcon = Icon("icons/Intersection.png", vec2(0, 0));
-			tempIcon.position = verts[i];
-			icons.push_back(tempIcon);
-		}
-		else if (info[i].y == 7) {
-			Icon tempIcon = Icon("icons/Difference.png", vec2(0, 0));
-			tempIcon.position = verts[i];
-			icons.push_back(tempIcon);
-		}
-		else {
-			Icon tempIcon = Icon("icons/Black.png", vec2(0, 0));
-			tempIcon.position = verts[i];
-			icons.push_back(tempIcon);
-		}*/
-
-		//delete tempIcon;
+		icons[i].position = verts[i];
 	}
-
-	//cout << icons.size() << endl;
 
 	glBindVertexArray(vertexArray);
 
@@ -146,6 +83,9 @@ void CSGtree::constructInfo(Object *obj, int level)
 	{
 		info.push_back(vec2(level, 1));
 		tempColours.push_back(temp->colour);
+		Icon tempcon("icons/Sphere.png", vec2(0, 0));
+		tempcon.loadImages();
+		tempIcons.push_back(tempcon);
 	}
 
 	temp = dynamic_cast<Cube*>(obj);
@@ -153,6 +93,9 @@ void CSGtree::constructInfo(Object *obj, int level)
 	{
 		info.push_back(vec2(level, 2));
 		tempColours.push_back(temp->colour);
+		Icon tempcon("icons/Cube.png", vec2(0, 0));
+		tempcon.loadImages();
+		tempIcons.push_back(tempcon);
 	}
 
 	temp = dynamic_cast<Torus*>(obj);
@@ -160,6 +103,9 @@ void CSGtree::constructInfo(Object *obj, int level)
 	{
 		info.push_back(vec2(level, 3));
 		tempColours.push_back(temp->colour);
+		Icon tempcon("icons/Torus.png", vec2(0, 0));
+		tempcon.loadImages();
+		tempIcons.push_back(tempcon);
 	}
 
 	temp = dynamic_cast<Cylinder*>(obj);
@@ -167,6 +113,9 @@ void CSGtree::constructInfo(Object *obj, int level)
 	{
 		info.push_back(vec2(level, 4));
 		tempColours.push_back(temp->colour);
+		Icon tempcon("icons/Cylinder.png", vec2(0, 0));
+		tempcon.loadImages();
+		tempIcons.push_back(tempcon);
 	}
 
 	temp = dynamic_cast<Union*>(obj);
@@ -176,6 +125,9 @@ void CSGtree::constructInfo(Object *obj, int level)
 		tempColours.push_back(temp->colour);
 		constructInfo(dynamic_cast<Union*>(obj)->leftChild, level + 1);
 		constructInfo(dynamic_cast<Union*>(obj)->rightChild, level + 1);
+		Icon tempcon("icons/Union.png", vec2(0, 0));
+		tempcon.loadImages();
+		tempIcons.push_back(tempcon);
 	}
 		
 	temp = dynamic_cast<Intersection*>(obj);
@@ -185,6 +137,9 @@ void CSGtree::constructInfo(Object *obj, int level)
 		tempColours.push_back(temp->colour);
 		constructInfo(dynamic_cast<Intersection*>(obj)->leftChild, level + 1);
 		constructInfo(dynamic_cast<Intersection*>(obj)->rightChild, level + 1);
+		Icon tempcon("icons/Intersection.png", vec2(0, 0));
+		tempcon.loadImages();
+		tempIcons.push_back(tempcon);
 	}
 
 	temp = dynamic_cast<Difference*>(obj);
@@ -194,6 +149,9 @@ void CSGtree::constructInfo(Object *obj, int level)
 		tempColours.push_back(temp->colour);
 		constructInfo(dynamic_cast<Difference*>(obj)->leftChild, level + 1);
 		constructInfo(dynamic_cast<Difference*>(obj)->rightChild, level + 1);
+		Icon tempcon("icons/Difference.png", vec2(0, 0));
+		tempcon.loadImages();
+		tempIcons.push_back(tempcon);
 	}	
 }
 
@@ -215,8 +173,10 @@ void CSGtree::makeVerts()
 	{
 		levelCount[info[i].x - 1]++;
 		verts.push_back(vec2(((float) levelCount[info[i].x-1]) / (float)(levelTotalCount[info[i].x-1] + 1), 1.f - (info[i].x / (levelTotalCount.size() + 1.f))));
-		colours.push_back(tempColours[i]); 
+		colours.push_back(tempColours[i]);
+		icons.push_back(tempIcons[i]);
 	}
+
 
 	int leafctr = info.size() - 1;
 	int parentctr = leafctr;

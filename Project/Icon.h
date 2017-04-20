@@ -8,7 +8,6 @@ class Icon
 {
 public:
 	Icon(std::string file, glm::vec2 pos);
-	~Icon();
 
 	glm::vec2 position;
 
@@ -30,6 +29,7 @@ public:
 
 	void render();
 	void update();
+	//void update(std::string file);
 
 	void loadImages();
 

@@ -10,30 +10,27 @@ using namespace std;
 
 int selected1 = -1, selected2 = -1;
 double mouse_old_x, mouse_old_y;
-Ray tlistRay(DEF_CAM_POS, glm::vec3(0.f) - DEF_CAM_POS);
-//RayCylinder rayCylinder(&tlistRay);
+// changed this to match with the now rotated initial ray
+Ray tlistRay(DEF_CAM_POS, glm::vec3(0.f) - glm::vec3(1.f, 0.f, 0.f));
 
 float   
     rotate_x = 0.0,
     rotate_y = 0.0,
     trotate_x = 0.0,
-    trotate_y = 0.0,
+    trotate_y = (PI / 2.f),
     zoom = DEF_ZOOM,
     aspectRatio = (float)RENDER_WINDOW_WIDTH / (float)RENDER_WINDOW_HEIGHT;
 
-bool    
-    select1   = true, 
-    scale     = false, 
+bool
+    select1 = true,
+    scale = false,
 
-    movement  = false,
-    movementX = false,
-    movementY = false,
-    movementZ = false,
+    movement = false,
+    rotation = false,
 
-    rotation  = false,
-    rotationX = false,
-    rotationY = false,
-    rotationZ = false;
+    alterX = false,
+    alterY = false,
+    alterZ = false;
 
 
 // Error Checking
@@ -77,16 +74,16 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
         switch (key)
         {
         case(GLFW_KEY_X):
-            if (movement)      movementX = false;
-            else if (rotation) rotationX = false;
+            if (movement | rotation) alterX = false;
             break;
         case(GLFW_KEY_Y):
-            if (movement)      movementY = false;
-            else if (rotation) rotationY = false;
+            if (movement | rotation) alterY = false;
             break;
         case(GLFW_KEY_Z):
-            if (movement)      movementZ = false;
-            else if (rotation) rotationZ = false;
+            if (movement | rotation) alterZ = false;
+            break;
+        case(GLFW_KEY_S):
+            scale = false;
             break;
         }
     }
@@ -145,16 +142,13 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
 
         // movement and rotation axis selections
         case(GLFW_KEY_X):
-            if (movement)      movementX = true;
-            else if (rotation) rotationX = true;
+            if (movement | rotation) alterX = true;
             break;
         case(GLFW_KEY_Y):
-            if (movement)      movementY = true;
-            else if (rotation) rotationY = true;
+            if (movement | rotation) alterY = true;
             break;
         case(GLFW_KEY_Z):
-            if (movement)      movementZ = true;
-            else if (rotation) rotationZ = true;
+            if (movement | rotation) alterZ = true;
             break;
 
 
@@ -290,24 +284,22 @@ void mouseMotion(GLFWwindow* window, double x, double y)
     // scale, rotation, movement applications
     if (scale)
     {
-        if (y - mouse_old_y < 0)
-            objectVec[selected1]->scale(true);
-        else
-            objectVec[selected1]->scale(false);
+            objectVec[selected1]->scale((y - mouse_old_y) * SCREEN_CONTROL_SCALE);
+            if (selected2 != -1)
+                objectVec[selected2]->scale((y - mouse_old_y) * SCREEN_CONTROL_SCALE);
     }
-    else if (movementX || rotationX)
+    else if (alterX)
     {
 		if (movement)
 		{
 			objectVec[selected1]->move(glm::vec3((float)(x - mouse_old_x) * SCREEN_CONTROL_SCALE, 0.f, 0.f));
 			if(selected2 != -1)
 				objectVec[selected2]->move(glm::vec3((float)(x - mouse_old_x) * SCREEN_CONTROL_SCALE, 0.f, 0.f));
-		}
-            
+		}  
         else if (rotation)
             objectVec[selected1]->rotate(glm::vec3((float)(x - mouse_old_x) * SCREEN_CONTROL_SCALE, 0.f, 0.f));
     }
-    else if (movementY || rotationY)
+    else if (alterY)
     {
 		if (movement)
 		{
@@ -315,11 +307,10 @@ void mouseMotion(GLFWwindow* window, double x, double y)
 			if (selected2 != -1)
 				objectVec[selected2]->move(glm::vec3(0.f, (float)(y - mouse_old_y) * -SCREEN_CONTROL_SCALE, 0.f));
 		}
-
         else if (rotation)
             objectVec[selected1]->rotate(glm::vec3(0.f, (float)(y - mouse_old_y) * -SCREEN_CONTROL_SCALE, 0.f));
     }
-    else if (movementZ || rotationZ)
+    else if (alterZ)
     {
 		if (movement)
 		{
@@ -348,13 +339,10 @@ void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
 {
     scale = false;
     movement = false;
-    movementX = false;
-    movementY = false;
-    movementZ = false;
     rotation = false;
-    rotationX = false;
-    rotationY = false;
-    rotationZ = false;
+    alterX = false;
+    alterY = false;
+    alterZ = false;
     // selection
     if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS)
     {

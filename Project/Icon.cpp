@@ -5,6 +5,7 @@
 using namespace std;
 using namespace glm;
 
+
 Icon::Icon(string file, vec2 pos)
 {
 	vertexArray = 0;
@@ -24,14 +25,8 @@ Icon::Icon(string file, vec2 pos)
 	uvs.push_back(vec2(1.f, 1.f));
 	uvs.push_back(vec2(0.f, 0.f));
 	uvs.push_back(vec2(1.f, 0.f));
-	if (filename != "")
-		loadImages();
 }
 
-Icon::~Icon()
-{
-
-}
 
 void Icon::generateBuffer()
 {
@@ -82,6 +77,11 @@ void Icon::update()
 
 	glBindVertexArray(0);
 }
+
+//void Icon::update(string file)
+//{
+//	filename = file;
+//}
 
 void Icon::loadImages()
 {
