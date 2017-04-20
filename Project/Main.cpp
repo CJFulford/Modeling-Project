@@ -58,18 +58,18 @@ int main(int argc, char *argv[])
 
     TList tlist = TList();
 	CSGtree csg = CSGtree();
-
-	Icon sel1 = Icon("icons/A.png", glm::vec2(-0.95, -0.5));
-	Icon sel2 = Icon("icons/B.png", glm::vec2(-0.95, -0.6));
-	Icon unio = Icon("icons/Union.png", glm::vec2(-0.95,-0.7));
-	Icon inte = Icon("icons/Intersection.png", glm::vec2(-0.95, -0.8));
-	Icon diff = Icon("icons/Difference.png", glm::vec2(-0.95, -0.9));
+    Icon tListSymbols[] = {
+        Icon("icons/A.png", glm::vec2(-0.95, -0.5)),
+        Icon("icons/B.png", glm::vec2(-0.95, -0.6)),
+        Icon("icons/Union.png", glm::vec2(-0.95,-0.7)),
+        Icon("icons/Intersection.png", glm::vec2(-0.95, -0.8)),
+        Icon("icons/Difference.png", glm::vec2(-0.95, -0.9)) }; 
 	
-	sel1.loadImages();
-	sel2.loadImages();
-	unio.loadImages();
-	inte.loadImages();
-	diff.loadImages();
+    for (int i = 0; i < 5 /*length of tListSymbols*/; i++)
+    {
+        tListSymbols[i].loadImages();
+        tListSymbols[i].update();
+    };
 
 	while (!glfwWindowShouldClose(window))
 	{
@@ -104,8 +104,12 @@ int main(int argc, char *argv[])
 		}
         #pragma omp barrier
         imageBuffer.Render();
-        /*
-		tlist.getLines(&tlistRay);
+
+        tlist.getLines(&tlistRay);
+        tlist.render();
+
+        for (Icon symbol : tListSymbols)
+            symbol.render();
 		
 		csg.info.clear();
 		csg.verts.clear();
@@ -126,19 +130,8 @@ int main(int argc, char *argv[])
 		}
 			
 		
-        tlist.render();
 		csg.render();
 
-		sel1.render();
-		sel1.update();
-		sel2.render();
-		sel2.update();
-		unio.render();
-		unio.update();
-		inte.render();
-		inte.update();
-		diff.render();
-		diff.update();
 
         */
         glfwSwapBuffers(window);

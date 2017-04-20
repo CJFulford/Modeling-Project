@@ -10,14 +10,13 @@ using namespace std;
 
 int selected1 = -1, selected2 = -1;
 double mouse_old_x, mouse_old_y;
-// changed this to match with the now rotated initial ray
-Ray tlistRay(DEF_CAM_POS, glm::vec3(0.f) - glm::vec3(1.f, 0.f, 0.f));
+Ray tlistRay(DEF_CAM_POS, normalize(glm::vec3(0.f) - DEF_CAM_POS));
 
 float   
     rotate_x = 0.0,
     rotate_y = 0.0,
     trotate_x = 0.0,
-    trotate_y = (PI / 2.f),
+    trotate_y = 0.0,
     zoom = DEF_ZOOM,
     aspectRatio = (float)RENDER_WINDOW_WIDTH / (float)RENDER_WINDOW_HEIGHT;
 
@@ -127,7 +126,6 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
                 scale = false;
                 rotation = false;
             }
-			
             break;
         // rotation toggle
         case (GLFW_KEY_R):
@@ -441,7 +439,7 @@ GLFWwindow* generateWindow()
     glfwSetMouseButtonCallback(window, mouseButtonCallback);
     glfwMakeContextCurrent(window);
 
-	objectVec.push_back(new RayCylinder(new Ray(DEF_CAM_POS, glm::vec3(0.f) - DEF_CAM_POS)));
+	objectVec.push_back(new RayCylinder(new Ray(DEF_CAM_POS, normalize(ZERO_VECTOR - DEF_CAM_POS))));
 
     return window;
 }

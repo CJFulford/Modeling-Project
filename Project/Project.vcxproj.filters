@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Source Files\shaders">
+      <UniqueIdentifier>{56946e12-ac53-41b3-a7e5-a3768e6486f4}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ImageBuffer.cpp">
@@ -85,23 +88,23 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="TList.frag">
-      <Filter>Source Files</Filter>
-    </None>
-    <None Include="TList.vert">
-      <Filter>Source Files</Filter>
+    <None Include="CSGtree.frag">
+      <Filter>Source Files\shaders</Filter>
     </None>
     <None Include="CSGtree.vert">
-      <Filter>Source Files</Filter>
-    </None>
-    <None Include="CSGtree.frag">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\shaders</Filter>
     </None>
     <None Include="Icon.frag">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\shaders</Filter>
     </None>
     <None Include="Icon.vert">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\shaders</Filter>
+    </None>
+    <None Include="TList.frag">
+      <Filter>Source Files\shaders</Filter>
+    </None>
+    <None Include="TList.vert">
+      <Filter>Source Files\shaders</Filter>
     </None>
   </ItemGroup>
 </Project>
