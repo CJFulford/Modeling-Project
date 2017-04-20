@@ -111,6 +111,9 @@ int main(int argc, char *argv[])
         for (Icon symbol : tListSymbols)
             symbol.render();
 		
+
+
+
 		csg.info.clear();
 		csg.verts.clear();
 		csg.colours.clear();
@@ -118,22 +121,23 @@ int main(int argc, char *argv[])
 		csg.icons.clear();
 		csg.tempIcons.clear();
 		
-		if (selected2 == -1 && selected1 != -1)					//sel1
+		if (selected1 != -1)
 		{
-			csg.constructInfo(objectVec[selected1], 1);
-			csg.update();
-		}
-		else if (selected2 != -1)
-		{
-			csg.constructInfo(new Union(objectVec[selected1], objectVec[selected2]), 1);
+            if (selected2 != -1)
+            {
+                // if we have 2 objects selectedc, we want to display their potential CSG tree, so create a dummy tree to display
+                Object *tempObj = new Union(objectVec[selected1], objectVec[selected2]);
+                csg.constructInfo(tempObj, 1);
+                // delete dummy tree to prevent memory leak
+                delete tempObj;
+            }
+            else
+			    csg.constructInfo(objectVec[selected1], 1);
 			csg.update();
 		}
 			
 		
 		csg.render();
-
-
-        */
         glfwSwapBuffers(window);
 
         // update and print frames per second
