@@ -1,5 +1,5 @@
 #include "TList.h"
-#include "Shader.h"
+#include "ShaderBuilder.h"
 
 using namespace std;
 using namespace glm;
@@ -19,7 +19,15 @@ void TList::generateBuffer()
     glGenVertexArrays(1, &vertexArray);
     glBindVertexArray(vertexArray);
 
-    getLines(NULL);
+    float y = -0.5;
+    for (int i = 0; i < 5; i++)
+    {
+        verts.push_back(vec2(-.9, y));
+        verts.push_back(vec2(.9, y));
+        colours.push_back(vec3(0.f));
+        colours.push_back(vec3(0.f));
+        y -= 0.1;
+    }
 
     glGenBuffers(1, &vertexBuffer);
     glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
@@ -119,32 +127,36 @@ void TList::getLines(Ray *ray)
     if (verts.size() > 10)
     {
         // get the minimum and maximum t values
-        int i = 10;
+        // start at to as we dont want to factor the lines in the equation
         float tmin = FLT_MAX, tmax = FLT_MIN;
-        do {
+        for (int i = 10 ; i < verts.size(); i++)
+        {
             tmin = min(tmin, verts[i].x);
             tmax = max(tmax, verts[i].x);
-            i++;
-        } while (i < verts.size());
-
-        float distance = abs(tmax - tmin);
-
+        }
         for (int i = 10; i < verts.size(); i++)
-            verts[i].x = (2.f * (.85f * (((verts[i].x - tmin) / distance))) + .15f) - 1.f;
+            verts[i].x = (1.7f * ((verts[i].x - tmin) / abs(tmax - tmin))) - .85f;
     }
+
+    // since it is possible for verts to be bigger than the previous cycle, we need to delete the old buffers and create new ones
+    glDeleteBuffers(1, &vertexBuffer);
+    glDeleteBuffers(1, &colourBuffer);
 
     glBindVertexArray(vertexArray);
 
+    glGenBuffers(1, &vertexBuffer);
     glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
     glBufferData(GL_ARRAY_BUFFER, sizeof(verts[0]) * verts.size(), &verts[0], GL_STATIC_DRAW);
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, NULL);
     glEnableVertexAttribArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
 
+    glGenBuffers(1, &colourBuffer);
     glBindBuffer(GL_ARRAY_BUFFER, colourBuffer);
     glBufferData(GL_ARRAY_BUFFER, sizeof(colours[0]) * colours.size(), &colours[0], GL_STATIC_DRAW);
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, NULL);
     glEnableVertexAttribArray(1);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
  
-
     glBindVertexArray(0);
 }

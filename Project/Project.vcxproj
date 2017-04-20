@@ -166,7 +166,7 @@
     <ClCompile Include="Icon.cpp" />
     <ClCompile Include="libraries\GLAD_V4.5\src\glad.c" />
     <ClCompile Include="lodepng.cpp" />
-    <ClCompile Include="Shader.cpp" />
+    <ClCompile Include="ShaderBuilder.cpp" />
     <ClCompile Include="texture.cpp" />
     <ClCompile Include="TList.cpp" />
     <ClCompile Include="Tools.cpp" />
@@ -182,7 +182,7 @@
     <ClInclude Include="ImageBuffer.h" />
     <ClInclude Include="lodepng.h" />
     <ClInclude Include="Objects.h" />
-    <ClInclude Include="Shader.h" />
+    <ClInclude Include="ShaderBuilder.h" />
     <ClInclude Include="texture.h" />
     <ClInclude Include="TList.h" />
     <ClInclude Include="Tools.h" />
