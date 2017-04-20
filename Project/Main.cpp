@@ -59,17 +59,12 @@ int main(int argc, char *argv[])
     TList tlist = TList();
 	CSGtree csg = CSGtree();
 
-	Icon sel1 = Icon("icons/A.png", glm::vec2(-0.95, -0.5));
-	Icon sel2 = Icon("icons/B.png", glm::vec2(-0.95, -0.6));
-	Icon unio = Icon("icons/Union.png", glm::vec2(-0.95,-0.7));
-	Icon inte = Icon("icons/Intersection.png", glm::vec2(-0.95, -0.8));
-	Icon diff = Icon("icons/Difference.png", glm::vec2(-0.95, -0.9));
-	
-	sel1.loadImages();
-	sel2.loadImages();
-	unio.loadImages();
-	inte.loadImages();
-	diff.loadImages();
+	//Icon sel1 = Icon("icons/A.png", glm::vec2(-0.95, -0.5));
+	//Icon sel2 = Icon("icons/B.png", glm::vec2(-0.95, -0.6));
+	//Icon unio = Icon("icons/Union.png", glm::vec2(-0.95,-0.7));
+	//Icon inte = Icon("icons/Intersection.png", glm::vec2(-0.95, -0.8));
+	//Icon diff = Icon("icons/Difference.png", glm::vec2(-0.95, -0.9));
+
 
 	while (!glfwWindowShouldClose(window))
 	{
@@ -112,34 +107,30 @@ int main(int argc, char *argv[])
 		csg.tempColours.clear();
 		csg.icons.clear();
 		csg.tempIcons.clear();
-		
-		if (selected2 == -1 && selected1 != -1)					//sel1
+
+		if ( selected1 != -1)					//sel1
 		{
-			csg.constructInfo(objectVec[selected1], 1);
+			if (selected2 != -1)
+				csg.constructInfo(new Union(objectVec[selected1], objectVec[selected2]), 1);
+			else
+				csg.constructInfo(objectVec[selected1], 1);
 			csg.update();
 		}
-		else if (selected2 != -1)
-		{
-			csg.constructInfo(new Union(objectVec[selected1], objectVec[selected2]), 1);
-			csg.update();
-		}
-			
 		
 		imageBuffer.Render();
         tlist.render();
 		csg.render();
 
-		sel1.render();
-		sel1.update();
-		sel2.render();
-		sel2.update();
-		unio.render();
-		unio.update();
-		inte.render();
-		inte.update();
-		diff.render();
-		diff.update();
-
+		//sel1.update();
+		//sel1.render();
+		//sel2.render();
+		//sel2.update();
+		//unio.render();
+		//unio.update();
+		//inte.render();
+		//inte.update();
+		//diff.render();
+		//diff.update();
 
         glfwSwapBuffers(window);
 
