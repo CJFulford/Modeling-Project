@@ -10,10 +10,10 @@ public:
     Icon(std::string file);
 	Icon(std::string file, glm::vec2 pos);
 
-    glm::vec2 position;
+    std::vector<glm::vec2> positions;
 
 	void render();
-    void update();
+    void update(int positionIndex);
 
 private:
     Texture texture;
@@ -43,6 +43,7 @@ private:
     unsigned int imageHeight;
 
     void generateBuffer();
+    void renderPosition();
     void loadImages();
 };
 

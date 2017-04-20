@@ -12,7 +12,7 @@ public:
     void update();
 
 private:
-    std::vector<Icon> icons;
+    std::vector<Icon*> icons;
     std::vector<glm::vec2> verts;
     std::vector<glm::vec3> colours;
     std::vector<glm::vec2> info; // <tree level, object type>

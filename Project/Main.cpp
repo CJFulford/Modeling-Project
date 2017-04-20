@@ -66,7 +66,7 @@ int main(int argc, char *argv[])
 	
     // line icons dont move. only update once
     for (Icon symbol : tListSymbols)
-        symbol.update();
+        symbol.update(0);
 
 	while (!glfwWindowShouldClose(window))
 	{

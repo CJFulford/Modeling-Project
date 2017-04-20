@@ -2,30 +2,9 @@
 #include <cmath>
 #include <iostream>
 
-Texture::Texture()
-{
+Texture::Texture() {}
 
-}
-
-GLuint Texture::create1DTexture(std::vector<GLubyte>& rgbaValues)
-{
-    GLuint textureID;
-
-    glGenTextures(1, &textureID);
-    glBindTexture(GL_TEXTURE_1D, textureID);
-    glTexStorage1D(GL_TEXTURE_1D, 1, GL_RGBA8, rgbaValues.size()*sizeof (GLubyte) / 4);
-    glTexSubImage1D(GL_TEXTURE_1D, 0, 0, rgbaValues.size()*sizeof (GLubyte) / 4, GL_RGBA, GL_UNSIGNED_BYTE, rgbaValues.data());
-    glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-
-    glBindTexture(GL_TEXTURE_1D, 0);
-
-    return textureID;
-}
-
-
-GLuint Texture::create2DTexture(std::vector<unsigned char>& image, unsigned int width, unsigned int height)
+GLuint Texture::generateTexture(std::vector<unsigned char>& image, unsigned int width, unsigned int height)
 {
 	GLuint textureID;
 
@@ -41,26 +20,11 @@ GLuint Texture::create2DTexture(std::vector<unsigned char>& image, unsigned int 
 	return textureID;
 }
 
-void Texture::bind2DTexture(GLuint _program, GLuint _textureID, std::string varName)
+void Texture::bindTexture(GLuint _program, GLuint _textureID, std::string varName)
 {
 	glActiveTexture(GL_TEXTURE0 + _textureID);
 	glBindTexture(GL_TEXTURE_2D, _textureID);
 	glUniform1i(glGetUniformLocation(_program, varName.c_str()), _textureID);
 }
 
-void Texture::bind1DTexture(GLuint _program, GLuint _textureID, std::string varName)
-{
-	glActiveTexture(GL_TEXTURE0 + _textureID);
-	glBindTexture(GL_TEXTURE_1D, _textureID);
-	glUniform1i(glGetUniformLocation(_program, varName.c_str()), _textureID);
-}
-
-void Texture::unbind1DTexture()
-{
-	glBindTexture(GL_TEXTURE_1D, 0);
-}
-
-void Texture::unbind2DTexture()
-{
-	glBindTexture(GL_TEXTURE_2D, 0);
-}
+void Texture::unbindTexture() { glBindTexture(GL_TEXTURE_2D, 0); }

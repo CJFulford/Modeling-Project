@@ -716,7 +716,7 @@ struct Cylinder : Object
         colour = generateRandomVector();
         phong = BASE_PHONG;
         length = BASE_LENGTH;
-        objectID = 3;
+        objectID = 4;
 
         topPlane = new Plane(center + (length * YAXIS), YAXIS, colour);
         bottomPlane = new Plane(center - (length * YAXIS), -YAXIS, colour);

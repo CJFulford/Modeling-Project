@@ -188,6 +188,8 @@
     <ClInclude Include="Tools.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="ClassDiagram.cd" />
+    <None Include="ClassDiagram1.cd" />
     <None Include="CSGtree.frag" />
     <None Include="CSGtree.vert" />
     <None Include="Icon.frag" />

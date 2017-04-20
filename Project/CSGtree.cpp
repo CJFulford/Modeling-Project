@@ -3,6 +3,14 @@
 
 using namespace glm;
 
+Icon *spheIcon;
+Icon *cubeIcon;
+Icon *toruIcon;
+Icon *cyliIcon;
+Icon *unioIcon;
+Icon *inteIcon;
+Icon *diffIcon;
+
 
 CSGtree::CSGtree()
 {
@@ -11,6 +19,14 @@ CSGtree::CSGtree()
     colourBuffer = 0;
 	program = generateProgram("CSGtree.vert", "CSGtree.frag");
 	generateBuffer();
+
+    spheIcon = new Icon("icons/Sphere.png");
+    cubeIcon = new Icon("icons/Cube.png");
+    toruIcon = new Icon("icons/Torus.png");
+    cyliIcon = new Icon("icons/Cylinder.png");
+    unioIcon = new Icon("icons/Union.png");
+    inteIcon = new Icon("icons/Intersection.png");
+    diffIcon = new Icon("icons/Difference.png");
 }
 
 
@@ -57,8 +73,7 @@ void CSGtree::render()
 	//render the icon s
 	for (int i = 0; i < icons.size(); i++)
 	{
-		icons[i].update();
-		icons[i].render();
+		icons[i]->render();
 	}
 	
 	glBindVertexArray(0);
@@ -68,6 +83,8 @@ void CSGtree::render()
     info.clear();
     verts.clear();
     colours.clear();
+    for (Icon *icon : icons)
+        icon->positions.clear();
     icons.clear();
 }
 
@@ -77,7 +94,7 @@ void CSGtree::update()
 
     // tell the icons how to line up with the nodes of the tree
 	for (int i = 0; i < icons.size(); i++)
-		icons[i].position = verts[i];
+		icons[i]->positions.push_back(verts[i]);
 
     // since the size of the vertex and colour buffer can increase, we need to recreate the buffer. 
     glDeleteBuffers(1, &vertexBuffer);
@@ -108,35 +125,35 @@ void CSGtree::constructInfo(Object *obj, int level)
     {
         info.push_back(vec2(level, obj->objectID));
         colours.push_back(obj->colour);
-        icons.push_back(Icon("icons/Sphere.png"));
+        icons.push_back(spheIcon);
         break;
     }
     case(2):
     {
         info.push_back(vec2(level, obj->objectID));
         colours.push_back(obj->colour);
-        icons.push_back(Icon("icons/Cube.png"));
+        icons.push_back(cubeIcon);
         break;
     }
     case(3):
     {
         info.push_back(vec2(level, obj->objectID));
         colours.push_back(obj->colour);
-        icons.push_back(Icon("icons/Torus.png"));
+        icons.push_back(toruIcon);
         break;
     }
     case(4):
     {
         info.push_back(vec2(level, obj->objectID));
         colours.push_back(obj->colour);
-        icons.push_back(Icon("icons/Cylinder.png"));
+        icons.push_back(cyliIcon);
         break;
     }
     case(5):
     {
         info.push_back(vec2(level, obj->objectID));
         colours.push_back(obj->colour);
-        icons.push_back(Icon("icons/Union.png"));
+        icons.push_back(unioIcon);
         constructInfo(dynamic_cast<Union*>(obj)->leftChild, level + 1);
         constructInfo(dynamic_cast<Union*>(obj)->rightChild, level + 1);
         break;
@@ -145,7 +162,7 @@ void CSGtree::constructInfo(Object *obj, int level)
     {
         info.push_back(vec2(level, obj->objectID));
         colours.push_back(obj->colour);
-        icons.push_back(Icon("icons/Intersection.png"));
+        icons.push_back(inteIcon);
         constructInfo(dynamic_cast<Intersection*>(obj)->leftChild, level + 1);
         constructInfo(dynamic_cast<Intersection*>(obj)->rightChild, level + 1);
         break;
@@ -154,7 +171,7 @@ void CSGtree::constructInfo(Object *obj, int level)
     {
         info.push_back(vec2(level, obj->objectID));
         colours.push_back(obj->colour);
-        icons.push_back(Icon("icons/Difference.png"));
+        icons.push_back(diffIcon);
         constructInfo(dynamic_cast<Difference*>(obj)->leftChild, level + 1);
         constructInfo(dynamic_cast<Difference*>(obj)->rightChild, level + 1);
         break;

@@ -14,7 +14,7 @@ Icon::Icon(std::string file)
     uvBuffer = 0;
     textureID = 0;
     filename = file;
-    position = vec3(0.f);
+    positions;
     // all of our images are 32x32
     imageHeight = 32;
     imageWidth = 32;
@@ -35,7 +35,7 @@ Icon::Icon(string file, vec2 pos)
 	uvBuffer = 0;
 	textureID = 0;
 	filename = file;
-	position = pos;
+	positions.push_back(pos);
     // all of our images are 32x32
 	imageHeight = 32;
 	imageWidth = 32;
@@ -48,7 +48,6 @@ Icon::Icon(string file, vec2 pos)
 	uvs.push_back(vec2(1.f, 0.f));
     loadImages();
 }
-
 
 void Icon::generateBuffer()
 {
@@ -72,31 +71,43 @@ void Icon::generateBuffer()
     glBindVertexArray(0);
 }
 
-void Icon::render()
+void Icon::renderPosition()
 {
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	glUseProgram(program);
-	glBindVertexArray(vertexArray);
-	texture.bind2DTexture(program, textureID, std::string("tex"));
+    glUseProgram(program);
+    glBindVertexArray(vertexArray);
+    texture.bindTexture(program, textureID, std::string("tex"));
 
-	//draw 2 triangles 
-	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    //draw 2 triangles 
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
-	glBindVertexArray(0);
-	texture.unbind2DTexture();
-	glUseProgram(0);
+    glBindVertexArray(0);
+    texture.unbindTexture();
+    glUseProgram(0);
 
-	glDisable(GL_BLEND);
-
+    glDisable(GL_BLEND);
 }
 
-void Icon::update()
+void Icon::render()
+{
+    for (int i = 0; i < positions.size(); i++)
+    {
+        update(i);
+        renderPosition();
+    }
+}
+
+void Icon::update(int positionIndex)
 {
     // move the icons to their respective nodes
-    for (int i = 0; i < 4 /*size of arrays*/; i++)
-        verts[i] = defaultVerts[i] + position;
+    if (positions.size() < 1)
+        for (int i = 0; i < 4 /*size of arrays*/; i++)
+            verts[i] = defaultVerts[i];
+    else
+        for (int i = 0; i < 4 /*size of arrays*/; i++)
+            verts[i] = defaultVerts[i] + positions[positionIndex];
 
     // each icon only has 2 triangles and 4 uv's. 
     // the uv's never change so dont update them
@@ -124,5 +135,5 @@ void Icon::loadImages()
 	if (error)
 		std::cout << "error " << error << ":" << lodepng_error_text(error) << std::endl;
 	//creating 2D texture
-	textureID = texture.create2DTexture(image, imageWidth, imageHeight);
+	textureID = texture.generateTexture(image, imageWidth, imageHeight);
 }
