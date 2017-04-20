@@ -282,9 +282,9 @@ void mouseMotion(GLFWwindow* window, double x, double y)
     // scale, rotation, movement applications
     if (scale)
     {
-            objectVec[selected1]->scale((y - mouse_old_y) * SCREEN_CONTROL_SCALE);
+            objectVec[selected1]->scale(-(y - mouse_old_y) * SCREEN_CONTROL_SCALE);
             if (selected2 != -1)
-                objectVec[selected2]->scale((y - mouse_old_y) * SCREEN_CONTROL_SCALE);
+                objectVec[selected2]->scale(-(y - mouse_old_y) * SCREEN_CONTROL_SCALE);
     }
     else if (alterX)
     {

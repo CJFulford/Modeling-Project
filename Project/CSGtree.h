@@ -16,18 +16,18 @@ public:
 	std::vector<Icon> icons;
 	std::vector<Icon> tempIcons;
 
-	GLuint vertexBuffer;
-	GLuint colourBuffer;
-	GLuint vertexArray;
-	GLuint program;
 
 	void render();
-	void update();
-	void constructInfo(Object *obj, int level);
-	void makeVerts();
+    void constructInfo(Object *obj, int level);
 
 private:
 	void generateBuffer();
+    void update();
+    void makeVerts();
+    GLuint vertexBuffer;
+    GLuint colourBuffer;
+    GLuint vertexArray;
+    GLuint program;
 
 };
 

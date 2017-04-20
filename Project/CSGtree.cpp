@@ -78,6 +78,7 @@ void CSGtree::update()
 void CSGtree::constructInfo(Object *obj, int level)		
 {
 	Object *temp;
+
 	temp = dynamic_cast<Sphere*>(obj);
 	if (temp != NULL) // then it is a sphere
 	{
@@ -153,6 +154,8 @@ void CSGtree::constructInfo(Object *obj, int level)
 		tempcon.loadImages();
 		tempIcons.push_back(tempcon);
 	}	
+
+    update();
 }
 
 void CSGtree::makeVerts()

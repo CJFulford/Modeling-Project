@@ -133,7 +133,6 @@ int main(int argc, char *argv[])
             }
             else
 			    csg.constructInfo(objectVec[selected1], 1);
-			csg.update();
 		}
 			
 		
