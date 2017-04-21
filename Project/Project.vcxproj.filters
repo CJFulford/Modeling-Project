@@ -106,7 +106,5 @@
     <None Include="TList.vert">
       <Filter>Source Files\shaders</Filter>
     </None>
-    <None Include="ClassDiagram.cd" />
-    <None Include="ClassDiagram1.cd" />
   </ItemGroup>
 </Project>

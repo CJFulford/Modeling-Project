@@ -410,6 +410,43 @@ void scrollCallback(GLFWwindow* window, double xoffset, double yoffset)
 }
 
 // %%%%%%%%%%%%%%% window creation
+void printControls()
+{
+    std::cout <<
+        "1	create a sphere\n" <<
+        "2	create a cube\n" <<
+        "3	create a torus\n" <<
+        "4 	create a cylinder\n" <<
+        "U	perform the union operation on the 2 selected objects\n" <<
+        "I	perform the intersection operation on the 2 selected objects\n" <<
+        "D	perform the difference operation on the 2 selected objects*\n" <<
+        "B	break the selected boolean object into its 2 children objects*\n" <<
+        "DEL	delete the selected object\n" <<
+        "G	enable object movement\n" <<
+        "R	enable object rotation**\n" <<
+        "S	enable object scaling**\n" <<
+        "Hold X enable X-axis for movement/rotation***\n" <<
+        "Hold Y enable Y-axis for movement/rotation***\n" <<
+        "Hold Z enable Z-axis for movement/rotation***\n" <<
+        "Mouse Controls\n" <<
+        "\thold and drag the left mouse button to swivel the camera around the origin of the scene. movement, rotation, and scaling are disabled when this feature is used\n" <<
+        "\tclick the right mouse button to select the object that the cursor is hovering over\n" <<
+        "\twhen movement is enabled\n" <<
+        "\t\tWhile holding X, move the mouse left and right to move the object along the X axis\n" <<
+        "\t\tWhile holding Ys, move the mouse up and down and right to move the object along the Y axis\n" <<
+        "\t\tWhile holding Z, move the mouse up and down to move the object along the Z axis\n" <<
+        "\twhen Rotation is enabled\n" <<
+        "\t\tWhile holding X, move the mouse left and right to rotate the object along the X axis\n" <<
+        "\t\tWhile holding Ys, move the mouse up and down to rotate the object along the Y axis\n" <<
+        "\t\tWhile holding Z, move the mouse up and down to rotate the object along the Z axis\n" <<
+        "\twhen scaling is enabled move the mouse up and down respectively to increase and decrease the scaling of the object****\n" <<
+        "\n" <<
+        "*  	only a single object can be selected for this operation to work\n" <<
+        "** 	only a single atomic object (Sphere, Cube, Torus, or Cylinder) can be selected for these functions to work\n" <<
+        "***	holding X overrides holding Y which overrides holding Z\n" <<
+        "****	scaling is currently uniform across an object. However, we have found that with enough */\n" << 
+    std::endl;
+}
 GLFWwindow* generateWindow()
 {
 	if (!glfwInit()) 
@@ -423,7 +460,7 @@ GLFWwindow* generateWindow()
 	glfwWindowHint(GLFW_SAMPLES, 16);
 
 	// attempt to create a window with an OpenGL 4.4 core profile context
-	GLFWwindow *window = glfwCreateWindow(WHOLE_WIDTH, WHOLE_HEIGHT, "Render Window", 0, 0);
+	GLFWwindow *window = glfwCreateWindow(WHOLE_WIDTH, WHOLE_HEIGHT, "CSG Visualizer - Cody Fulford, Conlan Hanwell, and Brendan Petras", 0, 0);
 	if (!window) 
     {
 		std::cout << "Program failed to create GLFW window, TERMINATING" << std::endl;
@@ -440,6 +477,8 @@ GLFWwindow* generateWindow()
     glfwMakeContextCurrent(window);
 
 	objectVec.push_back(new RayCylinder(new Ray(DEF_CAM_POS, normalize(ZERO_VECTOR - DEF_CAM_POS))));
+
+    printControls();
 
     return window;
 }
