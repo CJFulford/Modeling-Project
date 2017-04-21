@@ -10,7 +10,7 @@ vec3 Blinn_Phong(Ray *ray, float scalar, glm::vec3 normal, Object *object)
     #define SELECTED_BRIGHTEN_AMOUNT 1.5f
     vec3 intersect = ray->applyScalar(scalar),
         viewRay = normalize(ray->origin - intersect),
-        lightRay = normalize(LIGHT_POS - intersect),
+        lightRay = normalize(ray->origin - intersect),
         halfRay = normalize((viewRay + lightRay)),
         col = object->colour * ((object->selected) ? SELECTED_BRIGHTEN_AMOUNT : 1.f);
 

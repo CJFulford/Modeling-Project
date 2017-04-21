@@ -112,13 +112,7 @@ int main(int argc, char *argv[])
 		if (selected1 != -1)
 		{
             if (selected2 != -1)
-            {
-                // if we have 2 objects selectedc, we want to display their potential CSG tree, so create a dummy tree to display
-                Object *tempObj = new Union(objectVec[selected1], objectVec[selected2]);
-                csg.constructInfo(tempObj, 1/*base level of tree*/);
-                // delete dummy tree to prevent memory leak
-                delete tempObj;
-            }
+                csg.constructInfo(objectVec[selected1], objectVec[selected2], 1/*base level of tree*/);
             else
 			    csg.constructInfo(objectVec[selected1], 1/*base level of tree*/);
             csg.update();

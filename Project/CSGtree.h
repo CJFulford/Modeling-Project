@@ -8,6 +8,7 @@ class CSGtree
 public:
 	CSGtree();
 	void render();
+    void constructInfo(Object * obj1, Object * obj2, int level);
     void constructInfo(Object *obj, int level);
     void update();
 

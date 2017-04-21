@@ -73,7 +73,8 @@ void CSGtree::render()
 	//render the icon s
 	for (int i = 0; i < icons.size(); i++)
 	{
-		icons[i]->render();
+        if (icons[i] != NULL)
+		    icons[i]->render();
 	}
 	
 	glBindVertexArray(0);
@@ -83,8 +84,9 @@ void CSGtree::render()
     info.clear();
     verts.clear();
     colours.clear();
-    for (Icon *icon : icons)
-        icon->positions.clear();
+    for (int i = 0; i < icons.size(); i++)
+        if (icons[i] != NULL)
+            icons[i]->positions.clear();
     icons.clear();
 }
 
@@ -94,7 +96,8 @@ void CSGtree::update()
 
     // tell the icons how to line up with the nodes of the tree
 	for (int i = 0; i < icons.size(); i++)
-		icons[i]->positions.push_back(verts[i]);
+        if (icons[i] != NULL)
+		    icons[i]->positions.push_back(verts[i]);
 
     // since the size of the vertex and colour buffer can increase, we need to recreate the buffer. 
     glDeleteBuffers(1, &vertexBuffer);
@@ -117,7 +120,15 @@ void CSGtree::update()
 	glBindVertexArray(0);
 }
 
-void CSGtree::constructInfo(Object *obj, int level)		
+void CSGtree::constructInfo(Object *obj1, Object *obj2, int level)
+{
+    info.push_back(vec2(level, 0));
+    colours.push_back((obj1->colour + obj2->colour) / 2.f);
+    icons.push_back(NULL);
+    constructInfo(obj1, level + 1);
+    constructInfo(obj2, level + 1);
+}
+void CSGtree::constructInfo(Object *obj, int level)
 {
     switch (obj->objectID)
     {
